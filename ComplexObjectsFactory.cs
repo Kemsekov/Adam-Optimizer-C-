@@ -32,7 +32,7 @@ public class ComplexObjectsFactory
     }
     private void ThrowIfOutOfRange()
     {
-        if(CurrentPosition>=Data.Length)
-            throw new Exception("In ComplexObjectsFactory you took too much objects, so much that there is no space left in underlying IDataAccess");
+        if(CurrentPosition>Data.Length)
+            throw new Exception($"In ComplexObjectsFactory you took too much objects.\n So much that there is no space left in underlying IDataAccess.\n {CurrentPosition}>{Data.Length}");
     }
 }
