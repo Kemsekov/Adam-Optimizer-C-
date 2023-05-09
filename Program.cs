@@ -8,7 +8,7 @@ var func5 = (double a, double b,double c)=>Math.Abs(Math.Tan(a*b+c)-Math.Sin(b*c
 var func6 = (double a, double b,double c)=>Math.Abs(Math.Pow(a*a,b)-c*Math.Exp(a)*Math.Log(c*c));
 
 //choose function to find it's minima
-var func = func4;
+var func = func3;
 
 var functionToFeed = (double[] x)=>func(x[0],x[1],x[2]);
 

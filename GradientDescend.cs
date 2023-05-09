@@ -28,7 +28,7 @@ public class GradientDescend
             Variables[i] += Epsilon;
             var after = Evaluate(Variables);
             Variables[i] -= Epsilon;
-            gradient[i] = after / currentEvaluation;
+            gradient[i] = (after - currentEvaluation)/Epsilon;
         }
     }
     void ComputeChangeMine(double[] change, double learningRate, double currentEvaluation){
