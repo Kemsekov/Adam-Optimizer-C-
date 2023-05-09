@@ -1,0 +1,1 @@
+global using MathNet.Numerics.LinearAlgebra.Double;

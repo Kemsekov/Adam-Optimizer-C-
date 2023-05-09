@@ -45,7 +45,7 @@ namespace AdamOptimizer
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return ((IEnumerable)this).GetEnumerator();
+            return GetEnumerator();
         }
     }
 }
