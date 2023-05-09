@@ -1,14 +1,15 @@
 ﻿using AdamOptimizer;
-
-var func1 = (double a, double b,double c)=>Math.Abs(a-b*c+Math.Exp(a*b*c)-Math.Sin(a+b+c));
-var func2 = (double a, double b,double c)=>Math.Abs(a-b*c);
-var func3 = (double a, double b,double c)=>Math.Abs(a*b*c-a*Math.Sin(c)+Math.Cos(a*b)+c);
-var func4 = (double a, double b,double c)=>Math.Abs(a*Math.Cosh(a*b+Math.Sin(c)));
-var func5 = (double a, double b,double c)=>Math.Abs(Math.Tan(a*b+c)-Math.Sin(b*c+a));
-var func6 = (double a, double b,double c)=>Math.Abs(Math.Pow(a*a,b)-c*Math.Exp(a)*Math.Log(c*c));
+Func<double,double,double,double>[] functions={
+     (a,b,c)=>a-b*c+Math.Exp(a*b*c)-Math.Sin(a+b+c),
+     (a,b,c)=>a-b*c,
+     (a,b,c)=>a*b*c-a*Math.Sin(c)+Math.Cos(a*b)+c,
+     (a,b,c)=>a*Math.Cosh(a*b+Math.Sin(c)),
+     (a,b,c)=>Math.Tan(a*b+c)-Math.Sin(b*c+a),
+     (a,b,c)=>Math.Pow(a*a,b)-c*Math.Exp(a)*Math.Log(c*c)
+};
 
 //choose function to find it's minima
-var func = func3;
+var func = (double a, double b, double c)=>Math.Abs(functions.Sum(x=>x(a,b,c)));
 
 var functionToFeed = (double[] x)=>func(x[0],x[1],x[2]);
 

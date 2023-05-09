@@ -10,7 +10,7 @@ public class GradientDescend
     public int Dimensions { get; }
     public double Beta1=0.9;
     public double Beta2=0.99;
-    public double Epsilon=1e-8;
+    public double Epsilon=1e-6;
     public GradientDescend(double[] variables, Func<double[], double> function)
     {
         Function = function;
