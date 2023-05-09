@@ -22,7 +22,6 @@ public class GradientDescent
         return Function(variables);
     }
     void ComputeGradient(double[] gradient,double currentEvaluation){
-        if (currentEvaluation == 0) return;
         for (int i = 0; i < Dimensions; i++)
         {
             Variables[i] += Epsilon;

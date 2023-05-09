@@ -18,8 +18,8 @@ var variables1 = new double[]{Random.Shared.NextDouble(),Random.Shared.NextDoubl
 var variables2 =new double[3];
 variables1.CopyTo(variables2,0);
 
-var gradientDescend1 = new GradientDescend(variables1,functionToFeed);
-var gradientDescend2 = new GradientDescend(variables2,functionToFeed);
+var gradientDescent1 = new GradientDescent(variables1,functionToFeed);
+var gradientDescent2 = new GradientDescent(variables2,functionToFeed);
 
 var before = func(variables1[0],variables1[1],variables1[2]);
 
@@ -27,8 +27,8 @@ var maxIterations = 40;
 var learningRate = 0.1;
 var theta = 0.0001;
 
-System.Console.WriteLine(gradientDescend1.AdamDescent(maxIterations,learningRate,theta)+" Adam iterations");
-System.Console.WriteLine(gradientDescend2.MineDescent(maxIterations,learningRate,theta)+" Mine iterations");
+System.Console.WriteLine(gradientDescent1.AdamDescent(maxIterations,learningRate,theta)+" Adam iterations");
+System.Console.WriteLine(gradientDescent2.MineDescent(maxIterations,learningRate,theta)+" Mine iterations");
 var after1 = functionToFeed(variables1);
 var after2 = functionToFeed(variables2);
 
