@@ -1,9 +1,9 @@
 namespace AdamOptimizer;
 
 /// <summary>
-/// Contains gradient descend implementations.
+/// Contains gradient descent implementations.
 /// </summary>
-public class GradientDescend
+public class GradientDescent
 {
     public Func<double[], double> Function { get; }
     public double[] Variables { get; }
@@ -11,7 +11,7 @@ public class GradientDescend
     public double Beta1=0.9;
     public double Beta2=0.99;
     public double Epsilon=1e-6;
-    public GradientDescend(double[] variables, Func<double[], double> function)
+    public GradientDescent(double[] variables, Func<double[], double> function)
     {
         Function = function;
         Variables = variables;
