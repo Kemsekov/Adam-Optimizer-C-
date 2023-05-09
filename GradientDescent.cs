@@ -17,6 +17,12 @@ public class GradientDescent
         Variables = variables;
         Dimensions = variables.Length;
     }
+    public GradientDescent(double[] variables, Func<double[], double> function)
+    {
+        Function = x=>function((ArrayDataAccess<double>)x);
+        Variables = new ArrayDataAccess<double>(variables);
+        Dimensions = variables.Length;
+    }
     double Evaluate(IDataAccess<double> variables)
     {
         return Function(variables);
