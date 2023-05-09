@@ -17,25 +17,18 @@ public class GradientDescent
         Variables = variables;
         Dimensions = variables.Length;
     }
-    public GradientDescent(double[] variables, Func<double[], double> function)
-    {
-        Function = x=>function((ArrayDataAccess<double>)x);
-        Variables = new ArrayDataAccess<double>(variables);
-        Dimensions = variables.Length;
-    }
     double Evaluate(IDataAccess<double> variables)
     {
         return Function(variables);
     }
     void ComputeGradient(IDataAccess<double> gradient, double currentEvaluation)
     {
-        for (int i = 0; i < Dimensions; i++)
-        {
-            Variables[i] += Epsilon;
-            var after = Evaluate(Variables);
-            Variables[i] -= Epsilon;
+        Parallel.For(0,Dimensions,i=>{
+            var gradientDataAccess = new GradientDataAccess<double>(Variables,0,0);
+            gradientDataAccess.Reset(i,Variables[i]+Epsilon);
+            var after = Evaluate(gradientDataAccess);
             gradient[i] = (after - currentEvaluation) / Epsilon;
-        }
+        });
     }
     void ComputeChangeMine(IDataAccess<double> change, double learningRate, double currentEvaluation)
     {

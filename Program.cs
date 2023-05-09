@@ -12,11 +12,11 @@ Func<double, double, double, double>[] functions ={
 // var func = (double a, double b, double c)=>Math.Abs(functions.Sum(x=>x(a,b,c)));
 var func = (double a, double b, double c) => Math.Abs(functions[5](a, b, c));
 
-var functionToFeed = (double[] x) => func(x[0], x[1], x[2]);
+var functionToFeed = (IDataAccess<double> x) => func(x[0], x[1], x[2]);
 
-var variables1 = new double[] { Random.Shared.NextDouble(), Random.Shared.NextDouble(), Random.Shared.NextDouble() };
-var variables2 = new double[3];
-variables1.CopyTo(variables2, 0);
+ArrayDataAccess<double> variables1 = new double[] { Random.Shared.NextDouble(), Random.Shared.NextDouble(), Random.Shared.NextDouble() };
+ArrayDataAccess<double> variables2 = new double[3];
+variables1.Array.CopyTo(variables2, 0);
 
 var gradientDescent1 = new GradientDescent(variables1, functionToFeed);
 var gradientDescent2 = new GradientDescent(variables2, functionToFeed);
