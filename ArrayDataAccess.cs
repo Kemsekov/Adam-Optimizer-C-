@@ -26,5 +26,7 @@ namespace AdamOptimizer
             foreach (var v in Array) yield return v;
         }
         IEnumerator IEnumerable.GetEnumerator() => Array.GetEnumerator();
+        public static implicit operator T[](ArrayDataAccess<T> t)=>t.Array;
+        public static implicit operator ArrayDataAccess<T>(T[] t)=>new(t);
     }
 }

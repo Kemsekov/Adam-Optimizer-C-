@@ -9,8 +9,8 @@ namespace AdamOptimizer
     {
         public static void Measure(Func<IDataAccess<double>, double> func)
         {
-            ArrayDataAccess<double> variables1 = new(new double[] { Random.Shared.NextDouble(), Random.Shared.NextDouble(), Random.Shared.NextDouble() });
-            ArrayDataAccess<double> variables2 = new(3);
+            ArrayDataAccess<double> variables1 = new double[] { Random.Shared.NextDouble(), Random.Shared.NextDouble(), Random.Shared.NextDouble() };
+            ArrayDataAccess<double> variables2 = new double[3];
             variables1.Array.CopyTo(variables2.Array, 0);
 
             var gradientDescent1 = new GradientDescent(variables1, func);
@@ -25,8 +25,8 @@ namespace AdamOptimizer
             int mineCount = 0;
             for (int i = 0; i < 1000; i++)
             {
-                variables1 = new(new double[] { Random.Shared.NextDouble(), Random.Shared.NextDouble(), Random.Shared.NextDouble() });
-                variables2 = new(new double[3]);
+                variables1 = new double[] { Random.Shared.NextDouble(), Random.Shared.NextDouble(), Random.Shared.NextDouble() };
+                variables2 = new double[3];
                 variables1.Array.CopyTo(variables2.Array, 0);
 
                 before = func(variables1);

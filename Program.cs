@@ -10,13 +10,12 @@ Func<double, double, double, double>[] functions ={
 
 //choose function to find it's minima
 // var func = (double a, double b, double c)=>Math.Abs(functions.Sum(x=>x(a,b,c)));
-var t = 0.001;
-var func = (double a, double b, double c) => Math.Abs(functions[5](a + t, b + t, c + t) - functions[5](a, b, c)) / t;
+var func = (double a, double b, double c) => Math.Abs(functions[5](a, b, c));
 
 var functionToFeed = (IDataAccess<double> x) => func(x[0], x[1], x[2]);
 
-ArrayDataAccess<double> variables1 = new(new double[] { Random.Shared.NextDouble(), Random.Shared.NextDouble(), Random.Shared.NextDouble() });
-ArrayDataAccess<double> variables2 = new(3);
+ArrayDataAccess<double> variables1 = new double[] { Random.Shared.NextDouble(), Random.Shared.NextDouble(), Random.Shared.NextDouble() };
+ArrayDataAccess<double> variables2 = new double[3];
 variables1.Array.CopyTo(variables2.Array, 0);
 
 var gradientDescent1 = new GradientDescent(variables1, functionToFeed);
