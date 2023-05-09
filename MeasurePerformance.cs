@@ -7,16 +7,16 @@ namespace AdamOptimizer
 {
     public static class MeasurePerformance
     {
-        public static void Measure(Func<double[],double> func)
+        public static void Measure(Func<IDataAccess<double>, double> func)
         {
-            var variables1 = new double[] { Random.Shared.NextDouble(), Random.Shared.NextDouble(), Random.Shared.NextDouble() };
-            var variables2 = new double[3];
-            variables1.CopyTo(variables2, 0);
+            ArrayDataAccess<double> variables1 = new(new double[] { Random.Shared.NextDouble(), Random.Shared.NextDouble(), Random.Shared.NextDouble() });
+            ArrayDataAccess<double> variables2 = new(3);
+            variables1.Array.CopyTo(variables2.Array, 0);
 
-            var gradientDescend1 = new GradientDescend(variables1, func);
-            var gradientDescend2 = new GradientDescend(variables2, func);
+            var gradientDescent1 = new GradientDescent(variables1, func);
+            var gradientDescent2 = new GradientDescent(variables2, func);
 
-            var before = func(variables1);
+            double before;
 
             var maxIterations = 40;
             var learningRate = 0.05;
@@ -25,15 +25,15 @@ namespace AdamOptimizer
             int mineCount = 0;
             for (int i = 0; i < 1000; i++)
             {
-                variables1 = new double[] { Random.Shared.NextDouble(), Random.Shared.NextDouble(), Random.Shared.NextDouble() };
-                variables2 = new double[3];
-                variables1.CopyTo(variables2,0);
+                variables1 = new(new double[] { Random.Shared.NextDouble(), Random.Shared.NextDouble(), Random.Shared.NextDouble() });
+                variables2 = new(new double[3]);
+                variables1.Array.CopyTo(variables2.Array, 0);
 
                 before = func(variables1);
-                gradientDescend1 = new GradientDescend(variables1, func);
-                gradientDescend2 = new GradientDescend(variables2, func);
-                gradientDescend1.AdamDescent(maxIterations, learningRate, theta);
-                gradientDescend2.MineDescent(maxIterations, learningRate, theta);
+                gradientDescent1 = new GradientDescent(variables1, func);
+                gradientDescent2 = new GradientDescent(variables2, func);
+                gradientDescent1.AdamDescent(maxIterations, learningRate, theta);
+                gradientDescent2.MineDescent(maxIterations, learningRate, theta);
                 var adam = func(variables1);
                 var mine = func(variables2);
                 if (adam <= mine)

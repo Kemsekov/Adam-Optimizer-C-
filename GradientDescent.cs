@@ -5,42 +5,45 @@ namespace AdamOptimizer;
 /// </summary>
 public class GradientDescent
 {
-    public Func<double[], double> Function { get; }
-    public double[] Variables { get; }
+    public Func<IDataAccess<double>, double> Function { get; }
+    public IDataAccess<double> Variables { get; }
     public int Dimensions { get; }
-    public double Beta1=0.9;
-    public double Beta2=0.99;
-    public double Epsilon=1e-6;
-    public GradientDescent(double[] variables, Func<double[], double> function)
+    public double Beta1 = 0.9;
+    public double Beta2 = 0.99;
+    public double Epsilon = 1e-6;
+    public GradientDescent(IDataAccess<double> variables, Func<IDataAccess<double>, double> function)
     {
         Function = function;
         Variables = variables;
         Dimensions = variables.Length;
     }
-    double Evaluate(double[] variables)
+    double Evaluate(IDataAccess<double> variables)
     {
         return Function(variables);
     }
-    void ComputeGradient(double[] gradient,double currentEvaluation){
+    void ComputeGradient(IDataAccess<double> gradient, double currentEvaluation)
+    {
         for (int i = 0; i < Dimensions; i++)
         {
             Variables[i] += Epsilon;
             var after = Evaluate(Variables);
             Variables[i] -= Epsilon;
-            gradient[i] = (after - currentEvaluation)/Epsilon;
+            gradient[i] = (after - currentEvaluation) / Epsilon;
         }
     }
-    void ComputeChangeMine(double[] change, double learningRate, double currentEvaluation){
-        ComputeGradient(change,currentEvaluation);
-        var length = Math.Sqrt(change.Sum(x=>x*x));
-        var coefficient = learningRate/length;
-        for(int i = 0;i<Dimensions;i++){
-            change[i]*=coefficient;
-        }
-    }
-    void ComputeChangeAdam(double[] change, double learningRate,double currentEvaluation)
+    void ComputeChangeMine(IDataAccess<double> change, double learningRate, double currentEvaluation)
     {
-        ComputeGradient(change,currentEvaluation);
+        ComputeGradient(change, currentEvaluation);
+        var length = Math.Sqrt(change.Sum(x => x * x));
+        var coefficient = learningRate / length;
+        for (int i = 0; i < Dimensions; i++)
+        {
+            change[i] *= coefficient;
+        }
+    }
+    void ComputeChangeAdam(IDataAccess<double> change, double learningRate, double currentEvaluation)
+    {
+        ComputeGradient(change, currentEvaluation);
         var gradient = change;
         int t = 0; // The timestep counter
 
@@ -67,14 +70,14 @@ public class GradientDescent
 
             // Compute the bias-corrected second moment estimate
             double v_hat = secondMomentum / (1 - Math.Pow(Beta2, t));
-            
+
             previousFirstMomentum = firstMomentum;
             previousSecondMomentum = secondMomentum;
             // Update the parameters    
             change[i] = learningRate * m_hat / (Math.Sqrt(v_hat) + Epsilon);
         }
     }
-    void Step(double[] change)
+    void Step(IDataAccess<double> change)
     {
         for (var i = 0; i < Dimensions; i++)
         {
@@ -83,7 +86,7 @@ public class GradientDescent
             Variables[i] -= c;
         }
     }
-    void UndoStep(double[] change)
+    void UndoStep(IDataAccess<double> change)
     {
         for (var i = 0; i < Dimensions; i++)
         {
@@ -92,14 +95,15 @@ public class GradientDescent
             Variables[i] += c;
         }
     }
-    public int MineDescent(int maxIterations, double learningRate = 1, double theta = 0.001){
-        var change = new double[Dimensions];
+    public int MineDescent(int maxIterations, double learningRate = 1, double theta = 0.001)
+    {
+        var change = new ArrayDataAccess<double>(Dimensions);
         var iterations = 0;
         while (maxIterations-- > 0)
         {
             iterations++;
             var beforeStep = Evaluate(Variables);
-            ComputeChangeMine(change, learningRate,beforeStep);
+            ComputeChangeMine(change, learningRate, beforeStep);
             Step(change);
             var afterStep = Evaluate(Variables);
             var diff = Math.Abs(afterStep - beforeStep);
@@ -107,20 +111,20 @@ public class GradientDescent
             if (afterStep >= beforeStep)
             {
                 UndoStep(change);
-                learningRate*=1-Beta1;
+                learningRate *= 1 - Beta1;
             }
         }
         return iterations;
     }
     public int AdamDescent(int maxIterations, double learningRate = 1, double theta = 0.001)
     {
-        var change = new double[Dimensions];
+        var change = new ArrayDataAccess<double>(Dimensions);
         var iterations = 0;
         while (maxIterations-- > 0)
         {
             iterations++;
             var beforeStep = Evaluate(Variables);
-            ComputeChangeAdam(change, learningRate,beforeStep);
+            ComputeChangeAdam(change, learningRate, beforeStep);
             Step(change);
             var afterStep = Evaluate(Variables);
             var diff = Math.Abs(afterStep - beforeStep);
@@ -128,7 +132,7 @@ public class GradientDescent
             if (afterStep >= beforeStep)
             {
                 UndoStep(change);
-                learningRate*=1-Beta1;
+                learningRate *= 1 - Beta1;
             }
         }
         return iterations;
