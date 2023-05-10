@@ -17,8 +17,11 @@ namespace AdamOptimizer
             };
         public static void FindMatrixInverse()
         {
-            var inverseMatrix = new DenseMatrix(2, 2);
-            var expected = DenseMatrix.CreateIdentity(2);
+            var mat = new DenseMatrix(2, 2);
+            mat[0, 0] = 1;
+            mat[0, 1] = 2;
+            mat[1, 0] = 3;
+            mat[1, 1] = 4;
             var result = TryToFindBestSolution(x =>
             {
                 var factory = new ComplexObjectsFactory(x);
@@ -39,53 +42,35 @@ namespace AdamOptimizer
         }
         public static IDataAccess<double> TryToFindBestSolution(Func<IDataAccess<double>, double> func, int variablesLength)
         {
-            ArrayDataAccess<double> variables1 = new double[variablesLength];
-            ArrayDataAccess<double> variables2 = new double[variablesLength];
+            IDataAccess<double> variables2 = new ArrayDataAccess<double>(variablesLength);
             for (int i = 0; i < variablesLength; i++)
-            {
-                variables1[i] = Random.Shared.NextDouble() * 4 - 2;
-                variables2[i] = variables1[i];
-            }
+                variables2[i] = Random.Shared.NextDouble() * 4 - 2;
 
-            ArrayDataAccess<double> bestAdam = variables1;
-            ArrayDataAccess<double> bestMine = variables2;
+            IDataAccess<double> bestMine = new ArrayDataAccess<double>(variables2.ToArray());
 
             var maxIterations = 50;
             var learningRate = 0.1;
             var theta = 0.0001;
-            var before = func(variables1);
+            var before = func(variables2);
             Console.WriteLine("Starts at " + before);
 
             for (int k = 0; k < 100; k++)
             {
-                variables1 = new double[variablesLength];
-                variables2 = new double[variablesLength];
-                for (int i = 0; i < variablesLength; i++) variables1[i] = Random.Shared.NextDouble() * 4 - 2;
-                variables1.Array.CopyTo(variables2, 0);
-
-                var gradientDescent1 = new GradientDescent(variables1, func);
+                for (int i = 0; i < variablesLength; i++)
+                    variables2[i] = Random.Shared.NextDouble() * 4 - 2;
+                
                 var gradientDescent2 = new GradientDescent(variables2, func);
-
-                gradientDescent1.AdamDescent(maxIterations, learningRate, theta);
                 gradientDescent2.MineDescent(maxIterations, learningRate, theta);
-
-                if (func(variables1) < func(bestAdam))
+                var currentScore = func(variables2);
+                var bestScore = func(bestMine);
+                if (currentScore < bestScore)
                 {
-                    bestAdam = variables1;
-                }
-                if (func(variables2) < func(bestMine))
-                {
-                    bestMine = variables2;
+                    bestMine = new ArrayDataAccess<double>(variables2.ToArray());
                 }
             }
-            var adamScore = func(bestAdam);
             var mineScore = func(bestMine);
-            Console.WriteLine("Adam " + adamScore);
             Console.WriteLine("Mine " + mineScore);
-            System.Console.WriteLine("Adam Point is [" + String.Join(' ', variables1.Select(x => x.ToString("0.000"))) + "]");
             System.Console.WriteLine("Mine Point is [" + String.Join(' ', variables2.Select(x => x.ToString("0.000"))) + "]");
-            if (adamScore < mineScore)
-                return bestAdam;
             return bestMine;
         }
         public static void PrintBothAdamAndMinePerformance(Func<IDataAccess<double>, double> func, int variablesLength)

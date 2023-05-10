@@ -1,3 +1,5 @@
+using RentedArraySharp;
+
 namespace AdamOptimizer;
 
 /// <summary>
@@ -96,7 +98,7 @@ public class GradientDescent
     }
     public int MineDescent(int maxIterations, double learningRate = 1, double theta = 0.001)
     {
-        var change = new ArrayDataAccess<double>(Dimensions);
+        using RentedArrayDataAccess<double> change = new(ArrayPoolStorage.RentArray<double>(Dimensions));
         var iterations = 0;
         while (maxIterations-- > 0)
         {
@@ -117,7 +119,7 @@ public class GradientDescent
     }
     public int AdamDescent(int maxIterations, double learningRate = 1, double theta = 0.001)
     {
-        var change = new ArrayDataAccess<double>(Dimensions);
+        using RentedArrayDataAccess<double> change = new(ArrayPoolStorage.RentArray<double>(Dimensions));
         var iterations = 0;
         while (maxIterations-- > 0)
         {
