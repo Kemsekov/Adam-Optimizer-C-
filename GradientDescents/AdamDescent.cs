@@ -2,6 +2,10 @@ namespace GradientDescentSharp.GradientDescents;
 
 public class AdamDescent : GradientDescentBase
 {
+    /// <summary>
+    /// Descent process can be logged here
+    /// </summary>
+    public ILogger? Logger;
     RentedArray<double> firstMomentum;
     RentedArray<double> secondMomentum;
     public double Beta1 = 0.9;
@@ -39,23 +43,32 @@ public class AdamDescent : GradientDescentBase
     }
     public override int Descent(int maxIterations)
     {
+        Logger?.LogLine("--------------Adam descent began");
         using RentedArrayDataAccess<double> change = new(ArrayPoolStorage.RentArray<double>(Dimensions));
         var iterations = 0;
         var descentRate = DescentRate;
+        var beforeStep = Evaluate(Variables);
         while (iterations++<maxIterations)
         {
-            var beforeStep = Evaluate(Variables);
             ComputeChangeAdam(change, descentRate, beforeStep,iterations);
             Step(change);
             var afterStep = Evaluate(Variables);
             var diff = Math.Abs(afterStep - beforeStep);
+            Logger?.LogLine($"Error is {afterStep}");
+            Logger?.LogLine($"Changed by {diff}");
             if (diff <= Theta) break;    
             if (afterStep >= beforeStep)
             {
+                Logger?.LogLine($"Undo step, decreasing descentRate.");
                 UndoStep(change);
                 descentRate *= 1 - Beta1;
             }
+            else{
+                beforeStep = afterStep;
+            }
+            Logger?.LogLine($"-------------");
         }
+        Logger?.LogLine($"--------------Adam done in {iterations} iterations");
         return iterations;
     }
 }

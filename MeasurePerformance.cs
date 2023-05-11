@@ -16,18 +16,19 @@ public static class MeasurePerformance
         mat[0, 1] = 2;
         mat[1, 0] = 3;
         mat[1, 1] = 4;
-        var configuration = new BestSolutionConfiguration(
-            variablesLength: 8
-        );
-        var result = TryToFindBestSolution(x =>
+        var errorFunction = (IDataAccess<double> x) =>
         {
             var factory = new ComplexObjectsFactory(x);
             var m1 = factory.TakeMatrix(2, 2);
             var m2 = factory.TakeMatrix(2, 2);
             var m3 = m1 * m2;
             return Math.Abs(m3[0, 0] - 1) + Math.Abs(m3[0, 1]) + Math.Abs(m3[1, 0]) + Math.Abs(m3[1, 1] - 1);
-        }, configuration);
-
+        };
+        var finder = new BestSolutionFinder(
+            variablesLength: 8,
+            data => new MineDescent(data,errorFunction)
+        );
+        var result = finder.TryToFindBestSolution(errorFunction);
         var factory = new ComplexObjectsFactory(result);
         var m1 = factory.TakeMatrix(2, 2);
         var m2 = factory.TakeMatrix(2, 2);
@@ -36,53 +37,6 @@ public static class MeasurePerformance
         Console.WriteLine(m2);
         Console.WriteLine("Their product is");
         Console.WriteLine(m3);
-    }
-    public record BestSolutionConfiguration(int variablesLength, int solutionsCount = 100, Action<IDataAccess<double>>? init = null, int descentIterations = 100, double descentRate = 0.1, double theta = 0.0001);
-    public static IDataAccess<double> TryToFindBestSolution(Func<IDataAccess<double>, double> func, BestSolutionConfiguration configuration)
-    {
-        IDataAccess<double> variables2 = new ArrayDataAccess<double>(configuration.variablesLength);
-        if (configuration.init is null)
-            for (int i = 0; i < configuration.variablesLength; i++)
-                variables2[i] = Random.Shared.NextDouble() * 4 - 2;
-        configuration.init?.Invoke(variables2);
-
-        ArrayDataAccess<double> bestMine = (variables2.ToArray());
-
-        var descentIterations = configuration.descentIterations;
-        var descentRate = configuration.descentRate;
-        var theta = configuration.theta;
-        var before = func(variables2);
-        Console.WriteLine("Starts at " + before);
-
-        for (int k = 0; k < configuration.solutionsCount; k++)
-        {
-            if (configuration.init is null)
-                for (int i = 0; i < configuration.variablesLength; i++)
-                    variables2[i] = Random.Shared.NextDouble() * 4 - 2;
-            configuration.init?.Invoke(variables2);
-
-            var mineDescent = new MineDescent(variables2, func)
-            {
-                DescentRate = descentRate,
-                Theta = theta
-            };
-
-            System.Console.WriteLine("Before " + func(variables2));
-
-            mineDescent.Descent(descentIterations);
-            var currentScore = func(variables2);
-            var bestScore = func(bestMine);
-            System.Console.WriteLine("After " + currentScore);
-            System.Console.WriteLine("-----------");
-            if (currentScore < bestScore)
-            {
-                bestMine = variables2.ToArray();
-            }
-        }
-        var mineScore = func(bestMine);
-        Console.WriteLine("Mine " + mineScore);
-        System.Console.WriteLine("Mine Point is [" + String.Join(' ', variables2.Select(x => x.ToString("0.000"))) + "]");
-        return bestMine;
     }
     public static void PrintBothAdamAndMinePerformance(Func<IDataAccess<double>, double> func, int variablesLength, Action<IDataAccess<double>>? init = null)
     {
@@ -99,24 +53,25 @@ public static class MeasurePerformance
 
         variables1.Array.CopyTo(variables2, 0);
         var maxIterations = 500;
-        var descentRate = 1;
+        var descentRate = 0.1;
         var theta = 0.0001;
-
+        var logger = new ConsoleLogger();
         var adamDescent = new AdamDescent(variables1, func)
         {
             Theta = theta,
-            DescentRate = descentRate
+            DescentRate = descentRate,
+            Logger = logger
         };
         var mineDescent = new MineDescent(variables2, func)
         {
             Theta = theta,
-            DescentRate = descentRate
+            DescentRate = descentRate,
+            Logger = logger
         };
 
         var before = func(variables1);
-
-        System.Console.WriteLine(adamDescent.Descent(maxIterations) + " Adam iterations");
-        System.Console.WriteLine(mineDescent.Descent(maxIterations) + " Mine iterations");
+        adamDescent.Descent(maxIterations);
+        mineDescent.Descent(maxIterations);
 
         var after1 = func(variables1);
         var after2 = func(variables2);
@@ -191,6 +146,7 @@ public static class MeasurePerformance
         System.Console.WriteLine("----------------------");
         return (adamCount, mineCount);
     }
+    
     record Model(CustomMatrix[] layers, IDataAccess<double> freeCoefficients);
     public static void TryingML()
     {
@@ -258,15 +214,12 @@ public static class MeasurePerformance
                 layer.MapInplace(x => x / elementsSum);
             }
         }
-        var configuration = new BestSolutionConfiguration(
-            variablesLength: 70,
-            solutionsCount: 0,
-            init: initWeights,
-            descentIterations: 100,
-            descentRate: 0.5,
-            theta: 0.001
+        var finder = new BestSolutionFinder(
+            variablesLength:70,
+            gradientDescentFactory: x=> new MineDescent(x,func){DescentRate=0.5,Theta=0.001},
+            init: initWeights
         );
-        var solution = TryToFindBestSolution(func, configuration);
+        var solution = finder.TryToFindBestSolution(func);
         System.Console.WriteLine("Running tests");
         var errorSum = 0.0;
         for (int i = 0; i < 20; i++)
