@@ -4,7 +4,7 @@ public class BestSolutionFinder
     /// <summary>
     /// In this logger will be passed information about solutions
     /// </summary>
-    ILogger? Logger;
+    public ILogger? Logger;
     /// <summary>
     /// Variables length of error function input
     /// </summary>
@@ -13,15 +13,15 @@ public class BestSolutionFinder
     /// <summary>
     /// How many solutions to build
     /// </summary>
-    int SolutionsCount = 100;
+    public int SolutionsCount = 100;
     /// <summary>
     /// Input parameters initialization function
     /// </summary>
-    Action<IDataAccess<double>>? Init = null;
+    public Action<IDataAccess<double>>? Init = null;
     /// <summary>
     /// How many descent iterations need to do on each solution
     /// </summary>
-    int DescentIterations = 100;
+    public int DescentIterations = 100;
     public BestSolutionFinder(int variablesLength, Func<IDataAccess<double>, IGradientDescent> gradientDescentFactory, Action<IDataAccess<double>>? init = null)
     {
         VariablesLength = variablesLength;
@@ -62,8 +62,8 @@ public class BestSolutionFinder
             }
         }
         var mineScore = func(bestMine);
-        Logger?.LogLine("Mine " + mineScore);
-        Logger?.LogLine("Mine Point is [" + string.Join(' ', variables.Select(x => x.ToString("0.000"))) + "]");
+        Logger?.LogLine("Error is " + mineScore);
+        Logger?.LogLine("Variables is [" + string.Join(' ', variables.Select(x => x.ToString("0.000"))) + "]");
         return bestMine;
     }
 }

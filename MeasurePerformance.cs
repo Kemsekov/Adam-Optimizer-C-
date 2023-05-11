@@ -11,11 +11,6 @@ public static class MeasurePerformance
             };
     public static void FindMatrixInverse()
     {
-        var mat = new DenseMatrix(2, 2);
-        mat[0, 0] = 1;
-        mat[0, 1] = 2;
-        mat[1, 0] = 3;
-        mat[1, 1] = 4;
         var errorFunction = (IDataAccess<double> x) =>
         {
             var factory = new ComplexObjectsFactory(x);
@@ -27,7 +22,11 @@ public static class MeasurePerformance
         var finder = new BestSolutionFinder(
             variablesLength: 8,
             data => new MineDescent(data,errorFunction)
-        );
+        ){
+            SolutionsCount = 100,
+            DescentIterations=50,
+            // Logger = new ConsoleLogger()
+        };
         var result = finder.TryToFindBestSolution(errorFunction);
         var factory = new ComplexObjectsFactory(result);
         var m1 = factory.TakeMatrix(2, 2);
