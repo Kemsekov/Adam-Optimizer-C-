@@ -11,26 +11,32 @@ public static class MeasurePerformance
             };
     public static void FindMatrixInverse()
     {
+        var m2 = DenseMatrix.Create(2,2,(x,y)=>Random.Shared.NextDouble()*2-1);
         var errorFunction = (IDataAccess<double> x) =>
         {
             var factory = new ComplexObjectsFactory(x);
             var m1 = factory.TakeMatrix(2, 2);
-            var m2 = factory.TakeMatrix(2, 2);
             var m3 = m1 * m2;
-            return Math.Abs(m3[0, 0] - 1) + Math.Abs(m3[0, 1]) + Math.Abs(m3[1, 0]) + Math.Abs(m3[1, 1] - 1);
+            return Math.Pow(m3[0, 0] - 1,2) + Math.Pow(m3[0, 1],2) + Math.Pow(m3[1, 0],2) + Math.Pow(m3[1, 1] - 1,2);
         };
+
+        var init = (IDataAccess<double> x)=>{
+            for(int i = 0;i<x.Length;i++)
+                x[i] = Random.Shared.NextDouble();
+        };
+        
         var finder = new BestSolutionFinder(
-            variablesLength: 8,
-            data => new MineDescent(data,errorFunction)
+            variablesLength: 4,
+            data => new MineDescent(data,errorFunction){Theta=0.000001,DescentRate=1}
         ){
-            SolutionsCount = 100,
-            DescentIterations=50,
-            // Logger = new ConsoleLogger()
+            SolutionsCount = 5,
+            DescentIterations=20,
+            Logger = new ConsoleLogger(),
+            Init = init
         };
         var result = finder.TryToFindBestSolution(errorFunction);
         var factory = new ComplexObjectsFactory(result);
         var m1 = factory.TakeMatrix(2, 2);
-        var m2 = factory.TakeMatrix(2, 2);
         var m3 = m1 * m2;
         Console.WriteLine(m1);
         Console.WriteLine(m2);

@@ -25,7 +25,17 @@ public abstract class GradientDescentBase : IGradientDescent
     /// we need to step descending. The lower this value, the more precise descending will hit local minima.
     /// </summary>
     public double Theta = 0.0001;
-
+    /// <summary>
+    /// Create new instance of gradient descent
+    /// </summary>
+    /// <param name="variables">Variables that will be adjusted</param>
+    /// <param name="function">
+    /// Error function.<br/>
+    /// Good rule of thumb: return squared error for each variable, so
+    /// if you have for example 2 variables, then return it like this<br/>
+    /// error = (x[0]-x0Error)^2+(x[1]-x1Error)^2<br/>
+    /// And decide wether to take square of error or not by your own.
+    /// </param>
     public GradientDescentBase(IDataAccess<double> variables, Func<IDataAccess<double>, double> function)
     {
         Function = function;

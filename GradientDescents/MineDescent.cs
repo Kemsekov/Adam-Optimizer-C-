@@ -13,6 +13,10 @@ public class MineDescent : GradientDescentBase
     {
         ComputeGradient(change, currentEvaluation);
         var length = Math.Sqrt(change.Sum(x => x * x));
+        if(length==0){
+            Logger?.LogLine("Found exact minima!");
+            return;
+        }
         var coefficient = learningRate / length;
         for (int i = 0; i < Dimensions; i++)
         {
@@ -36,7 +40,7 @@ public class MineDescent : GradientDescentBase
             Logger?.LogLine($"Error is {afterStep}");
             Logger?.LogLine($"Changed by {diff}");
             if (diff <= Theta) break;
-            if (afterStep >= beforeStep)
+            if (afterStep >= beforeStep || double.IsNaN(afterStep))
             {
                 Logger?.LogLine($"Undo step. Decreasing descentRate.");
                 UndoStep(change);

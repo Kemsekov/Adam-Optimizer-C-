@@ -43,12 +43,8 @@ public class BestSolutionFinder
         ArrayDataAccess<double> bestMine = variables.ToArray();
 
         var before = func(variables);
-        Logger?.LogLine("Starts at " + before);
-
         for (int k = 0; k < SolutionsCount; k++)
         {
-            Init?.Invoke(variables);
-
             Logger?.LogLine("Before " + func(variables));
             var gradient = GradientDescentFactory(variables);
             gradient.Descent(DescentIterations);
@@ -60,10 +56,11 @@ public class BestSolutionFinder
             {
                 bestMine = variables.ToArray();
             }
+            Init?.Invoke(variables);
         }
         var mineScore = func(bestMine);
         Logger?.LogLine("Error is " + mineScore);
-        Logger?.LogLine("Variables is [" + string.Join(' ', variables.Select(x => x.ToString("0.000"))) + "]");
+        Logger?.LogLine("Variables is [" + string.Join(' ', bestMine.Select(x => x.ToString("0.000"))) + "]");
         return bestMine;
     }
 }
