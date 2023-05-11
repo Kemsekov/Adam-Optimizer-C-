@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+namespace GradientDescentSharp.DataAccessors;
 
-namespace AdamOptimizer
+public interface IDataAccess<T> : IEnumerable<T>
 {
-    public interface IDataAccess<T> : IEnumerable<T>
-    {
-        public int Length { get; }
-        public T this[int index] { get; set; }
-    }
+    public int Length { get; }
+    public T this[int index] { get; set; }
 }

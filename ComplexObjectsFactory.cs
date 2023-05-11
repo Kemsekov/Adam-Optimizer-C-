@@ -1,14 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AdamOptimizer;
-
+namespace GradientDescentSharp;
 public class ComplexObjectsFactory
 {
     public ComplexObjectsFactory(IDataAccess<double> data)
     {
-        this.Data = data;
+        Data = data;
     }
     public IDataAccess<double> Data { get; }
     int CurrentPosition = 0;

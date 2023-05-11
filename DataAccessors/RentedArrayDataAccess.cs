@@ -1,37 +1,36 @@
-using System.Collections;
-using RentedArraySharp;
-
-namespace AdamOptimizer
+namespace GradientDescentSharp.DataAccessors;
+public class RentedArrayDataAccess<T> : IDataAccess<T>, IDisposable
+where T : unmanaged
 {
-    public class RentedArrayDataAccess<T> : IDataAccess<T>, IDisposable
-    where T : unmanaged
+    public RentedArrayDataAccess(RentedArray<T> array)
     {
-        public RentedArrayDataAccess(RentedArray<T> array){
-            this.RentedArray = array;
-        }
-        public T this[int index] { 
-            get => RentedArray[index]; 
-            set => RentedArray[index]=value; }
+        RentedArray = array;
+    }
+    public T this[int index]
+    {
+        get => RentedArray[index];
+        set => RentedArray[index] = value;
+    }
 
-        public int Length => RentedArray.Length;
+    public int Length => RentedArray.Length;
 
-        public RentedArray<T> RentedArray { get; }
+    public RentedArray<T> RentedArray { get; }
 
-        public void Dispose()
+    public void Dispose()
+    {
+        ((IDisposable)RentedArray).Dispose();
+    }
+
+    public IEnumerator<T> GetEnumerator()
+    {
+        for (int i = 0; i < Length; i++)
         {
-            ((IDisposable)RentedArray).Dispose();
+            yield return RentedArray[i];
         }
+    }
 
-        public IEnumerator<T> GetEnumerator()
-        {
-            for(int i = 0;i<Length;i++){
-                yield return RentedArray[i];
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }
