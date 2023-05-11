@@ -34,7 +34,6 @@ public abstract class GradientDescentBase : IGradientDescent
     /// Good rule of thumb: return squared error for each variable, so
     /// if you have for example 2 variables, then return it like this<br/>
     /// error = (x[0]-x0Error)^2+(x[1]-x1Error)^2<br/>
-    /// And decide wether to take square of error or not by your own.
     /// </param>
     public GradientDescentBase(IDataAccess<double> variables, Func<IDataAccess<double>, double> function)
     {
