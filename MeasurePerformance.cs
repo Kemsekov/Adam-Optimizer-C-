@@ -9,10 +9,42 @@ public static class MeasurePerformance
                 (d)=>Math.Abs(Math.Tan(d[0]*d[1]+d[2])-Math.Sin(d[1]*d[2]+d[0])),
                 (d)=>Math.Abs(Math.Pow(d[0]*d[0],d[1])-d[2]*Math.Exp(d[0])*Math.Log(d[2]*d[2]))
             };
+    public static void SimpleSample()
+    {
+        //first define a problem
+        var problem = (IDataAccess<double> x) =>
+        {
+            var n = x[0];
+            //we seek for such value, that n^n=5
+            var needToMinimize = Math.Pow(n, n) - 5.0;
+            return Math.Abs(needToMinimize);
+        };
+        //then define changing variables
+        var variables = new ArrayDataAccess<double>(1);
+        //set variables close to global minima
+        variables[0] = 1;
+
+        //define descent
+        var descent = new MineDescent(variables, problem)
+        {
+            DescentRate = 0.1,             // how fast to descent, this value will be adjusted on the fly
+            Theta = 1e-4,                  // what precision of output we need
+            DescentRateDecreaseRate = 0.1, // how much decrease DescentRate when we hit a grow of error function
+            Logger = new ConsoleLogger()   // logger for descent progress
+        };
+
+        //do 30 iterations
+        descent.Descent(30);
+
+        System.Console.WriteLine("For problem n^n=5");
+        System.Console.WriteLine($"Error is {problem(variables)}");
+        System.Console.WriteLine($"n={variables[0]}");
+        System.Console.WriteLine($"n^n={Math.Pow(variables[0], variables[0])}");
+    }
     public static void FindMatrixInverse()
     {
         var dimensions = 3;
-        var m2 = DenseMatrix.Create(dimensions,dimensions,(x,y)=>Random.Shared.NextDouble()*2-1);
+        var m2 = DenseMatrix.Create(dimensions, dimensions, (x, y) => Random.Shared.NextDouble() * 2 - 1);
         m2.Inverse();
         var identity = DenseMatrix.CreateIdentity(dimensions);
         var errorFunction = (IDataAccess<double> x) =>
@@ -20,26 +52,29 @@ public static class MeasurePerformance
             var factory = new ComplexObjectsFactory(x);
             var m1 = factory.CreateMatrix(dimensions, dimensions);
             var m3 = m1 * m2;
-            var diff = identity-m3;
+            var diff = identity - m3;
             var error = 0.0;
-            for(int i = 0;i<dimensions;i++)
-            for(int j = 0;j<dimensions;j++){
-                error+=Math.Pow(diff[i,j],2);
-            }
+            for (int i = 0; i < dimensions; i++)
+                for (int j = 0; j < dimensions; j++)
+                {
+                    error += Math.Pow(diff[i, j], 2);
+                }
             return error;
         };
 
-        var init = (IDataAccess<double> x)=>{
-            for(int i = 0;i<x.Length;i++)
-                x[i] = Random.Shared.NextDouble()*6-3;
+        var init = (IDataAccess<double> x) =>
+        {
+            for (int i = 0; i < x.Length; i++)
+                x[i] = Random.Shared.NextDouble() * 6 - 3;
         };
 
         var finder = new BestSolutionFinder(
-            variablesLength: dimensions*dimensions,
-            data => new MineDescent(data,errorFunction){Theta=0.000001,DescentRate=1}
-        ){
+            variablesLength: dimensions * dimensions,
+            data => new MineDescent(data, errorFunction) { Theta = 0.000001, DescentRate = 1 }
+        )
+        {
             SolutionsCount = 100,
-            DescentIterations=20,
+            DescentIterations = 20,
             Logger = new ConsoleLogger(),
             Init = init
         };
