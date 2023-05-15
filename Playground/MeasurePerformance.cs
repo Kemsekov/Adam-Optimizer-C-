@@ -1,5 +1,5 @@
-namespace GradientDescentSharp;
-public static class MeasurePerformance
+namespace Playground;
+static class MeasurePerformance
 {
     public static Func<IDataAccess<double>, double>[] Functions ={
                 (d)=>Math.Abs(d[0]-d[1]*d[2]+Math.Exp(d[0]*d[1]*d[2])-Math.Sin(d[0]+d[1]+d[2])),

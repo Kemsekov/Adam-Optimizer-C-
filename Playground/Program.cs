@@ -1,0 +1,3 @@
+﻿using Playground;
+
+MeasurePerformance.SimpleSample();
