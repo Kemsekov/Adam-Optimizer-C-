@@ -1,12 +1,15 @@
 using MathNet.Numerics.LinearAlgebra.Storage;
 namespace GradientDescentSharp.ComplexDataStructures;
+/// <summary>
+/// Custom matrix that store it's values on data accessors that can be used by gradient descent
+/// </summary>
 public class CustomMatrix : Matrix
 {
+    ///<inheritdoc/>
     public CustomMatrix(MatrixStorage<double> storage) : base(storage)
     {
     }
 }
-
 class CustomMatrixStorage : MatrixStorage<double>
 {
     public override bool IsDense => true;

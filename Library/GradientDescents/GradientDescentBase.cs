@@ -1,5 +1,7 @@
 namespace GradientDescentSharp.GradientDescents;
-
+/// <summary>
+/// Base class for gradient descent implementations
+/// </summary>
 public abstract class GradientDescentBase : IGradientDescent
 {
     /// <summary>

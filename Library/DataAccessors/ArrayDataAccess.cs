@@ -1,10 +1,17 @@
 namespace GradientDescentSharp.DataAccessors;
+/// <summary>
+/// Data accessor that wraps around array
+/// </summary>
+/// <typeparam name="T"></typeparam>
 public class ArrayDataAccess<T> : IDataAccess<T>
 {
     public ArrayDataAccess(T[] array)
     {
         Array = array;
     }
+    /// <summary>
+    /// Will create an array of given length
+    /// </summary>
     public ArrayDataAccess(int length)
     {
         Array = new T[length];
@@ -14,9 +21,13 @@ public class ArrayDataAccess<T> : IDataAccess<T>
         get => Array[index];
         set => Array[index] = value;
     }
-
+    /// <summary>
+    /// Base array
+    /// </summary>
     public T[] Array { get; }
-
+    /// <summary>
+    /// Length of base array
+    /// </summary>
     public int Length => Array.Length;
     public IEnumerator<T> GetEnumerator()
     {

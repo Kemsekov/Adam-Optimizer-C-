@@ -2,6 +2,13 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>net6.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Version>0.0.1</Version>
+    <PackageVersion>$(Version)</PackageVersion>
+    <Authors>Kemsekov</Authors>
+    <PackageProjectUrl>https://github.com/Kemsekov/GradientDescentSharp</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageId>GradientDescentSharp</PackageId>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>

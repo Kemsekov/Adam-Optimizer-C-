@@ -1,4 +1,7 @@
 namespace GradientDescentSharp.DataAccessors;
+/// <summary>
+/// Data accessor that wraps rented array implementation
+/// </summary>
 public class RentedArrayDataAccess<T> : IDataAccess<T>, IDisposable
 where T : unmanaged
 {

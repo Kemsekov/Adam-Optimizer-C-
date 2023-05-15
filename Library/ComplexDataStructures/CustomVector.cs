@@ -1,8 +1,11 @@
 using MathNet.Numerics.LinearAlgebra.Storage;
 namespace GradientDescentSharp.ComplexDataStructures;
-
+/// <summary>
+/// Custom vector that store it's values on data accessors that can be used by gradient descent
+/// </summary>
 public class CustomVector : Vector
 {
+    ///<inheritdoc/>
     public CustomVector(VectorStorage<double> storage) : base(storage)
     {
     }
