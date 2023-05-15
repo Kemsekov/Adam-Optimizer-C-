@@ -1,4 +1,8 @@
 namespace GradientDescentSharp;
+/// <summary>
+/// Simply takes a problem and gradient descent implementation, generate a lot
+/// of solutions and returns the best one.
+/// </summary>
 public class BestSolutionFinder
 {
     /// <summary>
@@ -22,13 +26,22 @@ public class BestSolutionFinder
     /// How many descent iterations need to do on each solution
     /// </summary>
     public int DescentIterations = 100;
-    public BestSolutionFinder(int variablesLength, Func<IDataAccess<double>, IGradientDescent> gradientDescentFactory, Action<IDataAccess<double>>? init = null)
+    /// <param name="variablesLength">How long input data is</param>
+    /// <param name="gradientDescentFactory">Function that takes input data and returns gradient descent implementation</param>
+    /// <param name="init">Weight initialization. Use it to generate a starting position that is closer to global minima and so can converge better</param>
+    /// <param name="descentIterations">How many descent steps each solution need to take</param>
+    /// <param name="solutionsCount">How many solutions need to crete</param>
+    public BestSolutionFinder(int variablesLength, Func<IDataAccess<double>, IGradientDescent> gradientDescentFactory, Action<IDataAccess<double>>? init = null,int descentIterations = 100,int solutionsCount = 100)
     {
         VariablesLength = variablesLength;
         GradientDescentFactory = gradientDescentFactory;
         Init = init;
+        DescentIterations = descentIterations;
+        SolutionsCount = solutionsCount;
     }
-
+    /// <summary>
+    /// Generates a lot of solutions, init each of them, finds local minima and returns the best one of all.
+    /// </summary>
     public IDataAccess<double> TryToFindBestSolution(Func<IDataAccess<double>, double> func)
     {
         Init ??= variables =>
