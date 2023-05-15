@@ -1,3 +1,4 @@
+[![nuget](https://img.shields.io/nuget/v/GradientDescentSharp.svg)](https://www.nuget.org/packages/GradientDescentSharp/) 
 # GradientDescentSharp
 This little library allows to compute a approximate solution for some defined problem with error function, using gradient descent
 
