@@ -1,10 +1,21 @@
 namespace GradientDescentSharp.GradientDescents;
+/// <summary>
+/// Custom gradient descent implementation made my Kemsekov. <br/>
+/// In around 80% cases works better than adam optimizer<br/>
+/// Have similar logic under the hood, whenever we hit a worse error function value
+/// than before, we rollback, decrease learning rate and continue.
+/// </summary>
 public class MineDescent : GradientDescentBase
 {
     /// <summary>
     /// Descent process can be logged here
     /// </summary>
     public ILogger? Logger;
+    /// <summary>
+    /// How much decrease descent rate when we step into bigger error value.<br/>
+    /// By default it is 0.1, so when we step into worse error function value,
+    /// we will divide  learning rate by 10.
+    /// </summary>
     public double DescentRateDecreaseRate = 0.1;
     public MineDescent(IDataAccess<double> variables, Func<IDataAccess<double>, double> function) : base(variables, function)
     {

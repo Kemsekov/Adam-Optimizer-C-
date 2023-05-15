@@ -21,8 +21,10 @@ public abstract class GradientDescentBase : IGradientDescent
     /// </summary>
     public double DescentRate = 0.05;
     /// <summary>
-    /// If on gradient descent step error function value chang less than this value, it means
-    /// we need to step descending. The lower this value, the more precise descending will hit local minima.
+    /// If gradient descent step error function value changes less than this value, it means
+    /// we need to step descending. <br/>
+    /// In short terms, this value defines how precise our find local minima need to be.<br/>
+    /// Also this value is a derivative epsilon, that used to compute gradient
     /// </summary>
     public double Theta = 0.0001;
     /// <summary>
@@ -31,9 +33,8 @@ public abstract class GradientDescentBase : IGradientDescent
     /// <param name="variables">Variables that will be adjusted</param>
     /// <param name="function">
     /// Error function.<br/>
-    /// Good rule of thumb: return squared error for each variable, so
-    /// if you have for example 2 variables, then return it like this<br/>
-    /// error = (x[0]-x0Error)^2+(x[1]-x1Error)^2<br/>
+    /// Good rule of thumb: return MSE as error function<br/>
+    /// So if your error values is a,b,c,d => then return error as: a^2+b^2+c^2+d^2
     /// </param>
     public GradientDescentBase(IDataAccess<double> variables, Func<IDataAccess<double>, double> function)
     {
@@ -55,6 +56,9 @@ public abstract class GradientDescentBase : IGradientDescent
         for (var i = 0; i < Dimensions; i++)
             Variables[i] += change[i];
     }
+    /// <summary>
+    /// Computes a gradient of error function by nudging it by theta.
+    /// </summary>
     protected void ComputeGradient(IDataAccess<double> gradient, double currentEvaluation)
     {
         Parallel.For(0, Dimensions, i =>

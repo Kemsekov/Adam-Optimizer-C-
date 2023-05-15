@@ -1,5 +1,11 @@
 namespace GradientDescentSharp.GradientDescents;
 
+/// <summary>
+/// Modified implementation of adam descent.<br/>
+/// The sole difference is that whenever the next error value is bigger than previous,
+/// the model rollback it's values, reduce the learning rate and step again.<br/>
+/// It is guaranteed to find local minima.
+/// </summary>
 public class AdamDescent : GradientDescentBase
 {
     /// <summary>
@@ -10,7 +16,7 @@ public class AdamDescent : GradientDescentBase
     RentedArray<double> secondMomentum;
     public double Beta1 = 0.9;
     public double Beta2 = 0.99;
-
+    
     public AdamDescent(IDataAccess<double> variables, Func<IDataAccess<double>, double> function) : base(variables, function)
     {
         firstMomentum = ArrayPoolStorage.RentArray<double>(Dimensions);

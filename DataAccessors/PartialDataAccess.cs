@@ -1,12 +1,16 @@
 namespace GradientDescentSharp.DataAccessors;
 
+/// <summary>
+/// Allows to take some part of full data access, and threat it as another 
+/// closed data accessor.
+/// </summary>
 public class PartialDataAccess<T> : IDataAccess<T>
 {
     public PartialDataAccess(IDataAccess<T> data, int startIndex, int length)
     {
-        this.Data = data;
-        this.StartIndex = startIndex;
-        this.Length = length;
+        Data = data;
+        StartIndex = startIndex;
+        Length = length;
     }
     public T this[int index]
     {
