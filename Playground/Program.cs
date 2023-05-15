@@ -1,3 +1,2 @@
-﻿using Playground;
-
-MeasurePerformance.SimpleSample();
+﻿
+Examples.BestSolutionFinderExample();
