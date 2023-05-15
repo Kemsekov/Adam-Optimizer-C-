@@ -41,7 +41,7 @@ public class BestSolutionFinder
         Init?.Invoke(variables);
 
         ArrayDataAccess<double> bestMine = variables.ToArray();
-
+        
         var before = func(variables);
         for (int k = 0; k < SolutionsCount; k++)
         {

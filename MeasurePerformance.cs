@@ -18,7 +18,7 @@ public static class MeasurePerformance
         var errorFunction = (IDataAccess<double> x) =>
         {
             var factory = new ComplexObjectsFactory(x);
-            var m1 = factory.TakeMatrix(dimensions, dimensions);
+            var m1 = factory.CreateMatrix(dimensions, dimensions);
             var m3 = m1 * m2;
             var diff = identity-m3;
             var error = 0.0;
@@ -45,7 +45,7 @@ public static class MeasurePerformance
         };
         var result = finder.TryToFindBestSolution(errorFunction);
         var factory = new ComplexObjectsFactory(result);
-        var m1 = factory.TakeMatrix(dimensions, dimensions);
+        var m1 = factory.CreateMatrix(dimensions, dimensions);
         var m3 = m1 * m2;
         System.Console.WriteLine("Actual inverse matrix");
         System.Console.WriteLine(m2.Inverse());
@@ -173,94 +173,5 @@ public static class MeasurePerformance
         System.Console.WriteLine("Mine : " + mineCount);
         System.Console.WriteLine("----------------------");
         return (adamCount, mineCount);
-    }
-    
-    record Model(CustomMatrix[] layers, IDataAccess<double> freeCoefficients);
-    public static void TryingML()
-    {
-        MathNet.Numerics.LinearAlgebra.Vector<double> ActivationFunction(MathNet.Numerics.LinearAlgebra.Vector<double> input)
-        {
-            input.MapInplace(x => 1.0 / (1 + Math.Exp(-x)));
-            return input;
-        }
-        Model BuildModel(IDataAccess<double> x)
-        {
-            //outputSize1,inputSize
-            //outputSize2, outputSize1
-            //and so on
-
-            var factory = new ComplexObjectsFactory(x);
-            var layers = new[]{
-                    factory.TakeMatrix(5, 3),
-                    factory.TakeMatrix(6, 5),
-                    factory.TakeMatrix(3, 6),
-                    factory.TakeMatrix(1, 3)
-                };
-            var freeCoefficients = factory.TakeDouble(layers.Length);
-            return new(layers, freeCoefficients);
-        }
-        double Compute(IDataAccess<double> x, Vector input)
-        {
-            System.Console.WriteLine("-----------");
-            var model = BuildModel(x);
-            var freeCoefficients = model.freeCoefficients;
-            System.Console.WriteLine(input);
-            for (int i = 0; i < model.layers.Length; i++)
-            {
-                var layer = model.layers[i];
-                input = (Vector)(ActivationFunction(layer * input) + freeCoefficients[i]);
-                System.Console.WriteLine(input);
-            }
-            return input[0];
-        }
-        var functionToImitate = Functions[1];
-        var inputs = Enumerable.Range(0, 9 * 27).Select(x => DenseVector.Create(3, 0)).ToArray();
-        MathUtils.DistributeData(inputs, 2, DenseVector.Create(3, -1));
-        var func = (IDataAccess<double> x) =>
-        {
-            var error = 0.0;
-            for (int i = 0; i < inputs.Length; i++)
-            {
-                var input = inputs[i];
-                var expected = functionToImitate(VectorDataAccess.Of(input));
-                var result = Compute(x, input);
-                error += Math.Pow(result - expected, 2);
-            }
-            return Math.Sqrt(error);
-        };
-        void initWeights(IDataAccess<double> x)
-        {
-            var model = BuildModel(x);
-            for (int i = 0; i < model.freeCoefficients.Length; i++)
-            {
-                model.freeCoefficients[i] = Random.Shared.NextDouble() * 2 - 1;
-            }
-            foreach (var layer in model.layers)
-            {
-                layer.MapInplace(x => Random.Shared.NextDouble() * 2 - 1);
-                var elementsSum = layer.ReduceColumns((a, b) => a + b).Sum();
-                layer.MapInplace(x => x / elementsSum);
-            }
-        }
-        var finder = new BestSolutionFinder(
-            variablesLength:70,
-            gradientDescentFactory: x=> new MineDescent(x,func){DescentRate=0.5,Theta=0.001},
-            init: initWeights
-        );
-        var solution = finder.TryToFindBestSolution(func);
-        System.Console.WriteLine("Running tests");
-        var errorSum = 0.0;
-        for (int i = 0; i < 20; i++)
-        {
-            VectorDataAccess input = DenseVector.Create(3, x => Random.Shared.NextDouble());
-            var expected = functionToImitate(input);
-            var actual = Compute(solution, input);
-            var diff = Math.Abs(expected - actual);
-            errorSum += diff;
-            System.Console.WriteLine($"Expected: {expected.ToString("0.00")}, Actual: {actual.ToString("0.00")}");
-            // System.Console.WriteLine("Diff " + diff);
-        }
-        System.Console.WriteLine("Average error " + errorSum / 20);
-        System.Console.WriteLine("-----------");
     }
 }

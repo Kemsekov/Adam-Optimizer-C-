@@ -1,5 +1,6 @@
 namespace GradientDescentSharp;
-public class ComplexObjectsFactory
+
+public class ComplexObjectsFactory : IComplexObjectsFactory
 {
     public ComplexObjectsFactory(IDataAccess<double> data)
     {
@@ -7,19 +8,13 @@ public class ComplexObjectsFactory
     }
     public IDataAccess<double> Data { get; }
     int CurrentPosition = 0;
-    public IDataAccess<double> TakeDouble(int count){
-        var res = new PartialDataAccess<double>(Data,CurrentPosition,count);
-        CurrentPosition+=count;
-        ThrowIfOutOfRange();
-        return res;
-    }
-    public CustomVector TakeVector(int length){
+    public Vector CreateVector(int length){
         var res = new CustomVector(new CustomVectorStorage(Data,CurrentPosition,length));
         CurrentPosition+=length;
         ThrowIfOutOfRange();
         return res;
     }
-    public CustomMatrix TakeMatrix(int rows, int columns){
+    public Matrix CreateMatrix(int rows, int columns){
         var res = new CustomMatrix(new CustomMatrixStorage(Data,CurrentPosition,rows,columns));
         CurrentPosition+=rows*columns;
         ThrowIfOutOfRange();

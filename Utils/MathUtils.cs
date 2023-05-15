@@ -6,7 +6,7 @@ public static class MathUtils
     /// </summary>
     public static void DistributeData(Vector[] data, double CoordinatesScale, Vector CoordinatesShift)
     {
-        var InputVectorLength = data[0].Count;
+        var InputVectorLength = CoordinatesShift.Count;
         void normalizeVector(ref DenseVector position, double step)
         {
             for (int k = 0; k < InputVectorLength; k++)
