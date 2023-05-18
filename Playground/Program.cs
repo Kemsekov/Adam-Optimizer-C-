@@ -1,1 +1,3 @@
-﻿Examples.NeuralNetworkExample();
+﻿using GradientDescentSharp.NeuralNetwork;
+Examples.NeuralNetworkExample();
+

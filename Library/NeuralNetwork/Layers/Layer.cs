@@ -15,8 +15,13 @@ public class Layer : ILayer
     /// </summary>
     /// <value></value>
     public Vector RawOutput{get;}
-    public Vector ActivatedOutput => (Vector)RawOutput.Map(Activation.Activation);
     public IActivationFunction Activation{get;}
+
+    /// <param name="factory">Linear objects factory</param>
+    /// <param name="inputSize">Layer input size</param>
+    /// <param name="outputSize">Layer output size</param>
+    /// <param name="activation">Activation function. May choose from <see cref="ActivationFunction"/></param>
+    /// <param name="weightsInit">Weight initialization.</param>
     public Layer(IComplexObjectsFactory factory,int inputSize, int outputSize, IActivationFunction activation, IWeightsInit weightsInit){
         Weights = factory.CreateMatrix(outputSize,inputSize);
         Bias = factory.CreateVector(outputSize);
@@ -25,12 +30,11 @@ public class Layer : ILayer
         weightsInit.InitWeights(Bias);
         weightsInit.InitWeights(Weights);
     }
-    
     public Vector Forward(Vector input){
         var raw = Weights*input+Bias;
-        RawOutput.MapIndexedInplace((index,_)=>raw[index]);
-        return ActivatedOutput;
+        return (Vector)raw;
     }
+
     public void Learn(Vector biasesGradient, Vector layerInput, FloatType learningRate)
     {
         var weightsGradient = (int j,int k)=>biasesGradient[j]*layerInput[k];

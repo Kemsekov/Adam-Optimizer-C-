@@ -29,9 +29,8 @@ public partial class Examples
 
         //learning rate is changing dynamically depending on layer weights,
         //so in solution space we step always +- same distance to local minima
-        nn.LearningRate = 0.05;
-
-        for (int k = 0; k < 100; k++)
+        nn.LearningRate = 0.1;
+        for (int k = 0; k < 50; k++)
         {
             var error = 0.0;
             for (int i = 0; i < 100; i++)
@@ -45,9 +44,7 @@ public partial class Examples
                 //to original weights, if we hit a worse minima after learning!
                 //it can be used to manually decrease learning rate if we hit too much
                 //of such failed backpropagations.
-                if(!nn.Backwards(input, expected)){
-                    System.Console.WriteLine("We learnt something bad! Doing rollback!");
-                }
+                nn.Backwards(input, expected);
                 error += nn.Error(input,expected);
             }
             System.Console.WriteLine($"Error is {error / 100}");
