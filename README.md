@@ -123,3 +123,10 @@ n^n=5.000153788967406
 As you can see, when we hit a grow in error function, the descent undo step and decrease descentRate, so we are guaranteed to hit a local minima!
 
 It still is very important to define a good error function and init variables.
+
+Oh, yes, btw I've good a working feed-forward neural network implementation here too...
+
+In plans I would like to combine these two things to, for example, finding a general solution to any differential equation,
+but it is only in plans.
+
+Check out Playground examples.
