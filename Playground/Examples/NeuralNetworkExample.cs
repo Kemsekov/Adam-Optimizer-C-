@@ -16,7 +16,7 @@ public partial class Examples
         var nn = new ForwardNN(layer1, layer2, layer3);
         nn.LearningRate = 0.05;
         var inputs = Enumerable.Range(0, 100).Select(x => DenseVector.Create(2, t => Random.Shared.NextDouble() * 4 - 2)).ToArray();
-        for (int k = 0; k < 500; k++)
+        for (int k = 0; k < 50; k++)
         {
             var error = 0.0;
             for (int i = 0; i < 100; i++)
@@ -26,19 +26,8 @@ public partial class Examples
                 var expected = DenseVector.Create(2, 0);
                 expected[0] = Math.Sin(input[0] + input[1]);
                 expected[1] = input[0] * input[1];
-                var before = nn.Error(input, expected);
                 var backprop = nn.Backwards(input, expected);
-                var after = nn.Error(input, expected);
-                if (before < after)
-                {
-                    backprop.Unlearn();
-                    var onceAgain = nn.Error(input, expected);
-                    System.Console.WriteLine("bro");
-                    nn.LearningRate *= 0.9;
-                }
-                else
-                    error += after;
-
+                error += nn.Error(input,expected);
             }
             System.Console.WriteLine($"Error is {error / 100}");
         }

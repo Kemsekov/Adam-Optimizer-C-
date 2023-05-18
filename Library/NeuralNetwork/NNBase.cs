@@ -35,9 +35,18 @@ public abstract class NNBase
     public double Error(Vector input, Vector expected){
         return (Forward(input)-expected).Sum(x=>x*x);
     }
-    /// <returns>Error value before training</returns>
-    public BackpropResult Backwards(Vector input, Vector expected)
+    /// <summary>
+    /// Modified backpropogation implementation, that inspired from MineDescent implementation.<br/>
+    /// When backpropagation damages performance more than improves it, it rollback all changes to weights.<br/>
+    /// Also learning rate for each layer depends on total weights sum, so it's step is normalized,
+    /// which allows to learn a lot faster
+    /// </summary>
+    /// <param name="input"></param>
+    /// <param name="expected"></param>
+    /// <returns>True if learning was successful, False if backprop was unsuccessful and rolled back.</returns>
+    public bool Backwards(Vector input, Vector expected)
     {
+        var before = Error(input,expected);
         // Forward pass
         var error = ComputeErrorDerivative(input,expected);
         var totalError = error.Sum(x=>x*x);
@@ -62,6 +71,12 @@ public abstract class NNBase
 
             layer.Learn((Vector)biasesGradient,(Vector)layerInput,learningRate);
         }
-        return new(Layers);
+        var backpropResult = new BackpropResult(Layers);
+        var after = Error(input,expected);
+        if(before<after){
+            backpropResult.Unlearn();
+            return false;
+        }
+        return true;
     }
 }
