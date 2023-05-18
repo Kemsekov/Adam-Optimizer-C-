@@ -124,7 +124,7 @@ As you can see, when we hit a grow in error function, the descent undo step and 
 
 It still is very important to define a good error function and init variables.
 
-Oh, yes, btw I've good a working feed-forward neural network implementation here too...
+Oh, yes, btw I've got a working feed-forward neural network implementation here too...
 
 And it can learn from error function only, like a simplified RL, if you know.
 
