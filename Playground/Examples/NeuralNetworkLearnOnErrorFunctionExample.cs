@@ -3,6 +3,8 @@ using GradientDescentSharp.NeuralNetwork;
 
 public partial class Examples
 {
+    //in this example we can see, how neural network can actually learn
+    //from error function only. That's it!
     public static void NeuralNetworkLearnOnErrorFunctionExample()
     {
         var defaultFactory = new NNComplexObjectsFactory();
@@ -18,10 +20,11 @@ public partial class Examples
         var nn = new ForwardNN(layer1, layer2, layer3, layer4);
         var xValues = Enumerable.Range(0, 3000).Select(x => DenseVector.Create(1, Random.Shared.NextDouble() * 4)).ToArray();
 
-
+        //Here we define a problem, which is error function.
         var problem = (Vector input, NNBase nn) =>
         {
             var result = nn.Forward(input);
+            //we really need to approximate x^2.5 function
             return Math.Pow(result[0] - Math.Pow(input[0], 2.5), 2);
         };
 
@@ -32,11 +35,20 @@ public partial class Examples
             var x = xValues[i];
             var expected = DenseVector.Create(1, Math.Pow(x[0], 2.5));
             var errorBefore = nn.Error(x, expected);
+
+            // here magic happens. The some information we put into is:
+            // input vector, some small theta, that will be used to compute
+            // derivatives, and error function. This is enough to learn!
             var backprop = nn.LearnOnError(x, 0.00001, problem);
+
             var errorAfter = nn.Error(x, expected);
+
+            // after we learnt something, we need to check if we didn't messed up
+            // if new error is bigger, than previous one, we rollback changes to
+            // neural network!
             if (errorAfter > errorBefore)
             {
-                nn.LearningRate *= 0.5;
+                nn.LearningRate *= 0.9;
                 backprop.Unlearn();
                 var afterUnlearn = nn.Error(x, expected);
                 System.Console.WriteLine("We unlearn");
@@ -48,6 +60,7 @@ public partial class Examples
                 error = 0.0;
             }
         }
+        //print some values for prediction
         for (int i = 0; i < 8; i++)
         {
             var x1 = DenseVector.Create(1, i / 2.0);
