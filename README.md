@@ -126,7 +126,6 @@ It still is very important to define a good error function and init variables.
 
 Oh, yes, btw I've good a working feed-forward neural network implementation here too...
 
-In plans I would like to combine these two things to, for example, finding a general solution to any differential equation,
-but it is only in plans.
+And it can learn from error function only, like a simplified RL, if you know.
 
 Check out Playground examples.
