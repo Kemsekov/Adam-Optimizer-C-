@@ -1,25 +1,19 @@
 using MathNet.Numerics.LinearAlgebra;
 
 namespace GradientDescentSharp.NeuralNetwork;
-public class BackpropResult
-{
-    private ILayer[] layers;
-    public BackpropResult(ILayer[] layers)
-    {
-        this.layers = layers;
-    }
-    public void Unlearn()
-    {
-        foreach (var l in layers)
-            l.Unlearn();
-    }
-}
+
 public abstract class NNBase
 {
     public ILayer[] Layers { get; }
     public FloatType LearningRate = 0.05;
+    Dictionary<ILayer,Vector> RawLayerOutput;
+    /// <summary>
+    /// See the class description to understand what it does
+    /// </summary>
+    ErrorFunctionOutputDerivativeReplacer replacer;
     public NNBase(params ILayer[] layers)
     {
+        replacer = new();
         Layers = layers;
         RawLayerOutput = new Dictionary<ILayer, Vector>();
         foreach(var layer in layers){
@@ -35,9 +29,10 @@ public abstract class NNBase
             input = layer.Forward(input);
             input.MapInplace(x=>layer.Activation.Activation(x));
         }
+        replacer.ReplaceOutputParameter(input);
         return input;
     }
-    Dictionary<ILayer,Vector> RawLayerOutput;
+
     Vector ForwardForLearning(Vector input)
     {
         ILayer layer;
@@ -48,16 +43,20 @@ public abstract class NNBase
             this.RawLayerOutput[layer].MapIndexedInplace((index,x)=>input[index]);
             input.MapInplace(x=>layer.Activation.Activation(x));
         }
+        replacer.ReplaceOutputParameter(input);
         return input;
     }
+
     public BackpropResult LearnOnError(Vector input,double theta, Func<Vector,NNBase,double> errorFunction){
         var original = errorFunction(input,this);
-        var errorDerivative = input.Map(x=>0.0);
-        for(int i = 0;i<input.Count;i++){
-            input[i]+=theta;
+        var originalOutput = Forward(input);
+        var errorDerivative = originalOutput.Map(x=>0.0);
+        for(int i = 0;i<originalOutput.Count;i++){
+            replacer.ChangedOutputIndex = i;
+            replacer.ChangedOutputTheta=theta;
             var changed = errorFunction(input,this);
-            input[i]-=theta;
             errorDerivative[i]=(changed-original)/theta;
+            replacer.ChangedOutputIndex = -1;
         }
         //fill layers with learning info
         ForwardForLearning(input);

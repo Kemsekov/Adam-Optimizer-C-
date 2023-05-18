@@ -1,3 +1,2 @@
 ﻿using GradientDescentSharp.NeuralNetwork;
-Examples.NeuralNetworkExample();
-
+Examples.NeuralNetworkLearnOnErrorFunctionExample();
