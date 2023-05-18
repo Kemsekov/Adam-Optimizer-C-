@@ -1,0 +1,21 @@
+Here is a list of some main activation functions used in machine learning, along with their best weight initializers and use cases:
+
+Sigmoid: This is a function that outputs a value between 0 and 1 for any input. It is useful for binary classification problems, such as predicting whether an email is spam or not. The best weight initializer for sigmoid is Xavier or Glorot1, which draws weights from a uniform distribution that preserves the variance of the inputs and outputs of each layer.
+
+Tanh: This is a function that outputs a value between -1 and 1 for any input. It is similar to sigmoid, but has a zero-centered output, which can help with gradient descent. It is useful for classification and regression problems that have outputs in the range of -1 to 1. The best weight initializer for tanh is also Xavier or Glorot1.
+
+ReLU: This is a function that outputs the input if it is positive, and zero otherwise. It is simple and fast to compute, and can help with the vanishing gradient problem. It is useful for most deep learning problems, such as image recognition, natural language processing, and computer vision. The best weight initializer for ReLU is He2, which draws weights from a normal distribution that preserves the variance of the inputs and outputs of each layer.
+
+Leaky ReLU: This is a variation of ReLU that outputs a small negative value instead of zero for negative inputs. It can help with the dying ReLU problem, where some neurons become inactive and stop learning. It is useful for deep learning problems that require a non-zero output for negative inputs, such as generative adversarial networks (GANs). The best weight initializer for Leaky ReLU is also He2.
+
+Softmax: This is a function that outputs a probability distribution over a set of classes for any input. It is useful for multi-class classification problems, such as predicting the digit in an image. The best weight initializer for softmax depends on the previous layer’s activation function, but a common choice is Glorot1.
+
+Swish: This is a function that outputs the input multiplied by the sigmoid of the input. It is a smooth and non-monotonic function that can capture complex patterns in the data. It is useful for deep learning problems that require high accuracy and performance, such as object detection and machine translation. The best weight initializer for swish is He3.
+
+Mish: This is a function that outputs the input multiplied by the tanh of the softplus of the input. It is a self-regularizing and non-monotonic function that can prevent overfitting and improve generalization. It is useful for deep learning problems that require high accuracy and robustness, such as image classification and natural language understanding. The best weight initializer for mish is also He3.
+
+1: Xavier Glorot and Yoshua Bengio. Understanding the difficulty of training deep feedforward neural networks. In Proceedings of the thirteenth international conference on artificial intelligence and statistics , pages 249–256. JMLR Workshop and Conference Proceedings, 2010.
+
+2: Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. Delving deep into rectifiers: Surpassing human-level performance on imagenet classification . In Proceedings of the IEEE international conference on computer vision , pages 1026–1034, 2015.
+
+3: Diganta Misra. Mish: A self regularized non-monotonic neural activation function . arXiv preprint arXiv:1908.08681 , 2019.

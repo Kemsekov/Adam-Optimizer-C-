@@ -6,20 +6,20 @@ namespace GradientDescentSharp.ComplexDataStructures;
 public class CustomMatrix : Matrix
 {
     ///<inheritdoc/>
-    public CustomMatrix(MatrixStorage<double> storage) : base(storage)
+    public CustomMatrix(MatrixStorage<FloatType> storage) : base(storage)
     {
     }
 }
-class CustomMatrixStorage : MatrixStorage<double>
+class CustomMatrixStorage : MatrixStorage<FloatType>
 {
     public override bool IsDense => true;
 
     public override bool IsFullyMutable => true;
 
     public int StartIndex { get; }
-    public IDataAccess<double> Data { get; }
+    public IDataAccess<FloatType> Data { get; }
 
-    public CustomMatrixStorage(IDataAccess<double> data, int startIndex, int rowCount, int columnCount) : base(rowCount, columnCount)
+    public CustomMatrixStorage(IDataAccess<FloatType> data, int startIndex, int rowCount, int columnCount) : base(rowCount, columnCount)
     {
         StartIndex = startIndex;
         Data = data;
@@ -28,12 +28,12 @@ class CustomMatrixStorage : MatrixStorage<double>
     {
         return StartIndex + column + row * ColumnCount;
     }
-    public override double At(int row, int column)
+    public override FloatType At(int row, int column)
     {
         return Data[computeIndex(row, column)];
     }
 
-    public override void At(int row, int column, double value)
+    public override void At(int row, int column, FloatType value)
     {
         Data[computeIndex(row, column)] = value;
     }

@@ -13,7 +13,7 @@ public class BestSolutionFinder
     /// Variables length of error function input
     /// </summary>
     int VariablesLength;
-    public Func<IDataAccess<double>, IGradientDescent> GradientDescentFactory { get; }
+    public Func<IDataAccess<FloatType>, IGradientDescent> GradientDescentFactory { get; }
     /// <summary>
     /// How many solutions to build
     /// </summary>
@@ -21,7 +21,7 @@ public class BestSolutionFinder
     /// <summary>
     /// Input parameters initialization function
     /// </summary>
-    public Action<IDataAccess<double>>? Init = null;
+    public Action<IDataAccess<FloatType>>? Init = null;
     /// <summary>
     /// How many descent iterations need to do on each solution
     /// </summary>
@@ -31,7 +31,7 @@ public class BestSolutionFinder
     /// <param name="init">Weight initialization. Use it to generate a starting position that is closer to global minima and so can converge better</param>
     /// <param name="descentIterations">How many descent steps each solution need to take</param>
     /// <param name="solutionsCount">How many solutions need to crete</param>
-    public BestSolutionFinder(int variablesLength, Func<IDataAccess<double>, IGradientDescent> gradientDescentFactory, Action<IDataAccess<double>>? init = null,int descentIterations = 100,int solutionsCount = 100)
+    public BestSolutionFinder(int variablesLength, Func<IDataAccess<FloatType>, IGradientDescent> gradientDescentFactory, Action<IDataAccess<FloatType>>? init = null,int descentIterations = 100,int solutionsCount = 100)
     {
         VariablesLength = variablesLength;
         GradientDescentFactory = gradientDescentFactory;
@@ -42,7 +42,7 @@ public class BestSolutionFinder
     /// <summary>
     /// Generates a lot of solutions, init each of them, finds local minima and returns the best one of all.
     /// </summary>
-    public IDataAccess<double> TryToFindBestSolution(Func<IDataAccess<double>, double> func)
+    public IDataAccess<FloatType> TryToFindBestSolution(Func<IDataAccess<FloatType>, FloatType> func)
     {
         Init ??= variables =>
             {
@@ -50,10 +50,10 @@ public class BestSolutionFinder
                     variables[i] = Random.Shared.NextDouble() * 4 - 2;
             };
         
-        IDataAccess<double> variables = new ArrayDataAccess<double>(VariablesLength);
+        IDataAccess<FloatType> variables = new ArrayDataAccess<FloatType>(VariablesLength);
         Init?.Invoke(variables);
 
-        ArrayDataAccess<double> bestMine = variables.ToArray();
+        ArrayDataAccess<FloatType> bestMine = variables.ToArray();
         
         var before = func(variables);
         for (int k = 0; k < SolutionsCount; k++)

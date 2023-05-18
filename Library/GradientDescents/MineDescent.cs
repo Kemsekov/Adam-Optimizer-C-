@@ -16,11 +16,11 @@ public class MineDescent : GradientDescentBase
     /// By default it is 0.1, so when we step into worse error function value,
     /// we will divide  learning rate by 10.
     /// </summary>
-    public double DescentRateDecreaseRate = 0.1;
-    public MineDescent(IDataAccess<double> variables, Func<IDataAccess<double>, double> function) : base(variables, function)
+    public FloatType DescentRateDecreaseRate = 0.1;
+    public MineDescent(IDataAccess<FloatType> variables, Func<IDataAccess<FloatType>, FloatType> function) : base(variables, function)
     {
     }
-    void ComputeChangeMine(IDataAccess<double> change, double learningRate, double currentEvaluation)
+    void ComputeChangeMine(IDataAccess<FloatType> change, FloatType learningRate, FloatType currentEvaluation)
     {
         ComputeGradient(change, currentEvaluation);
         var length = Math.Sqrt(change.Sum(x => x * x));
@@ -38,7 +38,7 @@ public class MineDescent : GradientDescentBase
     {
         Logger?.LogLine("--------------Mine descent began");
 
-        using RentedArrayDataAccess<double> change = new(ArrayPoolStorage.RentArray<double>(Dimensions));
+        using RentedArrayDataAccess<FloatType> change = new(ArrayPoolStorage.RentArray<FloatType>(Dimensions));
         var iterations = 0;
         var descentRate = DescentRate;
         var beforeStep = Evaluate(Variables);
@@ -51,7 +51,7 @@ public class MineDescent : GradientDescentBase
             Logger?.LogLine($"Error is {afterStep}");
             Logger?.LogLine($"Changed by {diff}");
             if (diff <= Theta) break;
-            if (afterStep >= beforeStep || double.IsNaN(afterStep))
+            if (afterStep >= beforeStep || FloatType.IsNaN(afterStep))
             {
                 Logger?.LogLine($"Undo step. Decreasing descentRate.");
                 UndoStep(change);

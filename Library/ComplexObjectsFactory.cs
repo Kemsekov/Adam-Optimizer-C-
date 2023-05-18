@@ -2,11 +2,11 @@ namespace GradientDescentSharp;
 
 public class ComplexObjectsFactory : IComplexObjectsFactory
 {
-    public ComplexObjectsFactory(IDataAccess<double> data)
+    public ComplexObjectsFactory(IDataAccess<FloatType> data)
     {
         Data = data;
     }
-    public IDataAccess<double> Data { get; }
+    public IDataAccess<FloatType> Data { get; }
     int CurrentPosition = 0;
     public Vector CreateVector(int length){
         var res = new CustomVector(new CustomVectorStorage(Data,CurrentPosition,length));

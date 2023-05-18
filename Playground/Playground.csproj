@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <ItemGroup>
-    <ProjectReference Include="..\Library\GradientDescentSharp.csproj" />
+    <ProjectReference Include="..\Library\GradientDescentSharp.csproj"/>
   </ItemGroup>
 
   <PropertyGroup>
@@ -10,5 +9,4 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
 </Project>
