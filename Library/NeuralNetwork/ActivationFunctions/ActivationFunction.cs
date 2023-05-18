@@ -11,6 +11,9 @@ public class ActivationFunction : IActivationFunction{
     }
     public static ActivationFunction Of(Func<FloatType,FloatType> activation, Func<FloatType,FloatType>? activationDerivative = null)
         => new(activation,activationDerivative);
+    public static ActivationFunction Linear(){
+        return new(x=>x,x=>1);
+    }
     public static ActivationFunction Sigmoid(){
         var sigmoid = (FloatType x)=>1.0/(1+Math.Exp(-x));
         return new(sigmoid,x=>1-sigmoid(x));
