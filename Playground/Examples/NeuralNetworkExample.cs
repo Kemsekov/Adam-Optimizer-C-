@@ -8,21 +8,14 @@ public partial class Examples
     //y2=x1*x2
     public static void NeuralNetworkExample()
     {
-
-
         var defaultFactory = new NNComplexObjectsFactory();
 
-        //here I decided to show three of weight initializers used as example
-        var he = new HeNormal();
-        var glorotUniform = new GlorotUniform();
-        var glorotNormal = new GlorotNormal();
-
-        var layer1 = new Layer(defaultFactory, 2, 32, ActivationFunction.Tanh(), glorotUniform);
-        var layer2 = new Layer(defaultFactory, 32, 16, ActivationFunction.Tanh(), glorotNormal);
+        var layer1 = new Layer(defaultFactory, 2, 32, ActivationFunction.Tanh(), Initializers.GlorotUniform);
+        var layer2 = new Layer(defaultFactory, 32, 16, ActivationFunction.Tanh(), Initializers.GlorotNormal);
 
         //output layed needs to be linear so both positive and negative values can be 
         //predicted by a model
-        var layer3 = new Layer(defaultFactory, 16, 2, ActivationFunction.Linear(), he);
+        var layer3 = new Layer(defaultFactory, 16, 2, ActivationFunction.Linear(), Initializers.Guassian);
 
         var nn = new ForwardNN(layer1, layer2, layer3);
         _NeuralNetworkExample(nn);
@@ -36,7 +29,7 @@ public partial class Examples
 
         //here I purposely start with a higher learning rate, than it should be
         nn.LearningRate = 0.5;
-        for (int k = 0; k < 50; k++)
+        for (int k = 0; k < 20; k++)
         {
             var error = 0.0;
             for (int i = 0; i < 100; i++)
@@ -51,7 +44,12 @@ public partial class Examples
                 //it can be used to manually decrease learning rate if we hit too much
                 //of such failed backpropagations.
                 var beforeLearn = nn.Error(input,expected);
+
                 var backprop = nn.Backwards(input, expected);
+                
+                //we also can learn on error function instead. Uncomment it to see
+                // var backprop = nn.LearnOnError(input,1e-5,(input1,nn1)=>(nn1.Forward(input1)-expected).Sum(x=>x*x));
+
                 var afterLearn = nn.Error(input,expected);
                 //when we hit a worsen rather than improvement, 
                 //it indicates that our learning rate is too high, so we 

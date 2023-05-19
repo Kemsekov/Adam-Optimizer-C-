@@ -8,14 +8,11 @@ public partial class Examples
     public static void NeuralNetworkLearnOnErrorFunctionExample()
     {
         var defaultFactory = new NNComplexObjectsFactory();
-        var he = new HeNormal();
-        var glorotUniform = new GlorotUniform();
-        var glorotNormal = new GlorotNormal();
 
-        var layer1 = new Layer(defaultFactory, 1, 32, ActivationFunction.Tanh(), glorotUniform);
-        var layer2 = new Layer(defaultFactory, 32, 16, ActivationFunction.Tanh(), glorotUniform);
-        var layer3 = new Layer(defaultFactory, 16, 4, ActivationFunction.Tanh(), glorotUniform);
-        var layer4 = new Layer(defaultFactory, 4, 1, ActivationFunction.Linear(), he);
+        var layer1 = new Layer(defaultFactory, 1, 32, ActivationFunction.Tanh(), Initializers.GlorotUniform);
+        var layer2 = new Layer(defaultFactory, 32, 16, ActivationFunction.Tanh(), Initializers.GlorotUniform);
+        var layer3 = new Layer(defaultFactory, 16, 4, ActivationFunction.Tanh(), Initializers.GlorotUniform);
+        var layer4 = new Layer(defaultFactory, 4, 1, ActivationFunction.Linear(), Initializers.Guassian);
 
         var nn = new ForwardNN(layer1, layer2, layer3, layer4);
         _NeuralNetworkLearnOnErrorFunctionExample(nn);
