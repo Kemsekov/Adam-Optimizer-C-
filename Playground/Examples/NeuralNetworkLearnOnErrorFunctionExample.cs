@@ -19,7 +19,6 @@ public partial class Examples
 
         var nn = new ForwardNN(layer1, layer2, layer3, layer4);
         _NeuralNetworkLearnOnErrorFunctionExample(nn);
-
     }
     public static void _NeuralNetworkLearnOnErrorFunctionExample(NNBase nn){
         var xValues = Enumerable.Range(0, 1000).Select(x => DenseVector.Create(1, Random.Shared.NextDouble() * 4)).ToArray();
@@ -31,8 +30,9 @@ public partial class Examples
             return Math.Pow(result[0] - Math.Pow(input[0], 2.5), 2);
         };
 
-        nn.LearningRate = 0.05;
+        nn.LearningRate = 0.01;
         var error = 0.0;
+        for(var epoch = 0;epoch<5;epoch++)
         for (int i = 0; i < xValues.Length; i++)
         {
             var x = xValues[i];
@@ -62,14 +62,20 @@ public partial class Examples
                 error = 0.0;
             }
         }
+        var testError = 0.0;
         //print some values for prediction
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < 10; i++)
         {
-            var x1 = DenseVector.Create(1, i / 2.0);
+            var x1 = DenseVector.Create(1, i / 3.0);
+            var x = x1[0];
+            var xPower2dot5 = Math.Pow(x1[0], 2.5);
+            var predicted = nn.Forward(x1)[0];
             System.Console.WriteLine("------------------");
-            System.Console.WriteLine($"x={x1[0]}");
-            System.Console.WriteLine($"x^2.5={Math.Pow(x1[0], 2.5)}");
-            System.Console.WriteLine($"Predicted={nn.Forward(x1)[0]}");
+            System.Console.WriteLine($"x={x:0.0000}");
+            System.Console.WriteLine($"x^2.5={xPower2dot5:0.0000}");
+            System.Console.WriteLine($"Predicted={predicted:0.0000}");
+            testError += Math.Abs(predicted-xPower2dot5);
         }
+        System.Console.WriteLine("Test avg error is "+testError/10);
     }
 }
