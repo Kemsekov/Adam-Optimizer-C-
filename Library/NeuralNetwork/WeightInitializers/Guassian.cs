@@ -1,10 +1,12 @@
 namespace GradientDescentSharp.NeuralNetwork.WeightInitializers;
-
-public class GlorotNormal : IWeightsInit
+/// <summary>
+/// Uses random values drawn from a Gaussian distribution with mean 0 and standard deviation 1 (also known as the standard normal distribution).
+/// </summary>
+public class Guassian: IWeightsInit
 {
     public Random Rand { get; set;}
 
-    public GlorotNormal(Random? rand = null)
+    public Guassian(Random? rand = null)
     {
         this.Rand = rand ?? new Random();
     }
@@ -18,4 +20,3 @@ public class GlorotNormal : IWeightsInit
         layer.MapInplace(x=>MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev));
     }
 }
-

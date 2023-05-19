@@ -18,8 +18,11 @@ public partial class Examples
         var layer4 = new Layer(defaultFactory, 4, 1, ActivationFunction.Linear(), he);
 
         var nn = new ForwardNN(layer1, layer2, layer3, layer4);
-        var xValues = Enumerable.Range(0, 3000).Select(x => DenseVector.Create(1, Random.Shared.NextDouble() * 4)).ToArray();
+        _NeuralNetworkLearnOnErrorFunctionExample(nn);
 
+    }
+    public static void _NeuralNetworkLearnOnErrorFunctionExample(NNBase nn){
+        var xValues = Enumerable.Range(0, 1000).Select(x => DenseVector.Create(1, Random.Shared.NextDouble() * 4)).ToArray();
         //Here we define a problem, which is error function.
         var problem = (Vector input, NNBase nn) =>
         {
@@ -28,7 +31,7 @@ public partial class Examples
             return Math.Pow(result[0] - Math.Pow(input[0], 2.5), 2);
         };
 
-        nn.LearningRate = 0.01;
+        nn.LearningRate = 0.05;
         var error = 0.0;
         for (int i = 0; i < xValues.Length; i++)
         {
@@ -39,7 +42,7 @@ public partial class Examples
             // here magic happens. The some information we put into is:
             // input vector, some small theta, that will be used to compute
             // derivatives, and error function. This is enough to learn!
-            var backprop = nn.LearnOnError(x, 0.00001, problem);
+            var backprop = nn.LearnOnError(x, 0.0001, problem);
 
             var errorAfter = nn.Error(x, expected);
 
@@ -48,10 +51,9 @@ public partial class Examples
             // neural network!
             if (errorAfter > errorBefore)
             {
-                nn.LearningRate *= 0.9;
+                nn.LearningRate *= 0.5;
                 backprop.Unlearn();
-                var afterUnlearn = nn.Error(x, expected);
-                System.Console.WriteLine("We unlearn");
+                System.Console.WriteLine("Unlearn");
             }
             error += errorAfter;
             if (i % 100 == 0 && i != 0)
@@ -69,6 +71,5 @@ public partial class Examples
             System.Console.WriteLine($"x^2.5={Math.Pow(x1[0], 2.5)}");
             System.Console.WriteLine($"Predicted={nn.Forward(x1)[0]}");
         }
-
     }
 }

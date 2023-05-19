@@ -8,8 +8,7 @@ public partial class Examples
     //y2=x1*x2
     public static void NeuralNetworkExample()
     {
-        //used to pretty print vectors
-        string formatVector(Vector v) => $"{v[0]:0.000}, {v[1]:0.000}";
+
 
         var defaultFactory = new NNComplexObjectsFactory();
 
@@ -26,10 +25,17 @@ public partial class Examples
         var layer3 = new Layer(defaultFactory, 16, 2, ActivationFunction.Linear(), he);
 
         var nn = new ForwardNN(layer1, layer2, layer3);
-
+        _NeuralNetworkExample(nn);
+        
+    }
+    protected static void _NeuralNetworkExample(NNBase nn){
+        //used to pretty print vectors
+        string formatVector(Vector v) => $"{v[0]:0.000}, {v[1]:0.000}";
         //learning rate is changing dynamically depending on layer weights,
         //so in solution space we step always +- same distance to local minima
-        nn.LearningRate = 0.1;
+
+        //here I purposely start with a higher learning rate, than it should be
+        nn.LearningRate = 0.5;
         for (int k = 0; k < 50; k++)
         {
             var error = 0.0;
@@ -44,8 +50,18 @@ public partial class Examples
                 //to original weights, if we hit a worse minima after learning!
                 //it can be used to manually decrease learning rate if we hit too much
                 //of such failed backpropagations.
-                nn.Backwards(input, expected);
-                error += nn.Error(input, expected);
+                var beforeLearn = nn.Error(input,expected);
+                var backprop = nn.Backwards(input, expected);
+                var afterLearn = nn.Error(input,expected);
+                //when we hit a worsen rather than improvement, 
+                //it indicates that our learning rate is too high, so we 
+                //undo changes from previous learning and decrease learning rate
+                if(afterLearn>beforeLearn){
+                    backprop.Unlearn();
+                    nn.LearningRate*=0.9;
+                    System.Console.WriteLine("Unlearn");
+                }
+                error += afterLearn;
             }
             System.Console.WriteLine($"Error is {error / 100}");
         }
@@ -69,5 +85,4 @@ public partial class Examples
             System.Console.WriteLine($"Result: {formatVector(result)}");
         }
     }
-
 }

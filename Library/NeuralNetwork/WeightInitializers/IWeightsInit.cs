@@ -1,4 +1,4 @@
-namespace GradientDescentSharp.NeuralNetwork;
+namespace GradientDescentSharp.NeuralNetwork.WeightInitializers;
 
 public interface IWeightsInit{
     public void InitWeights(Vector bias);

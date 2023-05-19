@@ -1,4 +1,4 @@
-namespace GradientDescentSharp.NeuralNetwork;
+namespace GradientDescentSharp.NeuralNetwork.WeightInitializers;
 
 public class GlorotUniform : IWeightsInit
 {
