@@ -44,7 +44,7 @@ public partial class Examples
             return pricePredictor.Error(input, expected);
         };
         //here we train
-        for (int epoch = 0; epoch < 30; epoch++)
+        for (int epoch = 0; epoch < 50; epoch++)
         {
             var epochError = test.Sum(errorFunction);
             System.Console.WriteLine($"Error is {epochError}");

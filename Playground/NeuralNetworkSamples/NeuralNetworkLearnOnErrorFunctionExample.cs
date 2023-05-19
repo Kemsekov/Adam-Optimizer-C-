@@ -17,7 +17,7 @@ public partial class Examples
         var nn = new ForwardNN(layer1, layer2, layer3, layer4);
         _NeuralNetworkLearnOnErrorFunctionExample(nn);
     }
-    public static void _NeuralNetworkLearnOnErrorFunctionExample(NNBase nn){
+    static void _NeuralNetworkLearnOnErrorFunctionExample(NNBase nn){
         var xValues = Enumerable.Range(0, 1000).Select(x => DenseVector.Create(1, Random.Shared.NextDouble() * 4)).ToArray();
         //Here we define a problem, which is error function.
         var problem = (Vector input, NNBase nn) =>

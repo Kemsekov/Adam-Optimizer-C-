@@ -21,7 +21,7 @@ public partial class Examples
         _NeuralNetworkExample(nn);
         
     }
-    protected static void _NeuralNetworkExample(NNBase nn){
+    static void _NeuralNetworkExample(NNBase nn){
         //used to pretty print vectors
         string formatVector(Vector v) => $"{v[0]:0.000}, {v[1]:0.000}";
         //learning rate is changing dynamically depending on layer weights,
