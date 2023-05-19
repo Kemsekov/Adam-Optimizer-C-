@@ -8,12 +8,12 @@ public abstract class GradientDescentBase : IGradientDescent
     /// Error function that we need to minimize. Returns values >= 0
     /// </summary>
     /// <value></value>
-    public Func<IDataAccess<FloatType>, FloatType> Function { get; }
+    public Func<IDataAccess<double>, double> Function { get; }
     /// <summary>
     /// Function variables that need to be adjusted to minimize error function 
     /// </summary>
     /// <value></value>
-    public IDataAccess<FloatType> Variables { get; }
+    public IDataAccess<double> Variables { get; }
     /// <summary>
     /// Length of function variables
     /// </summary>
@@ -21,14 +21,14 @@ public abstract class GradientDescentBase : IGradientDescent
     /// <summary>
     /// Descent rate. The higher, the more.
     /// </summary>
-    public FloatType DescentRate = 0.05;
+    public double DescentRate = 0.05;
     /// <summary>
     /// If gradient descent step error function value changes less than this value, it means
     /// we need to step descending. <br/>
     /// In short terms, this value defines how precise our find local minima need to be.<br/>
     /// Also this value is a derivative epsilon, that used to compute gradient
     /// </summary>
-    public FloatType Theta = 0.0001;
+    public double Theta = 0.0001;
     /// <summary>
     /// Create new instance of gradient descent
     /// </summary>
@@ -38,22 +38,22 @@ public abstract class GradientDescentBase : IGradientDescent
     /// Good rule of thumb: return MSE as error function<br/>
     /// So if your error values is a,b,c,d => then return error as: a^2+b^2+c^2+d^2
     /// </param>
-    public GradientDescentBase(IDataAccess<FloatType> variables, Func<IDataAccess<FloatType>, FloatType> function)
+    public GradientDescentBase(IDataAccess<double> variables, Func<IDataAccess<double>, double> function)
     {
         Function = function;
         Variables = variables;
         Dimensions = variables.Length;
     }
-    protected FloatType Evaluate(IDataAccess<FloatType> variables)
+    protected double Evaluate(IDataAccess<double> variables)
     {
         return Function(variables);
     }
-    protected void Step(IDataAccess<FloatType> change)
+    protected void Step(IDataAccess<double> change)
     {
         for (var i = 0; i < Dimensions; i++)
             Variables[i] -= change[i];
     }
-    protected void UndoStep(IDataAccess<FloatType> change)
+    protected void UndoStep(IDataAccess<double> change)
     {
         for (var i = 0; i < Dimensions; i++)
             Variables[i] += change[i];
@@ -61,11 +61,11 @@ public abstract class GradientDescentBase : IGradientDescent
     /// <summary>
     /// Computes a gradient of error function by nudging it by theta.
     /// </summary>
-    protected void ComputeGradient(IDataAccess<FloatType> gradient, FloatType currentEvaluation)
+    protected void ComputeGradient(IDataAccess<double> gradient, double currentEvaluation)
     {
         Parallel.For(0, Dimensions, i =>
         {
-            var gradientDataAccess = new GradientDataAccess<FloatType>(Variables, 0, 0);
+            var gradientDataAccess = new GradientDataAccess<double>(Variables, 0, 0);
             gradientDataAccess.Reset(i, Variables[i] + Theta);
             var after = Evaluate(gradientDataAccess);
             gradient[i] = (after - currentEvaluation) / Theta;

@@ -17,6 +17,6 @@ public class Guassian: IWeightsInit
     public void InitWeights(Matrix layer)
     {
         var stddev = Math.Sqrt(2.0/(layer.RowCount+layer.ColumnCount));
-        layer.MapInplace(x=>MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev));
+        layer.MapInplace(x=>(MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev)));
     }
 }

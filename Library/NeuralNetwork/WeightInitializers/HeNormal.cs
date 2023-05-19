@@ -10,7 +10,7 @@ public class HeNormal : IWeightsInit
     }
     public void InitWeights(Vector bias)
     {
-        bias.MapInplace(x=>Rand.NextDouble());
+        bias.MapInplace(x=>(Rand.NextDouble()));
     }
     public void InitWeights(Matrix layer)
     {

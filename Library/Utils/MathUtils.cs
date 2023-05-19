@@ -4,10 +4,10 @@ public static class MathUtils
     /// <summary>
     /// Moves data points from each other to normally fill input vector space
     /// </summary>
-    public static void DistributeData(Vector[] data, FloatType CoordinatesScale, Vector CoordinatesShift)
+    public static void DistributeData(Vector[] data, double CoordinatesScale, Vector CoordinatesShift)
     {
         var InputVectorLength = CoordinatesShift.Count;
-        void normalizeVector(ref DenseVector position, FloatType step)
+        void normalizeVector(ref DenseVector position, double step)
         {
             for (int k = 0; k < InputVectorLength; k++)
             {
@@ -21,7 +21,7 @@ public static class MathUtils
         }
         var chunkSize = MathF.Pow(data.Length, 1f / InputVectorLength);
         var step = 1f / chunkSize;
-        var position = new DenseVector(new FloatType[InputVectorLength]);
+        var position = new DenseVector(new double[InputVectorLength]);
 
         for (int i = 0; i < data.Length; i++)
         {
@@ -45,11 +45,11 @@ public static class MathUtils
     {
         if(data.Length==0) return;
         var InputVectorLength = data[0].Count;
-        input ??= new DenseVector(new FloatType[InputVectorLength]);
-        var maxArray = new FloatType[InputVectorLength];
-        var minArray = new FloatType[InputVectorLength];;
-        Array.Fill(maxArray,FloatType.MinValue);
-        Array.Fill(minArray,FloatType.MaxValue);
+        input ??= new DenseVector(new double[InputVectorLength]);
+        var maxArray = new double[InputVectorLength];
+        var minArray = new double[InputVectorLength];;
+        Array.Fill(maxArray,double.MinValue);
+        Array.Fill(minArray,double.MaxValue);
         Vector max = new DenseVector(maxArray);
         Vector min = new DenseVector(minArray);
 

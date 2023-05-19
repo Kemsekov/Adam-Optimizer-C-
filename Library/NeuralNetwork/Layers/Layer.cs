@@ -1,6 +1,7 @@
+
 namespace GradientDescentSharp.NeuralNetwork;
 
-record Learned(Vector biasesGradient, Vector layerInput, FloatType learningRate);
+record Learned(Vector biasesGradient, Vector layerInput, double learningRate);
 
 public class Layer : ILayer
 {
@@ -35,7 +36,7 @@ public class Layer : ILayer
         return (Vector)raw;
     }
 
-    public void Learn(Vector biasesGradient, Vector layerInput, FloatType learningRate)
+    public void Learn(Vector biasesGradient, Vector layerInput, double learningRate)
     {
         var weightsGradient = (int j,int k)=>biasesGradient[j]*layerInput[k];
         Weights.MapIndexedInplace((j,k,x)=>x-learningRate*weightsGradient(j,k));

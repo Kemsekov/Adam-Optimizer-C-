@@ -5,7 +5,7 @@ namespace GradientDescentSharp.NeuralNetwork;
 public abstract class NNBase
 {
     public ILayer[] Layers { get; }
-    public FloatType LearningRate = 0.05;
+    public double LearningRate = 0.05;
     Dictionary<ILayer,Vector> RawLayerOutput;
     /// <summary>
     /// See the class description to understand what it does
@@ -55,7 +55,7 @@ public abstract class NNBase
             replacer.ChangedOutputIndex = i;
             replacer.ChangedOutputTheta=theta;
             var changed = errorFunction(input,this);
-            errorDerivative[i]=(changed-original)/theta;
+            errorDerivative[i]=((changed-original)/theta);
             replacer.ChangedOutputIndex = -1;
         }
         //fill layers with learning info

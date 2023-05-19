@@ -1,6 +1,6 @@
 namespace GradientDescentSharp.NeuralNetwork;
 
 public interface IActivationFunction{
-    FloatType Activation(FloatType x);
-    FloatType ActivationDerivative(FloatType x);
+    double Activation(double x);
+    double ActivationDerivative(double x);
 }
