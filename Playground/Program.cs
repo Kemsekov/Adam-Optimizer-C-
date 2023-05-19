@@ -1,1 +1,3 @@
-﻿Examples.NeuralNetworkOnDatasetExample();
+﻿using GradientDescentSharp.NeuralNetwork;
+using ScottPlot;
+Examples.FindComplexFunction();

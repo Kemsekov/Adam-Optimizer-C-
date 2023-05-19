@@ -55,7 +55,7 @@ public abstract class NNBase
             replacer.ChangedOutputIndex = i;
             replacer.ChangedOutputTheta=theta;
             var changed = errorFunction(input,this);
-            errorDerivative[i]=((changed-original)/theta);
+            errorDerivative[i]=(changed-original)/theta;
             replacer.ChangedOutputIndex = -1;
         }
         //fill layers with learning info
