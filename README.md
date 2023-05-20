@@ -1,6 +1,6 @@
 [![nuget](https://img.shields.io/nuget/v/GradientDescentSharp.svg)](https://www.nuget.org/packages/GradientDescentSharp/) 
 # GradientDescentSharp
-This little library allows to compute a approximate solution for some defined problem with error function, using gradient descent
+This little library allows to compute a approximate solution for some defined problem with error function, using gradient descent.
 
 Simple example:
 ```cs
@@ -124,8 +124,9 @@ As you can see, when we hit a grow in error function, the descent undo step and 
 
 It still is very important to define a good error function and init variables.
 
-Oh, yes, btw I've got a working feed-forward neural network implementation here too...
+Also I've a good working feed-forward neural network implementation here.
 
 And it can learn from error function only, like a simplified RL, if you know.
 
-Check out Playground examples.
+Check out 
+[neural network playground examples](https://github.com/Kemsekov/GradientDescentSharp/tree/main/Playground/NeuralNetworkSamples).
