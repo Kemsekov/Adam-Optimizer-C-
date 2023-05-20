@@ -1,4 +1,4 @@
-namespace GradientDescentSharp.NeuralNetwork;
+namespace GradientDescentSharp.NeuralNetwork.Specific;
 
 /// <summary>
 /// If you know how to do backpropagation, you know that you need to take a derivative 
@@ -16,7 +16,7 @@ namespace GradientDescentSharp.NeuralNetwork;
 /// I am sure there is more beautiful solution than this, but this is 
 /// the best I could think of.
 /// </summary>
-class ErrorFunctionOutputDerivativeReplacer{
+public class ErrorFunctionOutputDerivativeReplacer{
     public int ChangedOutputIndex = -1;
     public double ChangedOutputTheta;
     /// <summary>

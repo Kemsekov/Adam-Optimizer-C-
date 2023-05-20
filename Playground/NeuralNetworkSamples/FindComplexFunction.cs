@@ -7,7 +7,7 @@ public partial class Examples
     public static void FindComplexFunction()
     {
         // we need to find such function f(x), that
-        // f(x)+f(e^(-x))=0
+        // f(x)+f(e^x+0.1)+1=0
 
         //this problem is unsolvable by ordinary backpropagation Backwards method,
         //because we don't have any dataset, but it is solvable by error function!
@@ -15,9 +15,9 @@ public partial class Examples
         double Problem(Vector input, NNBase nn)
         {
             var x = input[0];
-            var y1 = nn.Forward(input);
-            var y2 = nn.Forward((Vector)input.Map(x => Math.Exp(-x)));
-            var error = y1 + y2;
+            var y1 = nn.Forward(input)[0];
+            var y2 = nn.Forward((Vector)input.Map(x => Math.Exp(x)+0.1))[0];
+            var error = y1 + y2+1;
             return error * error;
         };
 
@@ -30,16 +30,17 @@ public partial class Examples
         var testInputs = Enumerable.Range(-10, 10).Select(x => DenseVector.Create(1, x * 1.0 / 20)).ToArray();
 
         nn.LearningRate = 0.05;
-        for (int epoch = 0; epoch < 20; epoch++)
+        for (int epoch = 0; epoch < 10; epoch++)
         {
-            var epochError = testInputs.Sum(x => Problem(x, nn));
-            System.Console.WriteLine("Error " + epochError);
+
             for (int i = 0; i < 500; i++)
             {
                 var x = Random.Shared.NextDouble() * 4 - 2;
                 var input = DenseVector.Create(1, x);
-                var result = nn.LearnOnError(input, 0.0001, Problem);
+                var result = nn.LearnOnError(input, 0.01, Problem);
             }
+            var epochError = testInputs.Sum(x => Problem(x, nn));
+            System.Console.WriteLine("Error " + epochError);
         }
 
         var plt = new ScottPlot.Plot();
@@ -57,6 +58,15 @@ public partial class Examples
         }
         plt.Add.Scatter(xValues, yValues, System.Drawing.Color.Red.ToScatter());
         plt.SaveJpeg("s.jpg", 1000, 1000);
-
+        for(int i = 0;i<5;i++){
+            var x1 = Random.Shared.NextDouble() * 4 - 2;
+            var x2 = Math.Exp(x1)+0.1;
+            var y1 = nn.Forward(DenseVector.Create(1,x1))[0];
+            var y2 = nn.Forward(DenseVector.Create(1,x2))[0];
+            System.Console.WriteLine("---------------------");
+            System.Console.WriteLine($"x:\t\t\t{x1:0.00}");
+            System.Console.WriteLine($"e^x+0.1:\t\t{x2:0.00}");
+            System.Console.WriteLine($"f(x)+f(e^x+0.1)+1 =\t{y1+y2+1:0.00}");
+        }
     }
 }

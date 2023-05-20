@@ -1,3 +1,4 @@
+using GradientDescentSharp.NeuralNetwork.Specific;
 using MathNet.Numerics.LinearAlgebra;
 
 namespace GradientDescentSharp.NeuralNetwork;
@@ -6,21 +7,25 @@ public abstract class NNBase
 {
     public ILayer[] Layers { get; }
     public double LearningRate = 0.05;
-    Dictionary<ILayer,Vector> RawLayerOutput;
+    protected Dictionary<ILayer,Vector> RawLayerOutput;
+
     /// <summary>
-    /// See the class description to understand what it does
+    /// Builds a copy of another neural network
     /// </summary>
-    ErrorFunctionOutputDerivativeReplacer replacer;
+    /// <param name="another"></param>
+    public NNBase(NNBase another){
+        Layers = another.Layers;
+        RawLayerOutput = another.RawLayerOutput;
+    }
     public NNBase(params ILayer[] layers)
     {
-        replacer = new();
         Layers = layers;
         RawLayerOutput = new Dictionary<ILayer, Vector>();
         foreach(var layer in layers){
             RawLayerOutput[layer] = (Vector)layer.Bias.Map(x=>0.0);
         }
     }
-    public Vector Forward(Vector input)
+    public virtual Vector Forward(Vector input)
     {
         ILayer layer;
         for (int i = 0; i < Layers.Length; i++)
@@ -29,21 +34,19 @@ public abstract class NNBase
             input = layer.Forward(input);
             input.MapInplace(x=>layer.Activation.Activation(x));
         }
-        replacer.ReplaceOutputParameter(input);
         return input;
     }
 
-    Vector ForwardForLearning(Vector input)
+    protected virtual Vector ForwardForLearning(Vector input)
     {
         ILayer layer;
         for (int i = 0; i < Layers.Length; i++)
         {
             layer = Layers[i];
             input = layer.Forward(input);
-            this.RawLayerOutput[layer].MapIndexedInplace((index,x)=>input[index]);
+            RawLayerOutput[layer].MapIndexedInplace((index,x)=>input[index]);
             input.MapInplace(x=>layer.Activation.Activation(x));
         }
-        replacer.ReplaceOutputParameter(input);
         return input;
     }
     /// <summary>
@@ -65,13 +68,18 @@ public abstract class NNBase
         var original = errorFunction(input,this);
         var originalOutput = Forward(input);
         var errorDerivative = originalOutput.Map(x=>0.0);
-        for(int i = 0;i<originalOutput.Count;i++){
-            replacer.ChangedOutputIndex = i;
-            replacer.ChangedOutputTheta=theta;
-            var changed = errorFunction(input,this);
+        Parallel.For(0,originalOutput.Count,i=>
+        {
+            var replacer = new ErrorFunctionOutputDerivativeReplacer
+            {
+                ChangedOutputIndex = i,
+                ChangedOutputTheta = theta
+            };
+            var nn = new NNErrorDerivativeComputation(this,replacer);
+            var changed = errorFunction(input,nn);
             errorDerivative[i]=(changed-original)/theta;
             replacer.ChangedOutputIndex = -1;
-        }
+        });
         //fill layers with learning info
         ForwardForLearning(input);
         Learn(input,errorDerivative);
