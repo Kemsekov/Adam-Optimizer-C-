@@ -1,3 +1,7 @@
-﻿using GradientDescentSharp.NeuralNetwork;
+﻿using System.Diagnostics;
+using GradientDescentSharp.NeuralNetwork;
 using ScottPlot;
-Examples.FindComplexFunction();
+var watch = new Stopwatch();
+watch.Start();
+Examples.NeuralNetworkOnDatasetExample();
+System.Console.WriteLine("Done in "+watch.ElapsedMilliseconds);

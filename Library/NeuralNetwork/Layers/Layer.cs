@@ -41,7 +41,7 @@ public class Layer : ILayer
         var weightsGradient = (int j,int k)=>biasesGradient[j]*layerInput[k];
         Weights.MapIndexedInplace((j,k,x)=>x-learningRate*weightsGradient(j,k));
         Bias.MapIndexedInplace((j,x)=>x-learningRate*biasesGradient[j]);
-        this.learned = new Learned(biasesGradient,layerInput,learningRate);
+        learned = new Learned(biasesGradient,layerInput,learningRate);
     }
     /// <summary>
     /// Unlearns last learned weights

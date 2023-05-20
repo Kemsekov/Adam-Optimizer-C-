@@ -9,13 +9,15 @@ public class ComplexObjectsFactory : IComplexObjectsFactory
     public IDataAccess<double> Data { get; }
     int CurrentPosition = 0;
     public Vector CreateVector(int length){
-        var res = new CustomVector(new CustomVectorStorage(Data,CurrentPosition,length));
+        var storage = new DataAccessVectorStorage(Data,CurrentPosition,length);
+        var res = new CustomVector(storage);
         CurrentPosition+=length;
         ThrowIfOutOfRange();
         return res;
     }
     public Matrix CreateMatrix(int rows, int columns){
-        var res = new CustomMatrix(new CustomMatrixStorage(Data,CurrentPosition,rows,columns));
+        var storage = new DataAccessMatrixStorage(Data,CurrentPosition,rows,columns);
+        var res = new CustomMatrix(storage);
         CurrentPosition+=rows*columns;
         ThrowIfOutOfRange();
         return res;

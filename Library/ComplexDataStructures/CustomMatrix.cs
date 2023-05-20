@@ -1,45 +1,13 @@
+using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Storage;
 namespace GradientDescentSharp.ComplexDataStructures;
 /// <summary>
-/// Custom matrix that store it's values on data accessors that can be used by gradient descent
+/// Custom matrix
 /// </summary>
 public class CustomMatrix : Matrix
 {
     ///<inheritdoc/>
     public CustomMatrix(MatrixStorage<double> storage) : base(storage)
     {
-    }
-}
-class CustomMatrixStorage : MatrixStorage<double>
-{
-    public override bool IsDense => true;
-
-    public override bool IsFullyMutable => true;
-
-    public int StartIndex { get; }
-    public IDataAccess<double> Data { get; }
-
-    public CustomMatrixStorage(IDataAccess<double> data, int startIndex, int rowCount, int columnCount) : base(rowCount, columnCount)
-    {
-        StartIndex = startIndex;
-        Data = data;
-    }
-    int computeIndex(int row, int column)
-    {
-        return StartIndex + column + row * ColumnCount;
-    }
-    public override double At(int row, int column)
-    {
-        return Data[computeIndex(row, column)];
-    }
-
-    public override void At(int row, int column, double value)
-    {
-        Data[computeIndex(row, column)] = value;
-    }
-
-    public override bool IsMutableAt(int row, int column)
-    {
-        return true;
     }
 }
