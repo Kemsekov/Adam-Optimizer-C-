@@ -46,7 +46,21 @@ public abstract class NNBase
         replacer.ReplaceOutputParameter(input);
         return input;
     }
-
+    /// <summary>
+    /// Learns a model on error function. Use it when you don't have a dataset to train on.
+    /// </summary>
+    /// <param name="input">Given input to model</param>
+    /// <param name="theta">Used to compute derivatives from error function. Bigger values allows to locate a local minima faster. In practice I use something like 0.01</param>
+    /// <param name="errorFunction">
+    /// Error function that must be implemented with following constraints: <br/>
+    /// 1) It needs to be dependent on input vector.
+    /// So when we put different input vector, it gives different results.<br/>
+    /// 2) It needs to be continuous.
+    /// So when model weights changes on some small theta, the output of error function 
+    /// is also changing by some theta.<br/>
+    /// 3) It need to use Forward method from given to it neural network parameter.
+    /// </param>
+    /// <returns></returns>
     public BackpropResult LearnOnError(Vector input,double theta, Func<Vector,NNBase,double> errorFunction){
         var original = errorFunction(input,this);
         var originalOutput = Forward(input);

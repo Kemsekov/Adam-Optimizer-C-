@@ -43,13 +43,13 @@ public partial class Examples
             var input = record.ToInputVector();
             return pricePredictor.Error(input, expected);
         };
+        var batchSize = 500;
         //here we train
         for (int epoch = 0; epoch < 10; epoch++)
         {
-            var epochError = test.Sum(errorFunction);
-            System.Console.WriteLine($"Error is {epochError}");
-
-            foreach (var record in train.TakeNRandom(500))
+            var testError = test.Average(errorFunction);
+            var trainError = 0.0;
+            foreach (var record in train.TakeNRandom(batchSize))
             {
                 var input = record.ToInputVector();
                 var expected = DenseVector.Create(1, record.Price);
@@ -66,12 +66,16 @@ public partial class Examples
                     backprop.Unlearn();
                     System.Console.WriteLine("Unlearn");
                 }
+                trainError+=errorAfter;
             }
-
+            trainError/=batchSize;
+            System.Console.WriteLine("----------------");
+            System.Console.WriteLine($"Train error is {trainError}");
+            System.Console.WriteLine($"Test error is {testError}");
         }
 
         //here we evaluate
-        foreach(var sample in test.TakeNRandom(10)){
+        foreach(var sample in test.TakeNRandom(4)){
             System.Console.WriteLine("---------------");
             var input = sample.ToInputVector();
             var prediction = pricePredictor.Forward(input)[0];
