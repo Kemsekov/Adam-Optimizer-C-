@@ -26,11 +26,16 @@ public partial class Examples
     static void _NeuralNetworkExample(NNBase nn){
         //used to pretty print vectors
         string formatVector(Vector v) => $"{v[0]:0.000}, {v[1]:0.000}";
+
+        var y1 = (float x1, float x2)=>MathF.Sin(x1+x2);
+        var y2 = (float x1, float x2)=>x1*x2;
+
         //learning rate is changing dynamically depending on layer weights,
         //so in solution space we step always +- same distance to local minima
 
         //here I purposely start with a higher learning rate, than it should be
-        nn.LearningRate = 0.5f;
+        var testData = Enumerable.Range(0,100).Select(x=>DenseVector.Create(2, x => Random.Shared.NextSingle() * 4 - 2)).ToArray();
+        nn.LearningRate = 0.05f;
         for (int k = 0; k < 20; k++)
         {
             var error = 0.0;
@@ -38,8 +43,8 @@ public partial class Examples
             {
                 var input = DenseVector.Create(2, x => Random.Shared.NextSingle() * 4 - 2);
                 var expected = DenseVector.Create(2, 0);
-                expected[0] = MathF.Sin(input[0] + input[1]);
-                expected[1] = input[0] * input[1];
+                expected[0] = y1(input[0], input[1]);
+                expected[1] = y2(input[0], input[1]);
 
                 //this version of backpropagation at it's core support rolling back
                 //to original weights, if we hit a worse minima after learning!
@@ -56,14 +61,22 @@ public partial class Examples
                 //when we hit a worsen rather than improvement, 
                 //it indicates that our learning rate is too high, so we 
                 //undo changes from previous learning and decrease learning rate
-                if(afterLearn>beforeLearn){
+                if(afterLearn>beforeLearn || float.IsNaN(afterLearn)){
                     backprop.Unlearn();
                     nn.LearningRate*=0.9f;
                     System.Console.WriteLine("Unlearn");
                 }
                 error += afterLearn;
             }
-            System.Console.WriteLine($"Error is {error / 100}");
+            var testError = testData.Average(x=>{
+                var expected = DenseVector.Create(2,0);
+                expected[0] = y1(x[0],x[1]);
+                expected[1] = y2(x[0],x[1]);
+                return nn.Error(x,expected);
+            });
+            System.Console.WriteLine("-----------------------");
+            System.Console.WriteLine($"Test error is {testError}");
+            System.Console.WriteLine($"Train error is {error / 100}");
         }
 
         //show some examples of predictions

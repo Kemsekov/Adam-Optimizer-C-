@@ -43,7 +43,7 @@ public class Layer : ILayer
         
         // var weightsGradient = (int j,int k)=>biasesGradient[j]*layerInput[k];
         // Weights.MapIndexedInplace((j,k,x)=>x-learningRate*weightsGradient(j,k));
-        
+
         for(int k = 0;k<layerInput.Count;k++){
             var kInput = layerInput[k];
             if(kInput==0) continue;

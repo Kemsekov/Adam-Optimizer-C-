@@ -110,8 +110,7 @@ public abstract class NNBase
         {
             var layer = Layers[i];
 
-            var totalWeightsSum = layer.Bias.Sum(b => b * b) + layer.Weights.ToEnumerable().Sum(x => x * x);
-            var learningRate = LearningRate / totalWeightsSum;
+            var learningRate = LearningRate ;
 
             var biases = layer.Bias;
             var layerOutput = RawLayerOutput[layer];
