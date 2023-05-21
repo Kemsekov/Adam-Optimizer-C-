@@ -18,5 +18,11 @@ public class GlorotUniform : IWeightsInit
         var limit = Math.Sqrt(6.0/(layer.RowCount+layer.ColumnCount));
         layer.MapInplace(x=> (float)((Rand.NextSingle()*2-1)*limit));
     }
+
+    public float SampleWeight(Matrix layer)
+    {
+        var limit = Math.Sqrt(6.0/(layer.RowCount+layer.ColumnCount));
+        return (float)((Rand.NextSingle()*2-1)*limit);
+    }
 }
 

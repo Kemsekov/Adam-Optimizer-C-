@@ -18,8 +18,13 @@ public class HeNormal : IWeightsInit
     public void InitWeights(Matrix layer)
     {
         var stddev = Math.Sqrt(2.0/layer.ColumnCount);
-        var vv = MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev);
         layer.MapInplace(x=> (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev));
+    }
+
+    public float SampleWeight(Matrix layer)
+    {
+        var stddev = Math.Sqrt(2.0/layer.ColumnCount);
+        return (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev);
     }
 }
 
@@ -38,8 +43,13 @@ public class He2Normal : IWeightsInit
     public void InitWeights(Matrix layer)
     {
         var stddev = Math.Sqrt(1.0/layer.ColumnCount);
-        var vv = MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev);
         layer.MapInplace(x=> (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev));
+    }
+
+    public float SampleWeight(Matrix layer)
+    {
+        var stddev = Math.Sqrt(1.0/layer.ColumnCount);
+        return (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev);
     }
 }
 
@@ -58,7 +68,12 @@ public class He3Normal : IWeightsInit
     public void InitWeights(Matrix layer)
     {
         var stddev = Math.Sqrt(6.0/layer.ColumnCount);
-        var vv = MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev);
         layer.MapInplace(x=> (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev));
+    }
+
+    public float SampleWeight(Matrix layer)
+    {
+        var stddev = Math.Sqrt(6.0/layer.ColumnCount);
+        return (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev);
     }
 }

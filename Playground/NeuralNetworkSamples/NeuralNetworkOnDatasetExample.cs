@@ -45,7 +45,7 @@ public partial class Examples
         };
         var batchSize = 500;
         //here we train
-        for (int epoch = 0; epoch < 10; epoch++)
+        for (int epoch = 0; epoch < 20; epoch++)
         {
             var testError = test.Average(errorFunction);
             var trainError = 0.0;
@@ -53,36 +53,32 @@ public partial class Examples
             {
                 var input = record.ToInputVector();
                 var expected = DenseVector.Create(1, (float)record.Price);
-                var error = pricePredictor.Error(input, expected);
+                var error = errorFunction(record);
                 // var backprop = pricePredictor.Backwards(input, expected);
 
                 //alternatively
-                var backprop = pricePredictor.LearnOnError(input,1e-4f,(input,nn)=>nn.Error(input,expected));
+                var backprop = pricePredictor.LearnOnError(input, 1e-3f, (input, nn) => nn.Error(input, expected));
 
                 var errorAfter = pricePredictor.Error(input, expected);
-                if (errorAfter > error)
-                {
-                    pricePredictor.LearningRate *= 0.5f;
-                    backprop.Unlearn();
-                    System.Console.WriteLine("Unlearn");
-                }
-                trainError+=errorAfter;
+                trainError += errorAfter;
             }
-            trainError/=batchSize;
+
+            trainError /= batchSize;
             System.Console.WriteLine("----------------");
             System.Console.WriteLine($"Train error is {trainError}");
             System.Console.WriteLine($"Test error is {testError}");
         }
 
         //here we evaluate
-        foreach(var sample in test.TakeNRandom(4)){
+        foreach (var sample in test.TakeNRandom(4))
+        {
             System.Console.WriteLine("---------------");
             var input = sample.ToInputVector();
             var prediction = pricePredictor.Forward(input)[0];
 
             var restored = sample.RestoreRecord(meanRecordValues);
             System.Console.WriteLine(restored);
-            System.Console.WriteLine($"Predicted price:\t{prediction*meanRecordValues.Price}");
+            System.Console.WriteLine($"Predicted price:\t{prediction * meanRecordValues.Price}");
         }
     }
 }

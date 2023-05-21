@@ -20,6 +20,8 @@ public class Layer : ILayer
     public Vector RawOutput{get;}
     public IActivationFunction Activation{get;}
 
+    public IWeightsInit WeightsInit{get;}
+
     /// <param name="factory">Linear objects factory</param>
     /// <param name="inputSize">Layer input size</param>
     /// <param name="outputSize">Layer output size</param>
@@ -32,6 +34,7 @@ public class Layer : ILayer
         Activation = activation;
         weightsInit.InitWeights(Bias);
         weightsInit.InitWeights(Weights);
+        WeightsInit = weightsInit;
     }
     public Vector Forward(Vector input){
         var raw = Weights*input+Bias;

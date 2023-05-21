@@ -5,4 +5,5 @@ namespace GradientDescentSharp.NeuralNetwork.WeightInitializers;
 public interface IWeightsInit{
     public void InitWeights(Vector bias);
     public void InitWeights(Matrix layer);
+    public float SampleWeight(Matrix layer);
 }
