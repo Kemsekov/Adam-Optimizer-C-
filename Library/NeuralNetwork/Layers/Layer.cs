@@ -40,7 +40,9 @@ public class Layer : ILayer
         var raw = Weights*input+Bias;
         return (Vector)raw;
     }
-
+    /// <summary>
+    /// Learns weights and biases from given gradients and layer input
+    /// </summary>
     public void Learn(Vector biasesGradient, Vector layerInput, float learningRate)
     {
         
@@ -59,7 +61,7 @@ public class Layer : ILayer
         learned = new Learned(biasesGradient,layerInput,learningRate);
     }
     /// <summary>
-    /// Unlearns last learned weights
+    /// Unlearns last learned weights and biases
     /// </summary>
     public void Unlearn(){
         if(learned is null) return;

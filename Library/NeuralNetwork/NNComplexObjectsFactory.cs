@@ -3,10 +3,14 @@ using MathNet.Numerics.LinearAlgebra.Single;
 
 namespace GradientDescentSharp.NeuralNetwork;
 
-public class NNComplexObjectsFactory : IComplexObjectsFactory<float>{
+///<inheritdoc/>
+public class NNComplexObjectsFactory : IComplexObjectsFactory<float>
+{
+    ///<inheritdoc/>
     public Matrix<float> CreateMatrix(int rows, int columns)
-        => NNMatrix.Create(rows,columns,0);
+        => NNMatrix.Create(rows, columns, 0);
 
+    ///<inheritdoc/>
     public Vector<float> CreateVector(int length)
-        => DenseVector.Create(length,0);
+        => DenseVector.Create(length, 0);
 }

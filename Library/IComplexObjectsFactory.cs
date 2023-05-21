@@ -7,6 +7,12 @@ namespace GradientDescentSharp;
 public interface IComplexObjectsFactory<T>
 where T : unmanaged, IFormattable, System.IEquatable<T>
 {
+    /// <summary>
+    /// Creates a vector of given length
+    /// </summary>
     Vector<T> CreateVector(int length);
+    /// <summary>
+    /// Creates a matrix of given size
+    /// </summary>
     Matrix<T> CreateMatrix(int rows, int columns);
 }

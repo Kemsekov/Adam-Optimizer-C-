@@ -65,7 +65,7 @@ public partial class Examples
         var testData = Enumerable.Range(0, 100).Select(x => DenseVector.Create(2, x => Random.Shared.NextSingle() * 4 - 2)).ToArray();
         nn.LearningRate = 0.05f;
 
-        for (int k = 0; k < 100; k++)
+        for (int k = 0; k < 40; k++)
         {
             var error = 0.0;
             for (int i = 0; i < 100; i++)

@@ -4,10 +4,22 @@ using MathNet.Numerics.LinearAlgebra.Single;
 
 namespace GradientDescentSharp.NeuralNetwork;
 
+/// <summary>
+/// Basic neural network implementation, with some additional features
+/// </summary>
 public abstract class NNBase
 {
+    /// <summary>
+    /// Network layers
+    /// </summary>
     public ILayer[] Layers { get; }
+    /// <summary>
+    /// Network learning rate
+    /// </summary>
     public float LearningRate = 0.05f;
+    /// <summary>
+    /// Raw layer output from learning forward method, used for training
+    /// </summary>
     protected Dictionary<ILayer,Vector> RawLayerOutput;
 
     /// <summary>
@@ -18,6 +30,9 @@ public abstract class NNBase
         Layers = another.Layers;
         RawLayerOutput = another.RawLayerOutput;
     }
+    /// <summary>
+    /// Creates a new neural network from given layers
+    /// </summary>
     public NNBase(params ILayer[] layers)
     {
         Layers = layers;
@@ -26,6 +41,7 @@ public abstract class NNBase
             RawLayerOutput[layer] = (Vector)layer.Bias.Map(x=>0.0f);
         }
     }
+    /// <returns>Model prediction</returns>
     public virtual Vector Forward(Vector input)
     {
         ILayer layer;
@@ -37,7 +53,9 @@ public abstract class NNBase
         }
         return input;
     }
-
+    /// <summary>
+    /// Does same forward, but keeps intermediate values to use it for training later
+    /// </summary>
     protected virtual Vector ForwardForLearning(Vector input)
     {
         ILayer layer;
@@ -92,7 +110,6 @@ public abstract class NNBase
     /// So when model weights changes on some small theta, the output of error function 
     /// is also changing by some theta.<br/>
     /// 3) It need to use Forward method(maybe even several times) from given to it neural network parameter.<br/>
-    /// In 
     /// </param>
     /// <returns></returns>
     public BackpropResult LearnOnError(Vector input,float theta, Func<Vector,PredictOnlyNN,float> errorFunction){
@@ -128,6 +145,7 @@ public abstract class NNBase
         Learn(input,errorDerivative);
         return new BackpropResult(Layers);
     }
+    /// <returns>MSE error from input and expected value from model prediction</returns>
     public float Error(Vector input, Vector expected)
     {
         return (Forward(input) - expected).Sum(x => x * x);
@@ -170,5 +188,6 @@ public abstract class NNBase
         Learn(input,error);
         return new BackpropResult(Layers);
     }
+    ///<inheritdoc/>
     public static implicit operator PredictOnlyNN(NNBase t)=>new(t);
 }
