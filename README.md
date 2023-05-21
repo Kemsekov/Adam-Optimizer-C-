@@ -43,18 +43,14 @@ Changed by 0.11053424105457577
 -------------
 ...
 -------------
+Error is 0.2503619082577506
+Changed by 0.7496380917422432
+-------------
 Error is 0.66669577875009
 Changed by 0.4163338704923394
 Undo step. Decreasing descentRate.
 -------------
-Error is 0.16678649104883014
-Changed by 0.08357541720892048
--------------
 ...
--------------
-Error is 0.0006362893970743855
-Changed by 0.0003947050635222382
-Undo step. Decreasing descentRate.
 -------------
 Error is 0.00015378896740614323
 Changed by 8.779536614600403E-05
