@@ -1,7 +1,8 @@
 ﻿using System.Diagnostics;
 using GradientDescentSharp.NeuralNetwork;
-using ScottPlot;
+using MathNet.Numerics.LinearAlgebra.Single;
+
 var watch = new Stopwatch();
 watch.Start();
-Examples.NeuralNetworkOnDatasetExample();
-System.Console.WriteLine("Done in "+watch.ElapsedMilliseconds);
+Examples.NeuralNetworkExample();
+System.Console.WriteLine("Done in " + watch.ElapsedMilliseconds);

@@ -40,8 +40,18 @@ public class Layer : ILayer
 
     public void Learn(Vector biasesGradient, Vector layerInput, float learningRate)
     {
-        var weightsGradient = (int j,int k)=>biasesGradient[j]*layerInput[k];
-        Weights.MapIndexedInplace((j,k,x)=>x-learningRate*weightsGradient(j,k));
+        
+        // var weightsGradient = (int j,int k)=>biasesGradient[j]*layerInput[k];
+        // Weights.MapIndexedInplace((j,k,x)=>x-learningRate*weightsGradient(j,k));
+        
+        for(int k = 0;k<layerInput.Count;k++){
+            var kInput = layerInput[k];
+            if(kInput==0) continue;
+            for(int j = 0;j<Weights.RowCount;j++){
+                Weights[j,k]-=learningRate*biasesGradient[j]*kInput;
+            }
+        }
+
         Bias.MapIndexedInplace((j,x)=>x-learningRate*biasesGradient[j]);
         learned = new Learned(biasesGradient,layerInput,learningRate);
     }
