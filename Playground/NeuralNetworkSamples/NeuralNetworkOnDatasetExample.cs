@@ -2,6 +2,7 @@ using System.Globalization;
 using CsvHelper;
 using GradientDescentSharp.NeuralNetwork;
 using Playground.DataModels;
+using MathNet.Numerics.LinearAlgebra.Single;
 
 namespace Playground;
 public partial class Examples
@@ -10,9 +11,9 @@ public partial class Examples
     {
 
         var defaultFactory = new NNComplexObjectsFactory();
-        var layer1 = new Layer(defaultFactory, 5, 128, ActivationFunction.Tanh(), Initializers.GlorotUniform);
-        var layer2 = new Layer(defaultFactory, 128, 64, ActivationFunction.Tanh(), Initializers.GlorotUniform);
-        var layer3 = new Layer(defaultFactory, 64, 1, ActivationFunction.Linear(), Initializers.Guassian);
+        var layer1 = new Layer(defaultFactory, 5, 32, ActivationFunction.Tanh(), Initializers.GlorotUniform);
+        var layer2 = new Layer(defaultFactory, 32, 16, ActivationFunction.Tanh(), Initializers.GlorotUniform);
+        var layer3 = new Layer(defaultFactory, 16, 1, ActivationFunction.Linear(), Initializers.Guassian);
 
         var pricePredictor = new ForwardNN(layer1, layer2, layer3);
         using var reader = new StreamReader("datasets/USA_Housing.csv");
@@ -35,11 +36,11 @@ public partial class Examples
         var train = records[..4500];
         var test = records[4500..];
 
-        pricePredictor.LearningRate = 0.05;
+        pricePredictor.LearningRate = 0.05f;
 
         var errorFunction = (UsaHousing record) =>
         {
-            var expected = DenseVector.Create(1, record.Price);
+            var expected = DenseVector.Create(1, (float)record.Price);
             var input = record.ToInputVector();
             return pricePredictor.Error(input, expected);
         };
@@ -52,17 +53,17 @@ public partial class Examples
             foreach (var record in train.TakeNRandom(batchSize))
             {
                 var input = record.ToInputVector();
-                var expected = DenseVector.Create(1, record.Price);
+                var expected = DenseVector.Create(1, (float)record.Price);
                 var error = pricePredictor.Error(input, expected);
                 // var backprop = pricePredictor.Backwards(input, expected);
 
                 //alternatively
-                var backprop = pricePredictor.LearnOnError(input,1e-6,(input,nn)=>nn.Error(input,expected));
+                var backprop = pricePredictor.LearnOnError(input,1e-4f,(input,nn)=>nn.Error(input,expected));
 
                 var errorAfter = pricePredictor.Error(input, expected);
                 if (errorAfter > error)
                 {
-                    pricePredictor.LearningRate *= 0.5;
+                    pricePredictor.LearningRate *= 0.5f;
                     backprop.Unlearn();
                     System.Console.WriteLine("Unlearn");
                 }

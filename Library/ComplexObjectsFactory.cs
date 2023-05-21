@@ -1,6 +1,9 @@
+using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.LinearAlgebra.Double;
+
 namespace GradientDescentSharp;
 
-public class ComplexObjectsFactory : IComplexObjectsFactory
+public class ComplexObjectsFactory : IComplexObjectsFactory<double>
 {
     public ComplexObjectsFactory(IDataAccess<double> data)
     {
@@ -8,14 +11,14 @@ public class ComplexObjectsFactory : IComplexObjectsFactory
     }
     public IDataAccess<double> Data { get; }
     int CurrentPosition = 0;
-    public Vector CreateVector(int length){
+    public Vector<double> CreateVector(int length){
         var storage = new DataAccessVectorStorage(Data,CurrentPosition,length);
         var res = new CustomVector(storage);
         CurrentPosition+=length;
         ThrowIfOutOfRange();
         return res;
     }
-    public Matrix CreateMatrix(int rows, int columns){
+    public Matrix<double> CreateMatrix(int rows, int columns){
         var storage = new DataAccessMatrixStorage(Data,CurrentPosition,rows,columns);
         var res = new CustomMatrix(storage);
         CurrentPosition+=rows*columns;

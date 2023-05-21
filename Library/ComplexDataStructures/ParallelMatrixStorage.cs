@@ -5,23 +5,28 @@ namespace GradientDescentSharp.ComplexDataStructures;
 /// <summary>
 /// Parallelized matrix storage
 /// </summary>
-public class ParallelMatrixStorage : MatrixStorage<double>{
-    MatrixStorage<double> m;
-    public ParallelMatrixStorage(MatrixStorage<double> m) : base(m.RowCount, m.ColumnCount)
+public class ParallelMatrixStorage<T> : MatrixStorage<T>
+where T : unmanaged, IFormattable, System.IEquatable<T>
+{
+    MatrixStorage<T> m;
+    /// <summary>
+    /// Only works for thread safe storages
+    /// </summary>
+    public ParallelMatrixStorage(MatrixStorage<T> threadsafeStorage) : base(threadsafeStorage.RowCount, threadsafeStorage.ColumnCount)
     {
-        this.m = m;
+        this.m = threadsafeStorage;
     }
 
     public override bool IsDense => m.IsDense;
 
     public override bool IsFullyMutable => m.IsFullyMutable;
 
-    public override double At(int row, int column)
+    public override T At(int row, int column)
     {
         return m.At(row, column);
     }
 
-    public override void At(int row, int column, double value)
+    public override void At(int row, int column, T value)
     {
         m.At(row, column, value);
     }
@@ -30,7 +35,7 @@ public class ParallelMatrixStorage : MatrixStorage<double>{
     {
         return m.IsMutableAt(row, column);
     }
-    public override void MapInplace(Func<double, double> f, Zeros zeros)
+    public override void MapInplace(Func<T, T> f, Zeros zeros)
     {
         Parallel.For(0L,1L*RowCount*ColumnCount,relationalIndex=>{
             var i = (int)relationalIndex/ColumnCount;
@@ -38,7 +43,7 @@ public class ParallelMatrixStorage : MatrixStorage<double>{
             At(i, j, f(At(i, j)));
         });
     }
-    public override void MapIndexedInplace(Func<int, int, double, double> f, Zeros zeros)
+    public override void MapIndexedInplace(Func<int, int, T, T> f, Zeros zeros)
     {
         Parallel.For(0L,1L*RowCount*ColumnCount,relationalIndex=>{
             var i = (int)relationalIndex/ColumnCount;

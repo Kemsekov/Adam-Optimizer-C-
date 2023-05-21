@@ -1,3 +1,5 @@
+using MathNet.Numerics.LinearAlgebra.Single;
+
 namespace Playground.DataModels;
 public class UsaHousing
 {
@@ -30,11 +32,11 @@ public class UsaHousing
     }
     public Vector ToInputVector(){
         var input = DenseVector.Create(5,0);
-        input[0] = AvgAreaIncome;
-        input[1] = AvgHouseAge;
-        input[2] = AvgNumberOfRooms;
-        input[3] = AvgNumberOfBedrooms;
-        input[4] = AreaPopulation;
+        input[0] = (float)AvgAreaIncome;
+        input[1] = (float)AvgHouseAge;
+        input[2] = (float)AvgNumberOfRooms;
+        input[3] = (float)AvgNumberOfBedrooms;
+        input[4] = (float)AreaPopulation;
         return input;
     }
     public override string ToString()

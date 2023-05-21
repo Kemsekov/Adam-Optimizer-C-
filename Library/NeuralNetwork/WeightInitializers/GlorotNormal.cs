@@ -1,4 +1,5 @@
 namespace GradientDescentSharp.NeuralNetwork.WeightInitializers;
+using MathNet.Numerics.LinearAlgebra.Single;
 
 public class GlorotNormal : IWeightsInit
 {
@@ -10,12 +11,12 @@ public class GlorotNormal : IWeightsInit
     }
     public void InitWeights(Vector bias)
     {
-        bias.MapInplace(x=>Rand.NextDouble());
+        bias.MapInplace(x=>Rand.NextSingle());
     }
     public void InitWeights(Matrix layer)
     {
         var stddev = Math.Sqrt(2.0/(layer.RowCount+layer.ColumnCount));
-        layer.MapInplace(x=>MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev));
+        layer.MapInplace(x=> (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev));
     }
 }
 

@@ -1,3 +1,6 @@
+using MathNet.Numerics.LinearAlgebra.Single;
+using MathNet.Numerics.LinearAlgebra.Single;
+
 namespace GradientDescentSharp.NeuralNetwork.WeightInitializers;
 
 public class HeNormal : IWeightsInit
@@ -10,13 +13,13 @@ public class HeNormal : IWeightsInit
     }
     public void InitWeights(Vector bias)
     {
-        bias.MapInplace(x=>(Rand.NextDouble()));
+        bias.MapInplace(x=>Rand.NextSingle());
     }
     public void InitWeights(Matrix layer)
     {
         var stddev = Math.Sqrt(2.0/layer.ColumnCount);
         var vv = MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev);
-        layer.MapInplace(x=>MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev));
+        layer.MapInplace(x=> (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev));
     }
 }
 
@@ -30,13 +33,13 @@ public class He2Normal : IWeightsInit
     }
     public void InitWeights(Vector bias)
     {
-        bias.MapInplace(x=>Rand.NextDouble());
+        bias.MapInplace(x=>Rand.NextSingle());
     }
     public void InitWeights(Matrix layer)
     {
         var stddev = Math.Sqrt(1.0/layer.ColumnCount);
         var vv = MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev);
-        layer.MapInplace(x=>MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev));
+        layer.MapInplace(x=> (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev));
     }
 }
 
@@ -50,12 +53,12 @@ public class He3Normal : IWeightsInit
     }
     public void InitWeights(Vector bias)
     {
-        bias.MapInplace(x=>Rand.NextDouble());
+        bias.MapInplace(x=>Rand.NextSingle());
     }
     public void InitWeights(Matrix layer)
     {
         var stddev = Math.Sqrt(6.0/layer.ColumnCount);
         var vv = MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev);
-        layer.MapInplace(x=>MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev));
+        layer.MapInplace(x=> (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev));
     }
 }

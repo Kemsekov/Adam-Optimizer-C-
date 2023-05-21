@@ -1,3 +1,5 @@
+using MathNet.Numerics.LinearAlgebra.Double;
+
 namespace Playground;
 public partial class Examples
 {

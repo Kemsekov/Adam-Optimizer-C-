@@ -1,3 +1,5 @@
+using MathNet.Numerics.LinearAlgebra.Single;
+
 namespace GradientDescentSharp.NeuralNetwork.Specific;
 
 /// <summary>
@@ -18,7 +20,7 @@ namespace GradientDescentSharp.NeuralNetwork.Specific;
 /// </summary>
 public class ErrorFunctionOutputDerivativeReplacer{
     public int ChangedOutputIndex = -1;
-    public double ChangedOutputTheta;
+    public float ChangedOutputTheta;
     /// <summary>
     /// replaces some of output parameter by adding theta to it, so we could compute 
     /// derivative of output of neural network

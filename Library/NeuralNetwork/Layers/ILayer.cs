@@ -1,3 +1,5 @@
+using MathNet.Numerics.LinearAlgebra.Single;
+
 namespace GradientDescentSharp.NeuralNetwork;
 public interface ILayer
 {
@@ -5,6 +7,6 @@ public interface ILayer
     Vector Bias{get;}
     IActivationFunction Activation{get;}
     Vector Forward(Vector input);
-    void Learn(Vector biasesGradient, Vector layerInput, double learningRate);
+    void Learn(Vector biasesGradient, Vector layerInput, float learningRate);
     public void Unlearn();
 }

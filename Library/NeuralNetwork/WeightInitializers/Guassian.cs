@@ -1,4 +1,6 @@
+using MathNet.Numerics.LinearAlgebra.Single;
 namespace GradientDescentSharp.NeuralNetwork.WeightInitializers;
+
 /// <summary>
 /// Uses random values drawn from a Gaussian distribution with mean 0 and standard deviation 1 (also known as the standard normal distribution).
 /// </summary>
@@ -12,11 +14,11 @@ public class Guassian: IWeightsInit
     }
     public void InitWeights(Vector bias)
     {
-        bias.MapInplace(x=>Rand.NextDouble());
+        bias.MapInplace(x=>Rand.NextSingle());
     }
     public void InitWeights(Matrix layer)
     {
         var stddev = Math.Sqrt(2.0/(layer.RowCount+layer.ColumnCount));
-        layer.MapInplace(x=>(MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev)));
+        layer.MapInplace(x=> (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev));
     }
 }

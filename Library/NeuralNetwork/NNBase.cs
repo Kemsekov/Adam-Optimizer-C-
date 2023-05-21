@@ -1,12 +1,13 @@
 using GradientDescentSharp.NeuralNetwork.Specific;
 using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.LinearAlgebra.Single;
 
 namespace GradientDescentSharp.NeuralNetwork;
 
 public abstract class NNBase
 {
     public ILayer[] Layers { get; }
-    public double LearningRate = 0.05;
+    public float LearningRate = 0.05f;
     protected Dictionary<ILayer,Vector> RawLayerOutput;
 
     /// <summary>
@@ -22,7 +23,7 @@ public abstract class NNBase
         Layers = layers;
         RawLayerOutput = new Dictionary<ILayer, Vector>();
         foreach(var layer in layers){
-            RawLayerOutput[layer] = (Vector)layer.Bias.Map(x=>0.0);
+            RawLayerOutput[layer] = (Vector)layer.Bias.Map(x=>0.0f);
         }
     }
     public virtual Vector Forward(Vector input)
@@ -64,10 +65,10 @@ public abstract class NNBase
     /// 3) It need to use Forward method from given to it neural network parameter.
     /// </param>
     /// <returns></returns>
-    public BackpropResult LearnOnError(Vector input,double theta, Func<Vector,NNBase,double> errorFunction){
+    public BackpropResult LearnOnError(Vector input,float theta, Func<Vector,NNBase,float> errorFunction){
         var original = errorFunction(input,this);
         var originalOutput = Forward(input);
-        var errorDerivative = originalOutput.Map(x=>0.0);
+        var errorDerivative = originalOutput.Map(x=>0.0f);
         Parallel.For(0,originalOutput.Count,i=>
         {
             var replacer = new ErrorFunctionOutputDerivativeReplacer
@@ -86,12 +87,12 @@ public abstract class NNBase
         return new BackpropResult(Layers);
     }
 
-    public double Error(Vector input, Vector expected)
+    public float Error(Vector input, Vector expected)
     {
         return (Forward(input) - expected).Sum(x => x * x);
     }
     
-    void Learn(Vector input,Vector<double> errorDerivative)
+    void Learn(Vector input,Vector<float> errorDerivative)
     {
         for (int i = Layers.Length - 1; i >= 0; i--)
         {

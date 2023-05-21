@@ -1,7 +1,9 @@
 
+using MathNet.Numerics.LinearAlgebra.Single;
+
 namespace GradientDescentSharp.NeuralNetwork;
 
-record Learned(Vector biasesGradient, Vector layerInput, double learningRate);
+record Learned(Vector biasesGradient, Vector layerInput, float learningRate);
 
 public class Layer : ILayer
 {
@@ -23,10 +25,10 @@ public class Layer : ILayer
     /// <param name="outputSize">Layer output size</param>
     /// <param name="activation">Activation function. May choose from <see cref="ActivationFunction"/></param>
     /// <param name="weightsInit">Weight initialization.</param>
-    public Layer(IComplexObjectsFactory factory,int inputSize, int outputSize, IActivationFunction activation, IWeightsInit weightsInit){
-        Weights = factory.CreateMatrix(outputSize,inputSize);
-        Bias = factory.CreateVector(outputSize);
-        RawOutput = factory.CreateVector(outputSize);
+    public Layer(IComplexObjectsFactory<float> factory,int inputSize, int outputSize, IActivationFunction activation, IWeightsInit weightsInit){
+        Weights = (Matrix)factory.CreateMatrix(outputSize,inputSize);
+        Bias = (Vector)factory.CreateVector(outputSize);
+        RawOutput = (Vector)factory.CreateVector(outputSize);
         Activation = activation;
         weightsInit.InitWeights(Bias);
         weightsInit.InitWeights(Weights);
@@ -36,7 +38,7 @@ public class Layer : ILayer
         return (Vector)raw;
     }
 
-    public void Learn(Vector biasesGradient, Vector layerInput, double learningRate)
+    public void Learn(Vector biasesGradient, Vector layerInput, float learningRate)
     {
         var weightsGradient = (int j,int k)=>biasesGradient[j]*layerInput[k];
         Weights.MapIndexedInplace((j,k,x)=>x-learningRate*weightsGradient(j,k));

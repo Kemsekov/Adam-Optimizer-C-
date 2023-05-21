@@ -1,4 +1,6 @@
 namespace Playground;
+using MathNet.Numerics.LinearAlgebra.Single;
+
 using GradientDescentSharp.NeuralNetwork;
 
 public partial class Examples
@@ -28,15 +30,15 @@ public partial class Examples
         //so in solution space we step always +- same distance to local minima
 
         //here I purposely start with a higher learning rate, than it should be
-        nn.LearningRate = 0.5;
+        nn.LearningRate = 0.5f;
         for (int k = 0; k < 20; k++)
         {
             var error = 0.0;
             for (int i = 0; i < 100; i++)
             {
-                var input = DenseVector.Create(2, x => Random.Shared.NextDouble() * 4 - 2);
+                var input = DenseVector.Create(2, x => Random.Shared.NextSingle() * 4 - 2);
                 var expected = DenseVector.Create(2, 0);
-                expected[0] = Math.Sin(input[0] + input[1]);
+                expected[0] = MathF.Sin(input[0] + input[1]);
                 expected[1] = input[0] * input[1];
 
                 //this version of backpropagation at it's core support rolling back
@@ -56,7 +58,7 @@ public partial class Examples
                 //undo changes from previous learning and decrease learning rate
                 if(afterLearn>beforeLearn){
                     backprop.Unlearn();
-                    nn.LearningRate*=0.9;
+                    nn.LearningRate*=0.9f;
                     System.Console.WriteLine("Unlearn");
                 }
                 error += afterLearn;
@@ -67,11 +69,11 @@ public partial class Examples
         //show some examples of predictions
         for (int i = 0; i < 5; i++)
         {
-            var num1 = Random.Shared.NextDouble() * 4 - 2;
-            var num2 = Random.Shared.NextDouble() * 4 - 2;
+            var num1 = Random.Shared.NextSingle() * 4 - 2;
+            var num2 = Random.Shared.NextSingle() * 4 - 2;
 
             var expected = DenseVector.Create(2, 0);
-            expected[0] = Math.Sin(num1 + num2);
+            expected[0] = MathF.Sin(num1 + num2);
             expected[1] = num1 * num2;
             var input = DenseVector.Create(2, 0);
             input[0] = num1;
