@@ -69,8 +69,8 @@ public abstract class NNBase
         var original = errorFunction(input,this);
         var originalOutput = Forward(input);
         var errorDerivative = originalOutput.Map(x=>0.0f);
-        Parallel.For(0,originalOutput.Count,i=>
-        {
+
+        void computeDerivative(int i){
             var replacer = new ErrorFunctionOutputDerivativeReplacer
             {
                 ChangedOutputIndex = i,
@@ -80,7 +80,19 @@ public abstract class NNBase
             var changed = errorFunction(input,nn);
             errorDerivative[i]=(changed-original)/theta;
             replacer.ChangedOutputIndex = -1;
+        }
+        
+        //If we predicting one single value, it does not
+        //make sense to parallelize it
+
+        if(originalOutput.Count>1)
+        Parallel.For(0,originalOutput.Count,i=>
+        {
+            computeDerivative(i);
         });
+        else
+            computeDerivative(0);
+
         //fill layers with learning info
         ForwardForLearning(input);
         Learn(input,errorDerivative);
