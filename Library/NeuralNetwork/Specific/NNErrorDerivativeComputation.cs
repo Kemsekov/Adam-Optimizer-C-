@@ -1,5 +1,5 @@
-using MathNet.Numerics.LinearAlgebra.Single;
 namespace GradientDescentSharp.NeuralNetwork.Specific;
+using MathNet.Numerics.LinearAlgebra.Single;
 
 public class NNErrorDerivativeComputation : NNBase{
     /// <summary>

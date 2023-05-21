@@ -2,6 +2,7 @@ namespace Playground;
 using MathNet.Numerics.LinearAlgebra.Single;
 
 using GradientDescentSharp.NeuralNetwork;
+using GradientDescentSharp.NeuralNetwork.Specific;
 
 public partial class Examples
 {
@@ -22,7 +23,7 @@ public partial class Examples
     static void _NeuralNetworkLearnOnErrorFunctionExample(NNBase nn){
         var xValues = Enumerable.Range(0, 1000).Select(x => DenseVector.Create(1, Random.Shared.NextSingle() * 4)).ToArray();
         //Here we define a problem, which is error function.
-        var problem = (Vector input, NNBase nn) =>
+        var problem = (Vector input, PredictOnlyNN nn) =>
         {
             var result = nn.Forward(input);
             //we really need to approximate x^2.5 function

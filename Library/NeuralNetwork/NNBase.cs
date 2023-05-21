@@ -62,11 +62,12 @@ public abstract class NNBase
     /// 2) It needs to be continuous.
     /// So when model weights changes on some small theta, the output of error function 
     /// is also changing by some theta.<br/>
-    /// 3) It need to use Forward method from given to it neural network parameter.
+    /// 3) It need to use Forward method(maybe even several times) from given to it neural network parameter.<br/>
+    /// In 
     /// </param>
     /// <returns></returns>
-    public BackpropResult LearnOnError(Vector input,float theta, Func<Vector,NNBase,float> errorFunction){
-        var original = errorFunction(input,this);
+    public BackpropResult LearnOnError(Vector input,float theta, Func<Vector,PredictOnlyNN,float> errorFunction){
+        var original = errorFunction(input,new(this));
         var originalOutput = Forward(input);
         var errorDerivative = originalOutput.Map(x=>0.0f);
 
@@ -77,7 +78,7 @@ public abstract class NNBase
                 ChangedOutputTheta = theta
             };
             var nn = new NNErrorDerivativeComputation(this,replacer);
-            var changed = errorFunction(input,nn);
+            var changed = errorFunction(input,new(nn));
             errorDerivative[i]=(changed-original)/theta;
             replacer.ChangedOutputIndex = -1;
         }
@@ -98,7 +99,6 @@ public abstract class NNBase
         Learn(input,errorDerivative);
         return new BackpropResult(Layers);
     }
-
     public float Error(Vector input, Vector expected)
     {
         return (Forward(input) - expected).Sum(x => x * x);
@@ -145,4 +145,5 @@ public abstract class NNBase
         Learn(input,error);
         return new BackpropResult(Layers);
     }
+    public static implicit operator PredictOnlyNN(NNBase t)=>new(t);
 }

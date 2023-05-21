@@ -50,7 +50,7 @@ public partial class Examples
                 var backprop = nn.Backwards(input, expected);
                 
                 //we also can learn on error function instead. Uncomment it to see
-                // var backprop = nn.LearnOnError(input,1e-5,(input1,nn1)=>(nn1.Forward(input1)-expected).Sum(x=>x*x));
+                // var backprop = nn.LearnOnError(input,1e-4f,(input1,nn1)=>(nn1.Forward(input1)-expected).Sum(x=>x*x));
 
                 var afterLearn = nn.Error(input,expected);
                 //when we hit a worsen rather than improvement, 

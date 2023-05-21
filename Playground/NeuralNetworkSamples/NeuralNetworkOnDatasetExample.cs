@@ -20,7 +20,6 @@ public partial class Examples
         using var data = new CsvReader(reader, CultureInfo.InstalledUICulture);
         var records = data.GetRecords<UsaHousing>().ToArray();
 
-
         var meanRecordValues = new UsaHousing()
         {
             AreaPopulation = records.Average(x => x.AreaPopulation),
