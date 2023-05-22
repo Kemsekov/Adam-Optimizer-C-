@@ -43,7 +43,7 @@ public partial class Examples
             // input vector, some small theta, that will be used to compute
             // derivatives, and error function. This is enough to learn!
             var backprop = nn.LearnOnLoss(x, 0.0001f, problem);
-
+            backprop.Learn();
             var errorAfter = nn.Error(x, expected);
 
             // after we learnt something, we need to check if we didn't messed up

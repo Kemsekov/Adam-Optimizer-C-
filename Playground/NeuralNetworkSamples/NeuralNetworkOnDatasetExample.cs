@@ -58,7 +58,8 @@ public partial class Examples
 
                 //alternatively
                 var backprop = pricePredictor.LearnOnLoss(input, 1e-3f, (input, nn) => nn.Error(input, expected));
-
+                backprop.Learn();
+                
                 var errorAfter = pricePredictor.Error(input, expected);
                 trainError += errorAfter;
             }

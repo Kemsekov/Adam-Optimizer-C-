@@ -5,18 +5,22 @@ namespace GradientDescentSharp.NeuralNetwork;
 /// </summary>
 public class BackpropResult
 {
-    private IEnumerable<Learned> learned;
-    public BackpropResult(IEnumerable<Learned> learned)
+    private IEnumerable<Learner> learner;
+    public BackpropResult(IEnumerable<Learner> learner)
     {
-        this.learned = learned;
+        this.learner = learner;
+    }
+    public void Learn(){
+        foreach (var l in learner)
+            l.Learn();
     }
     /// <summary>
     /// Unlearns last backpropagation results.
     /// </summary>
     public void Unlearn()
     {
-        foreach (var l in learned)
+        foreach (var l in learner)
             l.Unlearn();
-        learned = Array.Empty<Learned>();
+        learner = Array.Empty<Learner>();
     }
 }

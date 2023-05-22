@@ -63,54 +63,11 @@ public partial class Examples
 
         //here I purposely start with a higher learning rate, than it should be
         var testData = Enumerable.Range(0, 100).Select(x => DenseVector.Create(2, x => Random.Shared.NextSingle() * 4 - 2)).ToArray();
-        nn.LearningRate = 0.05f;
+        nn.LearningRate = 0.01f;
 
         for (int k = 0; k <= 40; k++)
         {
-            var error = 0.0;
-            for (int i = 0; i < 100; i++)
-            {
-                var input = DenseVector.Create(2, x => Random.Shared.NextSingle() * 4 - 2);
-                var expected = DenseVector.Create(2, 0);
-                expected[0] = y1(input[0], input[1]);
-                expected[1] = y2(input[0], input[1]);
-
-                //this version of backpropagation at it's core support rolling back
-                //to original weights, if we hit a worse minima after learning!
-                //it can be used to manually decrease learning rate if we hit too much
-                //of such failed backpropagations.
-                var beforeLearn = nn.Error(input, expected);
-
-                // var backprop = nn.StoachasticBackwards(new[]{input}, new[]{expected});
-
-                //we also can learn on error function instead. Uncomment it to see
-                var backprop = nn.StochasticLearnOnLoss(new[]{input}, 1e-3f, (input1, nn1) => (nn1.Forward(input1) - expected).Sum(x => x * x));
-
-                var afterLearn = nn.Error(input, expected);
-                //when we hit a worsen rather than improvement, 
-                //it indicates that our learning rate is too high, so we 
-                //undo changes from previous learning and decrease learning rate
-                if (afterLearn > beforeLearn || float.IsNaN(afterLearn))
-                {
-                    backprop.Unlearn();
-                    nn.LearningRate *= 0.9f;
-                    // System.Console.WriteLine("Unlearn");
-                }
-                error += afterLearn;
-            }
-            if (k % 10 == 0)
-            {
-                var testError = testData.Average(x =>
-                {
-                    var expected = DenseVector.Create(2, 0);
-                    expected[0] = y1(x[0], x[1]);
-                    expected[1] = y2(x[0], x[1]);
-                    return nn.Error(x, expected);
-                });
-                System.Console.WriteLine("-----------------------");
-                System.Console.WriteLine($"Test error is {testError}");
-                System.Console.WriteLine($"Train error is {error / 100}");
-            }
+            OrdinaryMethod(nn, y1, y2, testData, k);
         }
 
         //show some examples of predictions
@@ -132,7 +89,7 @@ public partial class Examples
             System.Console.WriteLine($"Result: {formatVector(result)}");
         }
 
-        nn.RegenerateSaturatedWeights(10, 0.01f, 0.99f,0.2f);
+        nn.RegenerateSaturatedWeights(10, 0.01f, 0.99f, 0.2f);
         var replaced = testData.Average(x =>
         {
             var expected = DenseVector.Create(2, 0);
@@ -141,5 +98,56 @@ public partial class Examples
             return nn.Error(x, expected);
         });
         System.Console.WriteLine("Test error after replacing saturated " + replaced);
+    }
+
+    private static void OrdinaryMethod(NNBase nn, Func<float, float, float> y1, Func<float, float, float> y2, DenseVector[] testData, int k)
+    {
+        var error = 0.0;
+        for (int i = 0; i < 100; i++)
+        {
+            var input = DenseVector.Create(2, x => Random.Shared.NextSingle() * 4 - 2);
+            var expected = DenseVector.Create(2, 0);
+            expected[0] = y1(input[0], input[1]);
+            expected[1] = y2(input[0], input[1]);
+
+            //this version of backpropagation at it's core support rolling back
+            //to original weights, if we hit a worse minima after learning!
+            //it can be used to manually decrease learning rate if we hit too much
+            //of such failed backpropagations.
+            var beforeLearn = nn.Error(input, expected);
+
+            //we also can learn on error function instead. Uncomment it to see
+
+            var backprop = nn.Backwards(input, expected);
+            // var backprop = nn.LearnOnLoss(input, 1e-3f, (input1, nn1) => (nn1.Forward(input1) - expected).Sum(x => x * x));
+
+            backprop.Learn();
+
+            var afterLearn = nn.Error(input, expected);
+            //when we hit a worsen rather than improvement, 
+            //it indicates that our learning rate is too high, so we 
+            //undo changes from previous learning and decrease learning rate
+            if (afterLearn > beforeLearn || float.IsNaN(afterLearn))
+            {
+                backprop.Unlearn();
+                nn.LearningRate *= 0.9f;
+                var unlearnedError = nn.Error(input, expected);
+                System.Console.WriteLine("Unlearn");
+            }
+            error += afterLearn;
+        }
+        if (k % 10 == 0)
+        {
+            var testError = testData.Average(x =>
+            {
+                var expected = DenseVector.Create(2, 0);
+                expected[0] = y1(x[0], x[1]);
+                expected[1] = y2(x[0], x[1]);
+                return nn.Error(x, expected);
+            });
+            System.Console.WriteLine("-----------------------");
+            System.Console.WriteLine($"Test error is {testError}");
+            System.Console.WriteLine($"Train error is {error / 100}");
+        }
     }
 }

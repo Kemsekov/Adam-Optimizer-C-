@@ -124,21 +124,10 @@ public abstract class NNBase
 
         //fill layers with learning info
         ForwardForLearning(input);
-        var learned = Learn(new[]{input}, new[]{(errorDerivative,ComputeGradients(input,errorDerivative))});
+        var learned = BuildLearner(ComputeGradients(input,errorDerivative));
         return new BackpropResult(learned);
     }
-    public BackpropResult StochasticLearnOnLoss(Vector[] input, float theta, Func<Vector, PredictOnlyNN, float> lossFunction)
-    {
-        var learningInfo = input.Select(input=>{
-            var errorDerivative = ComputeDerivativeOfLossFunction(input, theta, lossFunction);
-            var gradients = ComputeGradients(input,errorDerivative);
-            return (errorDerivative,gradients);
-        }).ToArray();
 
-        //fill layers with learning info
-        var learned = Learn(input, learningInfo);
-        return new BackpropResult(learned);
-    }
 
     private Vector<float> ComputeDerivativeOfLossFunction(Vector input, float theta, Func<Vector, PredictOnlyNN, float> errorFunction)
     {
@@ -204,29 +193,18 @@ public abstract class NNBase
         return result;
     }
     
-    IEnumerable<Learned> Learn(Vector[] input, (Vector<float> lossDerivative, Gradient[] gradients)[] learningInfo)
+    IEnumerable<Learner> BuildLearner(Gradient[] gradients)
     {
-        var learned = new List<Learned>();
-
-        foreach(var gradient in learningInfo[0].gradients)
+        var learned = new List<Learner>();
+        
+        foreach(var layerInfo in gradients)
         {
-            var layer = Layers[gradient.layerId];
-            var layerInput = gradient.layerInput;
-            var biasesGradient = gradient.biasesGradients;
-            for (int k = 0; k < layerInput.Count; k++)
-            {
-                var kInput = layerInput[k];
-                if (kInput == 0) continue;
-                for (int j = 0; j < layer.Weights.RowCount; j++)
-                {
-                    var weightGradient = biasesGradient[j] * kInput;
-                    layer.Weights[j, k] -= LearningRate * weightGradient;
-                }
-            }
+            var layer = Layers[layerInfo.layerId];
+            var layerInput = layerInfo.layerInput;
+            var biasesGradient = layerInfo.biasesGradients;
+            
 
-            layer.Bias.MapIndexedInplace((j, x) => x - LearningRate * biasesGradient[j]);
-
-            learned.Add(new Learned(layer, (Vector)biasesGradient, (Vector)layerInput, LearningRate));
+            learned.Add(new Learner(layer, (Vector)biasesGradient, (Vector)layerInput.Clone(), LearningRate));
         }
         return learned;
     }
@@ -243,20 +221,9 @@ public abstract class NNBase
     {
         // compute error derivative for MSE
         var error = (ForwardForLearning(input) - expected) * 2;
-        var learningInfo = (error,ComputeGradients(input,error));
-        var learned = Learn(new[]{input}, new[]{learningInfo});
-        return new BackpropResult(learned);
-    }
-    public BackpropResult StochasticBackwards(Vector[] input, Vector[] expected)
-    {
-        // compute error derivative for MSE
-        var learningInfo = input.Zip(expected).Select(data=>{
-            var error = (ForwardForLearning(data.First) - data.Second) * 2;
-            var gradient = ComputeGradients(data.First,error);
-            return (error,gradient);
-        }).ToArray();
-        var learned = Learn(input, learningInfo);
-        return new BackpropResult(learned);
+        var gradients = ComputeGradients(input,error);
+        var learner = BuildLearner(gradients);
+        return new BackpropResult(learner);
     }
     ///<inheritdoc/>
     public static implicit operator PredictOnlyNN(NNBase t) => new(t);
