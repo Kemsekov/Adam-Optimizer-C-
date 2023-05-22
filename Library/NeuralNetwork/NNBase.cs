@@ -20,13 +20,14 @@ public abstract class NNBase
     /// <summary>
     /// Raw layer output from learning forward method, used for training
     /// </summary>
-    protected Dictionary<ILayer,Vector> RawLayerOutput;
+    protected Dictionary<ILayer, Vector> RawLayerOutput;
 
     /// <summary>
     /// Builds a copy of another neural network
     /// </summary>
     /// <param name="another"></param>
-    public NNBase(NNBase another){
+    public NNBase(NNBase another)
+    {
         Layers = another.Layers;
         RawLayerOutput = another.RawLayerOutput;
     }
@@ -37,8 +38,9 @@ public abstract class NNBase
     {
         Layers = layers;
         RawLayerOutput = new Dictionary<ILayer, Vector>();
-        foreach(var layer in layers){
-            RawLayerOutput[layer] = (Vector)layer.Bias.Map(x=>0.0f);
+        foreach (var layer in layers)
+        {
+            RawLayerOutput[layer] = (Vector)layer.Bias.Map(x => 0.0f);
         }
     }
     /// <returns>Model prediction</returns>
@@ -49,7 +51,7 @@ public abstract class NNBase
         {
             layer = Layers[i];
             input = layer.Forward(input);
-            input.MapInplace(x=>layer.Activation.Activation(x));
+            input.MapInplace(x => layer.Activation.Activation(x));
         }
         return input;
     }
@@ -63,8 +65,8 @@ public abstract class NNBase
         {
             layer = Layers[i];
             input = layer.Forward(input);
-            RawLayerOutput[layer].MapIndexedInplace((index,x)=>input[index]);
-            input.MapInplace(x=>layer.Activation.Activation(x));
+            RawLayerOutput[layer].MapIndexedInplace((index, x) => input[index]);
+            input.MapInplace(x => layer.Activation.Activation(x));
         }
         return input;
     }
@@ -80,23 +82,28 @@ public abstract class NNBase
     /// <param name="maxValue">Weights bigger than this value will be regenerated</param>
     /// <param name="variation">How big change from previous weight value we need to make</param>
     /// <returns>Count of weights replaced</returns>
-    public int RegenerateSaturatedWeights(int weightsCount=-1,float minValue=0.01f, float maxValue=0.99f, float variation=1){
+    public int RegenerateSaturatedWeights(int weightsCount = -1, float minValue = 0.01f, float maxValue = 0.99f, float variation = 1)
+    {
         int count = 0;
-        foreach(var layer in Layers){
+        foreach (var layer in Layers)
+        {
             var weights = layer.Weights;
-            for(int i = 0;i<layer.Weights.RowCount;i++)
-            for(int j = 0;j<layer.Weights.ColumnCount;j++){
-                var weight = weights[i,j];
-                var sample = layer.WeightsInit.SampleWeight(weights);
-                if(weight>maxValue || weight<minValue){
-                    weights[i,j] = weight+sample*variation;
-                    count++;
+            for (int i = 0; i < layer.Weights.RowCount; i++)
+                for (int j = 0; j < layer.Weights.ColumnCount; j++)
+                {
+                    var weight = weights[i, j];
+                    var sample = layer.WeightsInit.SampleWeight(weights);
+                    if (weight > maxValue || weight < minValue)
+                    {
+                        weights[i, j] = weight + sample * variation;
+                        count++;
+                    }
+                    if (weightsCount > 0 && count > weightsCount) return count;
                 }
-                if(weightsCount>0 && count>weightsCount) return count;
-            }
         }
         return count;
     }
+
     /// <summary>
     /// Learns a model on error function. Use it when you don't have a dataset to train on.
     /// </summary>
@@ -112,46 +119,56 @@ public abstract class NNBase
     /// 3) It need to use Forward method(maybe even several times) from given to it neural network parameter.<br/>
     /// </param>
     /// <returns></returns>
-    public BackpropResult LearnOnError(Vector input,float theta, Func<Vector,PredictOnlyNN,float> errorFunction){
-        var original = errorFunction(input,new(this));
-        var originalOutput = Forward(input);
-        var errorDerivative = originalOutput.Map(x=>0.0f);
+    public BackpropResult LearnOnError(Vector input, float theta, Func<Vector, PredictOnlyNN, float> errorFunction)
+    {
+        var errorDerivative = ComputeDerivativeOfErrorFunction(input, theta, errorFunction);
 
-        void computeDerivative(int i){
+        //fill layers with learning info
+        ForwardForLearning(input);
+        var learned = Learn(input, errorDerivative);
+        return new BackpropResult(learned);
+    }
+
+    private Vector<float> ComputeDerivativeOfErrorFunction(Vector input, float theta, Func<Vector, PredictOnlyNN, float> errorFunction)
+    {
+        var original = errorFunction(input, new(this));
+        var originalOutput = Forward(input);
+        var errorDerivative = originalOutput.Map(x => 0.0f);
+
+        void computeDerivative(int i)
+        {
             var replacer = new ErrorFunctionOutputDerivativeReplacer
             {
                 ChangedOutputIndex = i,
                 ChangedOutputTheta = theta
             };
-            var nn = new NNErrorDerivativeComputation(this,replacer);
-            var changed = errorFunction(input,new(nn));
-            errorDerivative[i]=(changed-original)/theta;
+            var nn = new NNErrorDerivativeComputation(this, replacer);
+            var changed = errorFunction(input, new(nn));
+            errorDerivative[i] = (changed - original) / theta;
             replacer.ChangedOutputIndex = -1;
         }
-        
+
         //If we predicting one single value, it does not
         //make sense to parallelize it
 
-        if(originalOutput.Count>1)
-        Parallel.For(0,originalOutput.Count,i=>
-        {
-            computeDerivative(i);
-        });
+        if (originalOutput.Count > 1)
+            Parallel.For(0, originalOutput.Count, i =>
+            {
+                computeDerivative(i);
+            });
         else
             computeDerivative(0);
-
-        //fill layers with learning info
-        ForwardForLearning(input);
-        Learn(input,errorDerivative);
-        return new BackpropResult(Layers);
+        return errorDerivative;
     }
+
     /// <returns>MSE error from input and expected value from model prediction</returns>
     public float Error(Vector input, Vector expected)
     {
         return (Forward(input) - expected).Sum(x => x * x);
     }
-    void Learn(Vector input,Vector<float> errorDerivative)
+    IEnumerable<Learned> Learn(Vector input, Vector<float> errorDerivative)
     {
+        var learned = new List<Learned>();
         for (int i = Layers.Length - 1; i >= 0; i--)
         {
             var layer = Layers[i];
@@ -161,16 +178,32 @@ public abstract class NNBase
             var activation = layer.Activation.Activation;
             var derivative = layer.Activation.ActivationDerivative;
 
-            var biasesGradient = layerOutput.MapIndexed((j, x) => derivative(x) * errorDerivative[j]);
+            var biasesGradient = (Vector)layerOutput.MapIndexed((j, x) => derivative(x) * errorDerivative[j]);
             if (i > 0)
             {
                 errorDerivative.MapIndexedInplace((j, x) => x * derivative(layerOutput[j]));
                 errorDerivative *= layer.Weights;
             }
-            var layerInput = i > 0 ? RawLayerOutput[Layers[i - 1]].Map(activation) : input;
+            var layerInput = (Vector)(i > 0 ? RawLayerOutput[Layers[i - 1]].Map(activation) : input);
 
-            layer.Learn((Vector)biasesGradient, (Vector)layerInput, LearningRate);
+            //here we update weights
+
+            for (int k = 0; k < layerInput.Count; k++)
+            {
+                var kInput = layerInput[k];
+                if (kInput == 0) continue;
+                for (int j = 0; j < layer.Weights.RowCount; j++)
+                {
+                    var gradient = biasesGradient[j] * kInput;
+                    layer.Weights[j, k] -= LearningRate * gradient;
+                }
+            }
+
+            layer.Bias.MapIndexedInplace((j, x) => x - LearningRate * biasesGradient[j]);
+
+            learned.Add(new Learned(layer,biasesGradient, layerInput, LearningRate));
         }
+        return learned;
     }
     /// <summary>
     /// Modified backpropogation implementation, that inspired from MineDescent implementation.<br/>
@@ -185,9 +218,9 @@ public abstract class NNBase
     {
         // compute error derivative for MSE
         var error = (ForwardForLearning(input) - expected) * 2;
-        Learn(input,error);
-        return new BackpropResult(Layers);
+        var learned = Learn(input, error);
+        return new BackpropResult(learned);
     }
     ///<inheritdoc/>
-    public static implicit operator PredictOnlyNN(NNBase t)=>new(t);
+    public static implicit operator PredictOnlyNN(NNBase t) => new(t);
 }

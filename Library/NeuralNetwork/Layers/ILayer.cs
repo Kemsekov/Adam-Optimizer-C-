@@ -8,6 +8,4 @@ public interface ILayer
     Vector Bias{get;}
     IActivationFunction Activation{get;}
     Vector Forward(Vector input);
-    void Learn(Vector biasesGradient, Vector layerInput, float learningRate);
-    public void Unlearn();
 }
