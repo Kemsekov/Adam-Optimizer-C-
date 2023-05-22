@@ -103,14 +103,13 @@ public abstract class NNBase
         }
         return count;
     }
-
     /// <summary>
-    /// Learns a model on error function. Use it when you don't have a dataset to train on.
+    /// Learns a model on loss function. Use it when you don't have a dataset to train on.
     /// </summary>
     /// <param name="input">Given input to model</param>
     /// <param name="theta">Used to compute derivatives from error function. Bigger values allows to locate a local minima faster. In practice I use something like 0.01</param>
-    /// <param name="errorFunction">
-    /// Error function that must be implemented with following constraints: <br/>
+    /// <param name="lossFunction">
+    /// Loss function that must be implemented with following constraints: <br/>
     /// 1) It needs to be dependent on input vector.
     /// So when we put different input vector, it gives different results.<br/>
     /// 2) It needs to be continuous.
@@ -119,25 +118,37 @@ public abstract class NNBase
     /// 3) It need to use Forward method(maybe even several times) from given to it neural network parameter.<br/>
     /// </param>
     /// <returns></returns>
-    public BackpropResult LearnOnError(Vector input, float theta, Func<Vector, PredictOnlyNN, float> errorFunction)
+    public BackpropResult LearnOnLoss(Vector input, float theta, Func<Vector, PredictOnlyNN, float> lossFunction)
     {
-        var errorDerivative = ComputeDerivativeOfErrorFunction(input, theta, errorFunction);
+        var errorDerivative = ComputeDerivativeOfLossFunction(input, theta, lossFunction);
 
         //fill layers with learning info
         ForwardForLearning(input);
-        var learned = Learn(input, errorDerivative);
+        var learned = Learn(new[]{input}, new[]{(errorDerivative,ComputeGradients(input,errorDerivative))});
+        return new BackpropResult(learned);
+    }
+    public BackpropResult StochasticLearnOnLoss(Vector[] input, float theta, Func<Vector, PredictOnlyNN, float> lossFunction)
+    {
+        var learningInfo = input.Select(input=>{
+            var errorDerivative = ComputeDerivativeOfLossFunction(input, theta, lossFunction);
+            var gradients = ComputeGradients(input,errorDerivative);
+            return (errorDerivative,gradients);
+        }).ToArray();
+
+        //fill layers with learning info
+        var learned = Learn(input, learningInfo);
         return new BackpropResult(learned);
     }
 
-    private Vector<float> ComputeDerivativeOfErrorFunction(Vector input, float theta, Func<Vector, PredictOnlyNN, float> errorFunction)
+    private Vector<float> ComputeDerivativeOfLossFunction(Vector input, float theta, Func<Vector, PredictOnlyNN, float> errorFunction)
     {
         var original = errorFunction(input, new(this));
-        var originalOutput = Forward(input);
+        var originalOutput = ForwardForLearning(input);
         var errorDerivative = originalOutput.Map(x => 0.0f);
 
         void computeDerivative(int i)
         {
-            var replacer = new ErrorFunctionOutputDerivativeReplacer
+            var replacer = new LossFunctionOutputDerivativeReplacer
             {
                 ChangedOutputIndex = i,
                 ChangedOutputTheta = theta
@@ -166,9 +177,10 @@ public abstract class NNBase
     {
         return (Forward(input) - expected).Sum(x => x * x);
     }
-    IEnumerable<Learned> Learn(Vector input, Vector<float> errorDerivative)
-    {
-        var learned = new List<Learned>();
+    
+    record Gradient(int layerId, Vector<float> biasesGradients, Vector<float> layerInput);
+    Gradient[] ComputeGradients(Vector input, Vector<float> errorDerivative){
+        var result = new Gradient[Layers.Length];
         for (int i = Layers.Length - 1; i >= 0; i--)
         {
             var layer = Layers[i];
@@ -178,30 +190,43 @@ public abstract class NNBase
             var activation = layer.Activation.Activation;
             var derivative = layer.Activation.ActivationDerivative;
 
-            var biasesGradient = (Vector)layerOutput.MapIndexed((j, x) => derivative(x) * errorDerivative[j]);
+            var biasesGradient = layerOutput.MapIndexed((j, x) => derivative(x) * errorDerivative[j]);
             if (i > 0)
             {
                 errorDerivative.MapIndexedInplace((j, x) => x * derivative(layerOutput[j]));
                 errorDerivative *= layer.Weights;
             }
-            var layerInput = (Vector)(i > 0 ? RawLayerOutput[Layers[i - 1]].Map(activation) : input);
+            var layerInput = i > 0 ? RawLayerOutput[Layers[i - 1]].Map(activation) : input;
 
             //here we update weights
+            result[i] = new(i,biasesGradient,layerInput);
+        }
+        return result;
+    }
+    
+    IEnumerable<Learned> Learn(Vector[] input, (Vector<float> lossDerivative, Gradient[] gradients)[] learningInfo)
+    {
+        var learned = new List<Learned>();
 
+        foreach(var gradient in learningInfo[0].gradients)
+        {
+            var layer = Layers[gradient.layerId];
+            var layerInput = gradient.layerInput;
+            var biasesGradient = gradient.biasesGradients;
             for (int k = 0; k < layerInput.Count; k++)
             {
                 var kInput = layerInput[k];
                 if (kInput == 0) continue;
                 for (int j = 0; j < layer.Weights.RowCount; j++)
                 {
-                    var gradient = biasesGradient[j] * kInput;
-                    layer.Weights[j, k] -= LearningRate * gradient;
+                    var weightGradient = biasesGradient[j] * kInput;
+                    layer.Weights[j, k] -= LearningRate * weightGradient;
                 }
             }
 
             layer.Bias.MapIndexedInplace((j, x) => x - LearningRate * biasesGradient[j]);
 
-            learned.Add(new Learned(layer,biasesGradient, layerInput, LearningRate));
+            learned.Add(new Learned(layer, (Vector)biasesGradient, (Vector)layerInput, LearningRate));
         }
         return learned;
     }
@@ -218,7 +243,19 @@ public abstract class NNBase
     {
         // compute error derivative for MSE
         var error = (ForwardForLearning(input) - expected) * 2;
-        var learned = Learn(input, error);
+        var learningInfo = (error,ComputeGradients(input,error));
+        var learned = Learn(new[]{input}, new[]{learningInfo});
+        return new BackpropResult(learned);
+    }
+    public BackpropResult StochasticBackwards(Vector[] input, Vector[] expected)
+    {
+        // compute error derivative for MSE
+        var learningInfo = input.Zip(expected).Select(data=>{
+            var error = (ForwardForLearning(data.First) - data.Second) * 2;
+            var gradient = ComputeGradients(data.First,error);
+            return (error,gradient);
+        }).ToArray();
+        var learned = Learn(input, learningInfo);
         return new BackpropResult(learned);
     }
     ///<inheritdoc/>

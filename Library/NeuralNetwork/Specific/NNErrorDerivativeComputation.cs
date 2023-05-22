@@ -5,8 +5,8 @@ public class NNErrorDerivativeComputation : NNBase{
     /// <summary>
     /// See the class description to understand what it does
     /// </summary>
-    ErrorFunctionOutputDerivativeReplacer replacer;
-    public NNErrorDerivativeComputation(NNBase baseModel, ErrorFunctionOutputDerivativeReplacer replacer) : base(baseModel){
+    LossFunctionOutputDerivativeReplacer replacer;
+    public NNErrorDerivativeComputation(NNBase baseModel, LossFunctionOutputDerivativeReplacer replacer) : base(baseModel){
         this.replacer = replacer;
     }
     public override Vector Forward(Vector input){

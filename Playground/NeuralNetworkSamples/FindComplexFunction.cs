@@ -39,7 +39,7 @@ public partial class Examples
             {
                 var x = Random.Shared.NextSingle() * 4 - 2;
                 var input = DenseVector.Create(1, x);
-                var result = nn.LearnOnError(input, 0.01f, Problem);
+                var result = nn.LearnOnLoss(input, 0.01f, Problem);
             }
             var epochError = testInputs.Sum(x => Problem(x, nn));
             System.Console.WriteLine("Error " + epochError);

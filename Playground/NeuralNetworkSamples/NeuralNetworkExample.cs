@@ -65,7 +65,7 @@ public partial class Examples
         var testData = Enumerable.Range(0, 100).Select(x => DenseVector.Create(2, x => Random.Shared.NextSingle() * 4 - 2)).ToArray();
         nn.LearningRate = 0.05f;
 
-        for (int k = 0; k < 40; k++)
+        for (int k = 0; k <= 40; k++)
         {
             var error = 0.0;
             for (int i = 0; i < 100; i++)
@@ -81,10 +81,10 @@ public partial class Examples
                 //of such failed backpropagations.
                 var beforeLearn = nn.Error(input, expected);
 
-                // var backprop = nn.Backwards(input, expected);
+                // var backprop = nn.StoachasticBackwards(new[]{input}, new[]{expected});
 
                 //we also can learn on error function instead. Uncomment it to see
-                var backprop = nn.LearnOnError(input, 1e-2f, (input1, nn1) => (nn1.Forward(input1) - expected).Sum(x => x * x));
+                var backprop = nn.StochasticLearnOnLoss(new[]{input}, 1e-3f, (input1, nn1) => (nn1.Forward(input1) - expected).Sum(x => x * x));
 
                 var afterLearn = nn.Error(input, expected);
                 //when we hit a worsen rather than improvement, 
@@ -98,7 +98,7 @@ public partial class Examples
                 }
                 error += afterLearn;
             }
-            if (k % 20 == 0)
+            if (k % 10 == 0)
             {
                 var testError = testData.Average(x =>
                 {

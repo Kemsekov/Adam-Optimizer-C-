@@ -18,7 +18,7 @@ namespace GradientDescentSharp.NeuralNetwork.Specific;
 /// I am sure there is more beautiful solution than this, but this is 
 /// the best I could think of.
 /// </summary>
-public class ErrorFunctionOutputDerivativeReplacer{
+public class LossFunctionOutputDerivativeReplacer{
     public int ChangedOutputIndex = -1;
     public float ChangedOutputTheta;
     /// <summary>

@@ -37,7 +37,7 @@ public partial class Examples
 
         pricePredictor.LearningRate = 0.05f;
 
-        var errorFunction = (UsaHousing record) =>
+        var LossFunction = (UsaHousing record) =>
         {
             var expected = DenseVector.Create(1, (float)record.Price);
             var input = record.ToInputVector();
@@ -47,17 +47,17 @@ public partial class Examples
         //here we train
         for (int epoch = 0; epoch < 20; epoch++)
         {
-            var testError = test.Average(errorFunction);
+            var testError = test.Average(LossFunction);
             var trainError = 0.0;
             foreach (var record in train.TakeNRandom(batchSize))
             {
                 var input = record.ToInputVector();
                 var expected = DenseVector.Create(1, (float)record.Price);
-                var error = errorFunction(record);
+                var error = LossFunction(record);
                 // var backprop = pricePredictor.Backwards(input, expected);
 
                 //alternatively
-                var backprop = pricePredictor.LearnOnError(input, 1e-3f, (input, nn) => nn.Error(input, expected));
+                var backprop = pricePredictor.LearnOnLoss(input, 1e-3f, (input, nn) => nn.Error(input, expected));
 
                 var errorAfter = pricePredictor.Error(input, expected);
                 trainError += errorAfter;

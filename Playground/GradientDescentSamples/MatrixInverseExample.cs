@@ -9,7 +9,7 @@ public partial class Examples
         var m2 = DenseMatrix.Create(dimensions, dimensions, (x, y) => Random.Shared.NextDouble() * 2 - 1);
         m2.Inverse();
         var identity = DenseMatrix.CreateIdentity(dimensions);
-        var errorFunction = (IDataAccess<double> x) =>
+        var LossFunction = (IDataAccess<double> x) =>
         {
             var factory = new ComplexObjectsFactory(x);
             var m1 = factory.CreateMatrix(dimensions, dimensions);
@@ -32,7 +32,7 @@ public partial class Examples
 
         var finder = new BestSolutionFinder(
             variablesLength: dimensions * dimensions,
-            data => new MineDescent(data, errorFunction) { Theta = 0.000001, DescentRate = 1 }
+            data => new MineDescent(data, LossFunction) { Theta = 0.000001, DescentRate = 1 }
         )
         {
             SolutionsCount = 100,
@@ -40,7 +40,7 @@ public partial class Examples
             Logger = new ConsoleLogger(),
             Init = init
         };
-        var result = finder.TryToFindBestSolution(errorFunction);
+        var result = finder.TryToFindBestSolution(LossFunction);
         var factory = new ComplexObjectsFactory(result);
         var m1 = factory.CreateMatrix(dimensions, dimensions);
         var m3 = m1 * m2;

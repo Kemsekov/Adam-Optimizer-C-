@@ -8,7 +8,7 @@ public partial class Examples
 {
     //in this example we can see, how neural network can actually learn
     //from error function only. That's it!
-    public static void NeuralNetworkLearnOnErrorFunctionExample()
+    public static void NeuralNetworkLearnOnLossFunctionExample()
     {
         var defaultFactory = new NNComplexObjectsFactory();
 
@@ -18,9 +18,9 @@ public partial class Examples
         var layer4 = new Layer(defaultFactory, 4, 1, ActivationFunction.Linear(), Initializers.Guassian);
 
         var nn = new ForwardNN(layer1, layer2, layer3, layer4);
-        _NeuralNetworkLearnOnErrorFunctionExample(nn);
+        _NeuralNetworkLearnOnLossFunctionExample(nn);
     }
-    static void _NeuralNetworkLearnOnErrorFunctionExample(NNBase nn){
+    static void _NeuralNetworkLearnOnLossFunctionExample(NNBase nn){
         var xValues = Enumerable.Range(0, 1000).Select(x => DenseVector.Create(1, Random.Shared.NextSingle() * 4)).ToArray();
         //Here we define a problem, which is error function.
         var problem = (Vector input, PredictOnlyNN nn) =>
@@ -42,7 +42,7 @@ public partial class Examples
             // here magic happens. The some information we put into is:
             // input vector, some small theta, that will be used to compute
             // derivatives, and error function. This is enough to learn!
-            var backprop = nn.LearnOnError(x, 0.0001f, problem);
+            var backprop = nn.LearnOnLoss(x, 0.0001f, problem);
 
             var errorAfter = nn.Error(x, expected);
 
