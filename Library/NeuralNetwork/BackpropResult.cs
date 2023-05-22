@@ -10,17 +10,19 @@ public class BackpropResult
     {
         this.learner = learner;
     }
+    /// <summary>
+    /// Learns backpropagation results.
+    /// </summary>
     public void Learn(){
         foreach (var l in learner)
             l.Learn();
     }
     /// <summary>
-    /// Unlearns last backpropagation results.
+    /// Unlearns backpropagation results.
     /// </summary>
     public void Unlearn()
     {
         foreach (var l in learner)
             l.Unlearn();
-        learner = Array.Empty<Learner>();
     }
 }

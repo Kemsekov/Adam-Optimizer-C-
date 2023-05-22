@@ -21,7 +21,7 @@ public partial class Examples
 
         var nn = new ForwardNN(layer1, layer2, layer3);
 
-        for (int i = 0; i < 3; i++)
+        for (int i = 0; i < 5; i++)
         {
             var y1 = (float x1, float x2) => MathF.Sin(x1 + x2);
             var y2 = (float x1, float x2) => x1 * x2;
@@ -67,7 +67,7 @@ public partial class Examples
 
         for (int k = 0; k <= 40; k++)
         {
-            OrdinaryMethod(nn, y1, y2, testData, k);
+            LearnFunctionsBody(nn, y1, y2, testData, k);
         }
 
         //show some examples of predictions
@@ -100,7 +100,7 @@ public partial class Examples
         System.Console.WriteLine("Test error after replacing saturated " + replaced);
     }
 
-    private static void OrdinaryMethod(NNBase nn, Func<float, float, float> y1, Func<float, float, float> y2, DenseVector[] testData, int k)
+    private static void LearnFunctionsBody(NNBase nn, Func<float, float, float> y1, Func<float, float, float> y2, DenseVector[] testData, int k)
     {
         var error = 0.0;
         for (int i = 0; i < 100; i++)
@@ -110,20 +110,21 @@ public partial class Examples
             expected[0] = y1(input[0], input[1]);
             expected[1] = y2(input[0], input[1]);
 
+
             //this version of backpropagation at it's core support rolling back
             //to original weights, if we hit a worse minima after learning!
             //it can be used to manually decrease learning rate if we hit too much
             //of such failed backpropagations.
-            var beforeLearn = nn.Error(input, expected);
 
             //we also can learn on error function instead. Uncomment it to see
 
             var backprop = nn.Backwards(input, expected);
             // var backprop = nn.LearnOnLoss(input, 1e-3f, (input1, nn1) => (nn1.Forward(input1) - expected).Sum(x => x * x));
 
+            var beforeLearn = nn.Error(input, expected);
             backprop.Learn();
-
             var afterLearn = nn.Error(input, expected);
+
             //when we hit a worsen rather than improvement, 
             //it indicates that our learning rate is too high, so we 
             //undo changes from previous learning and decrease learning rate

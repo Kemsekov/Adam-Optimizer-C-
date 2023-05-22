@@ -5,12 +5,8 @@ namespace GradientDescentSharp.NeuralNetwork;
 
 public record Learner(ILayer layer, Vector biasesGradient, Vector layerInput, float learningRate)
 {
-    bool unlearned = false;
-    bool learned = false;
     public void Learn()
     {
-        if(learned) return;
-        learned = true;
         for (int k = 0; k < layerInput.Count; k++)
         {
             var kInput = layerInput[k];
@@ -28,8 +24,6 @@ public record Learner(ILayer layer, Vector biasesGradient, Vector layerInput, fl
     /// </summary>
     public void Unlearn()
     {
-        if (unlearned) return;
-        unlearned = true;
         var weightsGradient = (int j, int k) => biasesGradient[j] * layerInput[k];
         layer.Weights.MapIndexedInplace((j, k, x) => x + learningRate * weightsGradient(j, k));
         layer.Bias.MapIndexedInplace((j, x) => x + learningRate * biasesGradient[j]);

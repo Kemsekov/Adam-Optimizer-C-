@@ -202,7 +202,6 @@ public abstract class NNBase
             var layer = Layers[layerInfo.layerId];
             var layerInput = layerInfo.layerInput;
             var biasesGradient = layerInfo.biasesGradients;
-            
 
             learned.Add(new Learner(layer, (Vector)biasesGradient, (Vector)layerInput.Clone(), LearningRate));
         }
