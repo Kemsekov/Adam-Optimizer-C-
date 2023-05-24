@@ -204,7 +204,7 @@ public abstract class NNBase
             var layerInput = i > 0 ? activation(rawLayersOutput[Layers[i - 1]]) : input;
 
             //here we update weights
-            result[i] = new(i,biasesGradient,layerInput);
+            result[i] = new(i,biasesGradient,layerInput.Clone());
         }
         return result;
     }
@@ -219,7 +219,7 @@ public abstract class NNBase
             var layerInput = layerInfo.layerInput;
             var biasesGradient = layerInfo.biasesGradients;
 
-            learned.Add(new Learner(layer, (Vector)biasesGradient, (Vector)layerInput.Clone(), LearningRate));
+            learned.Add(new Learner(layer, (Vector)biasesGradient, (Vector)layerInput, LearningRate));
         }
         return learned;
     }

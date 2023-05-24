@@ -56,6 +56,9 @@ public class ActivationFunction : IActivationFunction{
     public static Tanh Tanh(){
         return new();
     }
+    /// <summary>
+    /// Use <see cref="GlorotNormal"/> or <see cref="HeNormal"/> initializer
+    /// </summary>
     public static Softmax Softmax(){
         return new();
     }

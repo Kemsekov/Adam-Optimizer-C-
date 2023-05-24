@@ -53,13 +53,12 @@ public partial class Examples
             {
                 var input = record.ToInputVector();
                 var expected = DenseVector.Create(1, (float)record.Price);
-                var error = LossFunction(record);
-                // var backprop = pricePredictor.Backwards(input, expected);
+                var backprop = pricePredictor.Backwards(input, expected);
 
                 //alternatively
-                var backprop = pricePredictor.LearnOnLoss(input, 1e-3f, (input, nn) => nn.Error(input, expected));
+                // var backprop = pricePredictor.LearnOnLoss(input, 1e-3f, (input, nn) => nn.Error(input, expected));
                 backprop.Learn();
-                
+
                 var errorAfter = pricePredictor.Error(input, expected);
                 trainError += errorAfter;
             }
