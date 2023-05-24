@@ -1,6 +1,9 @@
+
+using MathNet.Numerics.LinearAlgebra.Single;
+
 namespace GradientDescentSharp.NeuralNetwork;
 
 public interface IActivationFunction{
-    float Activation(float x);
-    float ActivationDerivative(float x);
+    Vector Activation(Vector x);
+    Vector ActivationDerivative(Vector x);
 }

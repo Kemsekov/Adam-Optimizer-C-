@@ -6,4 +6,5 @@ global using GradientDescentSharp.DataAccessors;
 global using GradientDescentSharp.GradientDescents;
 global using GradientDescentSharp.ComplexDataStructures;
 global using GradientDescentSharp.NeuralNetwork.WeightInitializers;
+global using GradientDescentSharp.NeuralNetwork.ActivationFunction;
 global using Playground;

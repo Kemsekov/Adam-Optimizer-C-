@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 var watch = new Stopwatch();
 watch.Start();
-Examples.NeuralNetworkContinuousLearningExample();
+Examples.NeuralNetworkExample();
 System.Console.WriteLine("Done in " + watch.ElapsedMilliseconds);
 

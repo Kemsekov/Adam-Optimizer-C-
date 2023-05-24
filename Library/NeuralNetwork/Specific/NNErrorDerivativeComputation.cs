@@ -14,20 +14,7 @@ public class NNErrorDerivativeComputation : NNBase{
         for (int i = 0; i < Layers.Length; i++)
         {
             layer = Layers[i];
-            input = layer.Forward(input);
-            input.MapInplace(x=>layer.Activation.Activation(x));
-        }
-        replacer.ReplaceOutputParameter(input);
-        return input;
-    }
-    protected override Vector ForwardForLearning(Vector input){
-        ILayer layer;
-        for (int i = 0; i < Layers.Length; i++)
-        {
-            layer = Layers[i];
-            input = layer.Forward(input);
-            RawLayerOutput[layer].MapIndexedInplace((index,x)=>input[index]);
-            input.MapInplace(x=>layer.Activation.Activation(x));
+            input = layer.Activation.Activation(layer.Forward(input));
         }
         replacer.ReplaceOutputParameter(input);
         return input;
