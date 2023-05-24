@@ -3,12 +3,15 @@
     <OutputType>Library</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Version>0.0.4</Version>
+    <Version>0.0.5</Version>
     <PackageVersion>$(Version)</PackageVersion>
     <Authors>Kemsekov</Authors>
     <PackageProjectUrl>https://github.com/Kemsekov/GradientDescentSharp</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageId>GradientDescentSharp</PackageId>
+    <Description>
+      Simple optimization and machine learning library
+    </Description>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
