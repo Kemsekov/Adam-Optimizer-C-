@@ -70,7 +70,7 @@ public abstract class NNBase
         {
             layer = Layers[i];
             input = layer.Forward(input);
-            rawLayerOutput[layer].MapIndexedInplace((index, x) => input[index]);
+            rawLayerOutput[layer]=input;
             input=layer.Activation.Activation(input);
         }
         return input;

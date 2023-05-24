@@ -14,8 +14,8 @@ public partial class Examples
         var records = data.GetRecords<Iris>().ToArray();
         Random.Shared.Shuffle(records);
 
-        var train = records[10..];
-        var test = records[..10];
+        var train = records[20..];
+        var test = records[..20];
 
         var defaultFactory = new NNComplexObjectsFactory();
         var layer1 = new Layer(defaultFactory, 4, 32, ActivationFunction.Tanh(), Initializers.GlorotUniform);
@@ -40,7 +40,6 @@ public partial class Examples
             {
                 var (input, expected) = record.BuildData();
                 var backprop = speciesPredictor.Backwards(input, expected);
-                var errorBefore = speciesPredictor.Error(input, expected);
                 backprop.Learn();
             }
         }
