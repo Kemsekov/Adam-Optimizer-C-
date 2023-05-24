@@ -181,8 +181,6 @@ public abstract class NNBase
         return errorDerivative;
     }
 
-
-    
     record Gradient(int layerId, Vector<float> biasesGradients, Vector<float> layerInput );
     Gradient[] ComputeGradients(Vector input, Vector<float> errorDerivative, Dictionary<ILayer, Vector> rawLayersOutput){
         var result = new Gradient[Layers.Length];
@@ -195,7 +193,6 @@ public abstract class NNBase
             var activation = layer.Activation.Activation;
             var derivative = layer.Activation.ActivationDerivative;
 
-            // var biasesGradient = layerOutput.MapIndexed((j, x) => derivative(x) * errorDerivative[j]);
             var layerOutputDerivative = derivative(layerOutput);
             var biasesGradient = layerOutputDerivative.MapIndexed((j,x)=>x*errorDerivative[j]);
 

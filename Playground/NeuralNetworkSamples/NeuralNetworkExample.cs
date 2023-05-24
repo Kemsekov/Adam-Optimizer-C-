@@ -64,7 +64,6 @@ public partial class Examples
         //here I purposely start with a higher learning rate, than it should be
         var testData = Enumerable.Range(0, 100).Select(x => DenseVector.Create(2, x => Random.Shared.NextSingle() * 4 - 2)).ToArray();
         nn.LearningRate = 0.01f;
-
         for (int k = 0; k <= 40; k++)
         {
             LearnFunctionsBody(nn, y1, y2, testData, k);
@@ -82,6 +81,7 @@ public partial class Examples
             var input = DenseVector.Create(2, 0);
             input[0] = num1;
             input[1] = num2;
+            
             var result = nn.Forward(input);
 
             System.Console.WriteLine("-------------");
@@ -117,7 +117,6 @@ public partial class Examples
             //of such failed backpropagations.
 
             //we also can learn on error function instead. Uncomment it to see
-
             var backprop = nn.Backwards(input, expected);
             // var backprop = nn.LearnOnLoss(input, 1e-3f, (input1, nn1) => (nn1.Forward(input1) - expected).Sum(x => x * x));
 
