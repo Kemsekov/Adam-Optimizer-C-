@@ -5,35 +5,7 @@ using GradientDescentSharp.NeuralNetwork;
 
 public partial class Examples
 {
-    //In this example we learn two continuous function:
-    //y1=sin(x1+x2)
-    //y2=x1*x2
-    public static void NeuralNetworkContinuousLearningExample()
-    {
-        var defaultFactory = new NNComplexObjectsFactory();
 
-        var layer1 = new Layer(defaultFactory, 2, 32, ActivationFunction.Tanh(), Initializers.GlorotUniform);
-        var layer2 = new Layer(defaultFactory, 32, 16, ActivationFunction.Tanh(), Initializers.GlorotNormal);
-
-        //output layed needs to be linear so both positive and negative values can be 
-        //predicted by a model
-        var layer3 = new Layer(defaultFactory, 16, 2, ActivationFunction.Linear(), Initializers.Guassian);
-
-        var nn = new ForwardNN(layer1, layer2, layer3);
-
-        for (int i = 0; i < 5; i++)
-        {
-            var y1 = (float x1, float x2) => MathF.Sin(x1 + x2);
-            var y2 = (float x1, float x2) => x1 * x2;
-            _NeuralNetworkExample(nn, y1, y2);
-            System.Console.WriteLine("------------------Change functions!------------------");
-            y1 = (float x1, float x2) => MathF.Cos(x1 - x2);
-            y2 = (float x1, float x2) => x1 - x2 * MathF.Sin(x1);
-            _NeuralNetworkExample(nn, y1, y2);
-            System.Console.WriteLine("------------------Epoch end------------------");
-        }
-
-    }
     public static void NeuralNetworkExample()
     {
         var defaultFactory = new NNComplexObjectsFactory();

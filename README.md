@@ -67,9 +67,5 @@ It still is very important to define a good error function and init variables.
 
 Also I've a good working feed-forward neural network implementation here.
 
-And it can learn from error function only, like a simplified reinforcement learning,
-also there is a way to do continuous learning, all with one simple class - without much hassle
-and abstraction layers.
-
 Check out 
 [neural network playground examples](https://github.com/Kemsekov/GradientDescentSharp/tree/main/Playground/NeuralNetworkSamples).
