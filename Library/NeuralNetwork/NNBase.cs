@@ -86,7 +86,8 @@ public abstract class NNBase
     /// to keep weight mean on it's original value.<br/>
     /// Does not affect biases.<br/>
     /// Use this method when your model meets new kind of data, and needs to be retrained, but
-    /// cannot because model weights is too saturated.
+    /// cannot because model weights is too saturated.<br/>
+    /// Causes catastrophic forgetting too, so be cautious.
     /// </summary>
     /// <param name="weightsCount">How many weights to regenerate, left it -1 to regenerate all weights that smaller than min value or bigger than max value</param>
     /// <param name="minValue">Weights smaller than this value will be regenerated</param>
