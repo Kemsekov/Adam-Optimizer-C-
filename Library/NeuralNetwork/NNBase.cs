@@ -10,6 +10,12 @@ namespace GradientDescentSharp.NeuralNetwork;
 public abstract class NNBase
 {
     /// <summary>
+    /// Learner factory. You can change it to use different gradient applying algorithms.<br/>
+    /// By default <see cref="DefaultLearner"/> is used, which just applies gradient multiplying it with learning rate
+    /// </summary>
+    /// <returns></returns>
+    public Func<LearningData,ILearner> LearnerFactory{get;set;} = DefaultLearner.Factory();
+    /// <summary>
     /// Network layers
     /// </summary>
     public ILayer[] Layers { get; }
@@ -209,9 +215,9 @@ public abstract class NNBase
         return result;
     }
     
-    IEnumerable<Learner> BuildLearner(Gradient[] gradients)
+    IEnumerable<DefaultLearner> BuildLearner(Gradient[] gradients)
     {
-        var learned = new List<Learner>();
+        var learned = new List<DefaultLearner>();
         
         foreach(var layerInfo in gradients)
         {
@@ -219,7 +225,8 @@ public abstract class NNBase
             var layerInput = layerInfo.layerInput;
             var biasesGradient = layerInfo.biasesGradients;
 
-            learned.Add(new Learner(layer, (Vector)biasesGradient, (Vector)layerInput, LearningRate));
+            var data = new LearningData(layer, (Vector)biasesGradient, (Vector)layerInput, LearningRate);
+            learned.Add(new DefaultLearner(data));
         }
         return learned;
     }

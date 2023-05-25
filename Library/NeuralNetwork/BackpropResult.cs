@@ -9,8 +9,8 @@ namespace GradientDescentSharp.NeuralNetwork;
 /// </summary>
 public class BackpropResult
 {
-    private IEnumerable<Learner> learner;
-    public BackpropResult(IEnumerable<Learner> learner)
+    private IEnumerable<DefaultLearner> learner;
+    public BackpropResult(IEnumerable<DefaultLearner> learner)
     {
         this.learner = learner;
     }

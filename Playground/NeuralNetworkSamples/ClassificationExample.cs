@@ -33,7 +33,7 @@ public partial class Examples
             return speciesPredictor.Error(data.input, data.output);
         });
 
-        for (int epoch = 0; epoch < 20; epoch++)
+        for (int epoch = 0; epoch < 40; epoch++)
         {
             System.Console.WriteLine($"Error is {getError()}");
             foreach (var record in train)
