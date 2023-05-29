@@ -71,7 +71,7 @@ mine descent
 natural descent
 
 Here is general time-performance measurements for each of them
-```
+```text
 Descent         Score           Time ms
 adam            290             270
 mine            971             162
