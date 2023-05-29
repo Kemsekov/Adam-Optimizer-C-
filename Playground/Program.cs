@@ -6,6 +6,6 @@ using Playground.DataModels;
 
 var watch = new Stopwatch();
 watch.Start();
-Examples.CompareAdamAndMineDescent(Examples.Functions[0],3);
+Examples.MeasureDescentsPerformanceAvg();
 System.Console.WriteLine("Done in " + watch.ElapsedMilliseconds);
 

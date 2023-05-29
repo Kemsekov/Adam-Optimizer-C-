@@ -1,69 +1,66 @@
+using System.Diagnostics;
+
 namespace Playground;
 public partial class Examples
 {
-    static (int adam, int mine) MeasureDescentsPerformance(Func<IDataAccess<double>, double> func, int variablesLength)
+    public static double MeasureDescentPerformance(Func<IDataAccess<double>, double> problem, int variablesLength, Func<IDataAccess<double>, IGradientDescent> descent, Random? rand = null)
     {
-        ArrayDataAccess<double> variables1 = new double[] { Random.Shared.NextDouble(), Random.Shared.NextDouble(), Random.Shared.NextDouble() };
-        ArrayDataAccess<double> variables2 = new double[variablesLength];
+        rand ??= new Random();
+        var maxIterations = 20;
+        var variables = new ArrayDataAccess<double>(variablesLength);
+        for (int k = 0; k < variables.Length; k++)
+            variables[k] = rand.NextDouble() * 2 - 1;
 
-        for (int i = 0; i < variablesLength; i++) variables1[i] = Random.Shared.NextDouble() * 2 - 1;
-        variables1.Array.CopyTo(variables2, 0);
+        var descentImpl = descent(variables);
+        descentImpl.Descent(maxIterations);
+        return problem(variables);
 
-        var adamDescent = new AdamDescent(variables1, func);
-        var mineDescent = new MineDescent(variables2, func);
-        
-
-        double before;
-
-        var maxIterations = 40;
-        var descentRate = 0.05;
-        var theta = 0.0001;
-        int adamCount = 0;
-        int mineCount = 0;
-
-        for (int i = 0; i < 1000; i++)
-        {
-            variables1 = new double[variablesLength];
-            variables2 = new double[variablesLength];
-
-            for (int k = 0; k < variables1.Length; k++)
-                variables1[k] = Random.Shared.NextDouble() * 2 - 1;
-
-            variables1.Array.CopyTo(variables2, 0);
-
-            before = func(variables1);
-            adamDescent = new AdamDescent(variables1, func)
-            {
-                Theta = theta,
-                DescentRate = descentRate
-            };
-            mineDescent = new MineDescent(variables2, func)
-            {
-                Theta = theta,
-                DescentRate = descentRate
-            };
-
-            adamDescent.Descent(maxIterations);
-            mineDescent.Descent(maxIterations);
-            var adam = func(variables1);
-            var mine = func(variables2);
-            if (adam <= mine)
-                adamCount++;
-            else
-                mineCount++;
-        }
-        System.Console.WriteLine("Adam : " + adamCount);
-        System.Console.WriteLine("Mine : " + mineCount);
-        System.Console.WriteLine("----------------------");
-        return (adamCount, mineCount);
     }
+    delegate IGradientDescent DescentFactory(Func<IDataAccess<double>, double> problem, IDataAccess<double> parameters);
     public static void MeasureDescentsPerformanceAvg()
     {
-        var results = Functions.Select(x => MeasureDescentsPerformance(x, 3)).ToArray();
-        var (adam, mine) = results.Aggregate((x1, x2) => (x1.adam + x2.adam, x1.mine + x2.mine));
-        mine /= results.Length;
-        adam /= results.Length;
-        System.Console.WriteLine("Average adam " + adam);
-        System.Console.WriteLine("Average mine " + mine);
+        var descents =
+        new Dictionary<string,DescentFactory>(){
+            {"adam",(problem, parameters)=>new AdamDescent(parameters,problem)},
+            {"mine",(problem,parameters)=>new MineDescent(parameters,problem)},
+            {"natural",(problem,parameters)=>new NaturalDescent(parameters,problem){ExpectationsSampleCount=40}}
+        };
+        var descentResults = new Dictionary<string,double[]>();
+        var bestDescentCounter = new Dictionary<string,int>();
+
+        var descentTimers = new Dictionary<string,Stopwatch>();
+
+        foreach(var d in descents){
+            bestDescentCounter[d.Key] = 0;
+            descentTimers[d.Key] = new Stopwatch();
+        }
+
+        for (int i = 0; i < 100; i++)
+        {
+            foreach (var descent in descents)
+            {
+                var timer = descentTimers[descent.Key];
+                var name = descent.Key;
+                var factory = descent.Value;
+
+                timer.Start();
+                var descentResult = Functions
+                    .Select(problem =>
+                        MeasureDescentPerformance(problem, 3, parameters => factory(problem,parameters), new Random(i)))
+                    .ToArray();
+                timer.Stop();
+                descentResults[name] = descentResult;
+            }
+            for(int k = 0;k<Functions.Length;k++){
+                var best = descentResults.MinBy(x=>x.Value[k]);
+                bestDescentCounter[best.Key]+=1;
+            }
+        }
+
+        System.Console.WriteLine("Descent\tScore\ttime");
+        foreach(var bestDescent in bestDescentCounter){
+            var timer = descentTimers[bestDescent.Key];
+            System.Console.WriteLine($"{bestDescent.Key}\t{bestDescent.Value}\t{timer.ElapsedMilliseconds} ms");
+        }
     }
 }

@@ -3,6 +3,9 @@ using MathNet.Numerics.LinearAlgebra.Double;
 
 namespace GradientDescentSharp.GradientDescents;
 
+/// <summary>
+/// Performs natural descent using fisher information matrix
+/// </summary>
 public class NaturalDescent : GradientDescentBase
 {
     /// <summary>
@@ -17,7 +20,6 @@ public class NaturalDescent : GradientDescentBase
     /// to generate parameters.
     /// </summary>
     public Func<int, double> GenerateParameterSample;
-    private Vector<double> parametersVector;
     /// <summary>
     /// How much decrease descent rate when we step into bigger error value.<br/>
     /// By default it is 0.1, so when we step into worse error function value,
@@ -40,7 +42,6 @@ public class NaturalDescent : GradientDescentBase
             // return Math.Exp(-err) * (err + 1) / 2;
         };
         GenerateParameterSample = i => Random.Shared.NextDouble() * 2 - 1;
-        this.parametersVector = new ComplexObjectsFactory(variables).CreateVector(variables.Length);
     }
     /// <summary>
     /// Computes fisher information matrix using monte-carlo approximation.<br/>
