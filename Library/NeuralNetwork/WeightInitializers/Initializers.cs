@@ -13,4 +13,5 @@ public static class Initializers
     public static Guassian Guassian=>new();
     public static GlorotUniform GlorotUniform=>new();
     public static GlorotNormal GlorotNormal=>new();
+    public static NoInitialization NoInitialization=>new();
 }

@@ -25,4 +25,3 @@ public class GlorotNormal : IWeightsInit
         return (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev);
     }
 }
-
