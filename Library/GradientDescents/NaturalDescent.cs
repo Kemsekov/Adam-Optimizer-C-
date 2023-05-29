@@ -87,14 +87,12 @@ public class NaturalDescent : GradientDescentBase
     RentedArray<double> derivativeOfLikelihood(IDataAccess<double> Variables)
     {
         var derivativeOfLikelihood = ArrayPoolStorage.RentArray<double>(Variables.Length);
+        var c = likelihood(Variables);
         for (int i = 0; i < Variables.Length; i++)
         {
             Variables[i] += Theta;
             var b = likelihood(Variables);
             Variables[i] -= Theta;
-
-            var c = likelihood(Variables);
-
             derivativeOfLikelihood[i] = (b - c) / Theta;
         };
         return derivativeOfLikelihood;
