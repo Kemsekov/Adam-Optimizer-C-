@@ -28,7 +28,8 @@ public class NaturalDescent : GradientDescentBase
     public double DescentRateDecreaseRate = 0.1;
     /// <summary>
     /// To compute expectation for fisher information, we need to generate a range of samples.
-    /// This parameter describes how much. General rule is that count of samples should grow
+    /// This parameter describes how many of them to generate.<br/> 
+    /// General rule is that count of samples should grow
     /// exponentially proportional to parameters dimensions
     /// </summary>
     public int ExpectationsSampleCount = 100;
@@ -105,9 +106,10 @@ public class NaturalDescent : GradientDescentBase
     }
     public override int Descent(int maxIterations)
     {
-        var fisherInformationInverse = (Matrix)ComputeFisherInformationMatrix().Inverse();
         Logger?.LogLine("--------------Natural descent began");
 
+        var fisherInformationInverse = (Matrix)ComputeFisherInformationMatrix().Inverse();
+        
         using RentedArrayDataAccess<double> change = new(ArrayPoolStorage.RentArray<double>(Dimensions));
         var iterations = 0;
         var descentRate = DescentRate;

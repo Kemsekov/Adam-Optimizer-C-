@@ -23,7 +23,7 @@ public partial class Examples
         new Dictionary<string,DescentFactory>(){
             {"adam",(problem, parameters)=>new AdamDescent(parameters,problem)},
             {"mine",(problem,parameters)=>new MineDescent(parameters,problem)},
-            {"natural",(problem,parameters)=>new NaturalDescent(parameters,problem){ExpectationsSampleCount=40}}
+            {"natural",(problem,parameters)=>new NaturalDescent(parameters,problem){ExpectationsSampleCount=20}}
         };
         var descentResults = new Dictionary<string,double[]>();
         var bestDescentCounter = new Dictionary<string,int>();
@@ -35,7 +35,7 @@ public partial class Examples
             descentTimers[d.Key] = new Stopwatch();
         }
 
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 500; i++)
         {
             foreach (var descent in descents)
             {
