@@ -39,6 +39,9 @@ public class NaturalDescent : GradientDescentBase
         likelihood = (IDataAccess<double> x) =>
         {
             var err = function(x);
+
+            //I am still not sure whether do I really need to use logarithmic function here
+            //but exponential one works better on tests, so I let it here
             // return Math.Log(err+1)-err;
             return Math.Exp(-err) * (err + 1) / 2;
         };
