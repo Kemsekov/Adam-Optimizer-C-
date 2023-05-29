@@ -65,7 +65,25 @@ As you can see, when we hit a grow in error function, the descent undo step and 
 
 It still is very important to define a good error function and init variables.
 
+Currently there are three providers for gradient descent:
+adam descent
+mine descent
+natural descent
+
+Here is general time-performance measurements for each of them
+```
+Descent         Score           Time ms
+adam            290             270
+mine            971             162
+natural         1739            293
+```
+
+As you can see mine descent currently is fastest one and provides a good results, while natural descent is the most precise
+
 Also I've a good working feed-forward neural network implementation here.
+
+Check out 
+[gradient descent playground examples](https://github.com/Kemsekov/GradientDescentSharp/tree/main/Playground/GradientDescentSamples).
 
 Check out 
 [neural network playground examples](https://github.com/Kemsekov/GradientDescentSharp/tree/main/Playground/NeuralNetworkSamples).
