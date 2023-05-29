@@ -39,8 +39,8 @@ public class NaturalDescent : GradientDescentBase
         likelihood = (IDataAccess<double> x) =>
         {
             var err = function(x);
-            return Math.Log(Math.Exp(-err) * (err + 1) / 2);
-            // return Math.Exp(-err) * (err + 1) / 2;
+            // return Math.Log(err+1)-err;
+            return Math.Exp(-err) * (err + 1) / 2;
         };
         GenerateParameterSample = i => Random.Shared.NextDouble() * 2 - 1;
     }
@@ -109,7 +109,7 @@ public class NaturalDescent : GradientDescentBase
         Logger?.LogLine("--------------Natural descent began");
 
         var fisherInformationInverse = (Matrix)ComputeFisherInformationMatrix().Inverse();
-        
+
         using RentedArrayDataAccess<double> change = new(ArrayPoolStorage.RentArray<double>(Dimensions));
         var iterations = 0;
         var descentRate = DescentRate;
