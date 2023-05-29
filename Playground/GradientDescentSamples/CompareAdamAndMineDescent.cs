@@ -15,7 +15,7 @@ public partial class Examples
         init?.Invoke(variables1);
 
         variables1.Array.CopyTo(variables2, 0);
-        var maxIterations = 500;
+        var maxIterations = 20;
         var descentRate = 0.1;
         var theta = 0.0001;
         var logger = new ConsoleLogger();

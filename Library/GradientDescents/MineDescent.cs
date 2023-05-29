@@ -24,7 +24,8 @@ public class MineDescent : GradientDescentBase
     {
         ComputeGradient(change, currentEvaluation);
         var length = Math.Sqrt(change.Sum(x => x * x));
-        if(length==0){
+        if (length == 0)
+        {
             Logger?.LogLine("Found exact minima!");
             return;
         }
@@ -64,7 +65,7 @@ public class MineDescent : GradientDescentBase
             Logger?.LogLine($"-------------");
         }
         Logger?.LogLine($"--------------Mine done in {iterations} iterations");
-        
+
         return iterations;
     }
 }

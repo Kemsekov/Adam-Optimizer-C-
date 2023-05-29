@@ -65,8 +65,7 @@ public abstract class GradientDescentBase : IGradientDescent
     {
         Parallel.For(0, Dimensions, i =>
         {
-            var gradientDataAccess = new GradientDataAccess<double>(Variables, 0, 0);
-            gradientDataAccess.Reset(i, Variables[i] + Theta);
+            var gradientDataAccess = new GradientDataAccess<double>(Variables, i, Variables[i] + Theta);
             var after = Evaluate(gradientDataAccess);
             gradient[i] = (after - currentEvaluation) / Theta;
         });

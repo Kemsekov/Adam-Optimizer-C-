@@ -208,10 +208,10 @@ public abstract class NNBase
                 errorDerivative.MapIndexedInplace((j, x) => x * layerOutputDerivative[j]);
                 errorDerivative *= layer.Weights;
             }
-            var layerInput = i > 0 ? activation(rawLayersOutput[Layers[i - 1]]) : input;
+            var layerInput = i > 0 ? activation(rawLayersOutput[Layers[i - 1]]) : input.Clone();
 
             //here we update weights
-            result[i] = new(i,biasesGradient,layerInput.Clone());
+            result[i] = new(i,biasesGradient,layerInput);
         }
         return result;
     }

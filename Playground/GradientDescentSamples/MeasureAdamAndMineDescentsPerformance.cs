@@ -11,6 +11,7 @@ public partial class Examples
 
         var adamDescent = new AdamDescent(variables1, func);
         var mineDescent = new MineDescent(variables2, func);
+        
 
         double before;
 
@@ -22,8 +23,8 @@ public partial class Examples
 
         for (int i = 0; i < 1000; i++)
         {
-            variables1 = new double[3];
-            variables2 = new double[3];
+            variables1 = new double[variablesLength];
+            variables2 = new double[variablesLength];
 
             for (int k = 0; k < variables1.Length; k++)
                 variables1[k] = Random.Shared.NextDouble() * 2 - 1;
