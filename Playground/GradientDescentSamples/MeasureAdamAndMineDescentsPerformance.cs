@@ -57,10 +57,10 @@ public partial class Examples
             }
         }
 
-        System.Console.WriteLine("Descent\tScore\ttime");
+        System.Console.WriteLine("Descent\t\tScore\t\tTime ms");
         foreach(var bestDescent in bestDescentCounter){
             var timer = descentTimers[bestDescent.Key];
-            System.Console.WriteLine($"{bestDescent.Key}\t{bestDescent.Value}\t{timer.ElapsedMilliseconds} ms");
+            System.Console.WriteLine($"{bestDescent.Key}\t\t{bestDescent.Value}\t\t{timer.ElapsedMilliseconds}");
         }
     }
 }
