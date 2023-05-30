@@ -12,6 +12,7 @@ public partial class Examples
             variables[k] = rand.NextDouble() * 2 - 1;
 
         var descentImpl = descent(variables);
+
         descentImpl.Descent(maxIterations);
         return problem(variables);
 

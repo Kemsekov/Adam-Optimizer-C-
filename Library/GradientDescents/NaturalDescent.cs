@@ -33,6 +33,7 @@ public class NaturalDescent : GradientDescentBase
     /// exponentially proportional to parameters dimensions
     /// </summary>
     public int ExpectationsSampleCount = 100;
+    Matrix? FisherInformationMatrixInverse = null;
     public NaturalDescent(IDataAccess<double> variables, Func<IDataAccess<double>, double> function) : base(variables, function)
     {
         //to transform error function to likelihood function, use following mapping
@@ -48,15 +49,44 @@ public class NaturalDescent : GradientDescentBase
         GenerateParameterSample = i => Random.Shared.NextDouble() * 2 - 1;
     }
     /// <summary>
+    /// Computes fisher information for each variable, can be used to determine whether changing given 
+    /// variable at some index holding much value for error function
+    /// </summary>
+    /// <param name="expectationsSampleCount">
+    /// This method computes fisher information as average over some amount of parameters-space,
+    /// by randomly sampling them. Change this value to get more/less precise fisher
+    /// information matrix in exchange for time used
+    /// </param>
+    /// <returns>Fisher information for each of data parameters</returns>
+    public Vector FisherInformation(int expectationsSampleCount = 0){
+        expectationsSampleCount = expectationsSampleCount==0 ? ExpectationsSampleCount : expectationsSampleCount;
+        var result = DenseVector.Create(Dimensions,0);
+        Parallel.For(0, expectationsSampleCount, k =>{
+            using var arr = ArrayPoolStorage.RentArray<double>(Dimensions);
+            var variables = new RentedArrayDataAccess<double>(arr);
+            for (int i = 0; i < variables.Length; i++)
+            {
+                variables[i] = GenerateParameterSample(i);
+            }
+
+            using var derivative = derivativeOfLikelihood(variables);
+            lock(result)
+                result.MapIndexedInplace((i,x)=>x+derivative[i]*derivative[i]);
+        });
+        result.MapInplace(x=>x/expectationsSampleCount);
+        return result;
+    }
+    /// <summary>
     /// Computes fisher information matrix using monte-carlo approximation.<br/>
     /// It generates <see cref="ExpectationsSampleCount"/> samples and returns
     /// computed information matrix as average of sample results.
     /// </summary>
     /// <returns></returns>
-    public Matrix ComputeFisherInformationMatrix()
+    public Matrix ComputeFisherInformationMatrix(int expectationsSampleCount)
     {
+        expectationsSampleCount = expectationsSampleCount==0 ? ExpectationsSampleCount : expectationsSampleCount;
         var matrix = DenseMatrix.Create(Dimensions, Dimensions, 0);
-        Parallel.For(0, ExpectationsSampleCount, k =>
+        Parallel.For(0, expectationsSampleCount, k =>
         {
             using var arr = ArrayPoolStorage.RentArray<double>(Dimensions);
             var variables = new RentedArrayDataAccess<double>(arr);
@@ -77,7 +107,7 @@ public class NaturalDescent : GradientDescentBase
                     }
                 }
         });
-        matrix.MapInplace(x => x / ExpectationsSampleCount);
+        matrix.MapInplace(x => x / expectationsSampleCount);
         return matrix;
     }
     /// <summary>
@@ -109,7 +139,7 @@ public class NaturalDescent : GradientDescentBase
     {
         Logger?.LogLine("--------------Natural descent began");
 
-        var fisherInformationInverse = (Matrix)ComputeFisherInformationMatrix().Inverse();
+        FisherInformationMatrixInverse ??= (Matrix)ComputeFisherInformationMatrix(ExpectationsSampleCount).Inverse();
 
         using RentedArrayDataAccess<double> change = new(ArrayPoolStorage.RentArray<double>(Dimensions));
         var iterations = 0;
@@ -117,7 +147,7 @@ public class NaturalDescent : GradientDescentBase
         var beforeStep = Evaluate(Variables);
         while (iterations++ < maxIterations)
         {
-            ComputeChange(change, descentRate, beforeStep,fisherInformationInverse);
+            ComputeChange(change, descentRate, beforeStep,FisherInformationMatrixInverse);
             Step(change);
             var afterStep = Evaluate(Variables);
             var diff = Math.Abs(afterStep - beforeStep);
