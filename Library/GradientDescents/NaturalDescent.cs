@@ -57,7 +57,11 @@ public class NaturalDescent : GradientDescentBase
     /// by randomly sampling them. Change this value to get more/less precise fisher
     /// information matrix in exchange for time used
     /// </param>
-    /// <returns>Fisher information for each of data parameters</returns>
+    /// <returns>
+    /// Fisher information for each of data parameters. <br/>
+    /// Call <see cref="Vector.Normalize(double)"/> with parameter 1 on this method output
+    /// to get percentage of parameter influence on problem function
+    /// </returns>
     public Vector FisherInformation(int expectationsSampleCount = 0){
         expectationsSampleCount = expectationsSampleCount==0 ? ExpectationsSampleCount : expectationsSampleCount;
         var result = DenseVector.Create(Dimensions,0);
