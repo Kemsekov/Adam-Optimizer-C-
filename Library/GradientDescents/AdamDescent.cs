@@ -44,7 +44,7 @@ public class AdamDescent : GradientDescentBase
             double v_hat = secondMomentum[i] / (1 - Math.Pow(Beta2, t));
 
             // Update the parameters    
-            change[i] = learningRate * m_hat / (Math.Sqrt(v_hat) + Theta);
+            change[i] = learningRate * m_hat / (Math.Sqrt(v_hat) + Epsilon);
         });
     }
     public override int Descent(int maxIterations)

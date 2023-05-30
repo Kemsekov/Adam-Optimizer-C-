@@ -26,9 +26,12 @@ public abstract class GradientDescentBase : IGradientDescent
     /// If gradient descent step error function value changes less than this value, it means
     /// we need to step descending. <br/>
     /// In short terms, this value defines how precise our find local minima need to be.<br/>
-    /// Also this value is a derivative epsilon, that used to compute gradient
     /// </summary>
     public double Theta = 0.0001;
+    /// <summary>
+    /// This value is a derivative epsilon, that used to compute gradient
+    /// </summary>
+    public double Epsilon = 0.0001;
     /// <summary>
     /// Create new instance of gradient descent
     /// </summary>
@@ -65,9 +68,9 @@ public abstract class GradientDescentBase : IGradientDescent
     {
         Parallel.For(0, Dimensions, i =>
         {
-            var gradientDataAccess = new GradientDataAccess<double>(Variables, i, Variables[i] + Theta);
+            var gradientDataAccess = new GradientDataAccess<double>(Variables, i, Variables[i] + Epsilon);
             var after = Evaluate(gradientDataAccess);
-            gradient[i] = (after - currentEvaluation) / Theta;
+            gradient[i] = (after - currentEvaluation) / Epsilon;
         });
     }
     public abstract int Descent(int maxIterations);

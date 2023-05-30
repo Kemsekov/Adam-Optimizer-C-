@@ -124,10 +124,10 @@ public class NaturalDescent : GradientDescentBase
         var c = likelihood(Variables);
         for (int i = 0; i < Variables.Length; i++)
         {
-            Variables[i] += Theta;
+            Variables[i] += Epsilon;
             var b = likelihood(Variables);
-            Variables[i] -= Theta;
-            derivativeOfLikelihood[i] = (b - c) / Theta;
+            Variables[i] -= Epsilon;
+            derivativeOfLikelihood[i] = (b - c) / Epsilon;
         };
         return derivativeOfLikelihood;
     }
