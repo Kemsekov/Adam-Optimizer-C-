@@ -28,7 +28,7 @@ public partial class Examples
         });
 
         var model = LinearModel.MseBestFit(A, data, y);
-
+        System.Console.WriteLine("Parameters for y=x^2+x^3/10-x^4/5+2");
         PrintVector(model.Parameters);
 
 
