@@ -54,7 +54,13 @@ public partial class Examples
             }
             for(int k = 0;k<Functions.Length;k++){
                 var best = descentResults.MinBy(x=>x.Value[k]);
-                bestDescentCounter[best.Key]+=1;
+                //some descents may go out of bounds and return NaN
+                //values, as we don't want to see this happening we punish score
+                if(best.Value.Any(double.IsNaN)){
+                    bestDescentCounter[best.Key]-=100;    
+                }
+                else
+                    bestDescentCounter[best.Key]+=1;
             }
         }
 

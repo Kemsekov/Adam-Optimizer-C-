@@ -40,6 +40,7 @@ public class NaturalDescent : GradientDescentBase
         likelihood = (IDataAccess<double> x) =>
         {
             var err = function(x);
+            // return Math.Exp(-err) * (err + 1) / 2;
             return Math.Log(err+1)-err;
         };
         GenerateParameterSample = i => Random.Shared.NextDouble() * 2 - 1;
