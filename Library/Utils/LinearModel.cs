@@ -1,3 +1,5 @@
+using GradientDescentSharp.Utils.Kernels;
+using ILGPU;
 using MathNet.Numerics.LinearAlgebra.Double;
 
 namespace GradientDescentSharp.Utils;
@@ -20,6 +22,9 @@ public class LinearModel{
     /// <returns>Linear model that can be used to make predictions</returns>
     public static LinearModel MseBestFit(Func<double[], double>[] basis, IEnumerable<double[]> inputX, IEnumerable<double> y)
     {
+        
+        
+        
         var C = DenseMatrix.Create(basis.Length, basis.Length, 0);
         var E = DenseVector.Create(basis.Length, 0);
         var B = DenseVector.Create(basis.Length, 0);
@@ -30,7 +35,7 @@ public class LinearModel{
             C.MapIndexedInplace((i, j, x) => x + a_i[i] * a_i[j]);
             E.MapIndexedInplace((i, x) => (float)(x + d.Second * a_i[i]));
         }
-
+        
         C.Solve(E, B);
         return new(basis,B);
     }
