@@ -224,15 +224,15 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
 
             var expected = 0.0f;
             for(int i = 0;i<rows;i++){
-                var v1 = Random.Shared.NextSingle();
-                var v2 = Random.Shared.NextSingle();
+                var v1 = Random.Shared.NextSingle()*5;
+                var v2 = Random.Shared.NextSingle()*5;
                 gpuVec1.View.At(i,v1);
                 gpuVec2.View.At(i,v2);
                 expected += v1*v2;
             }
             var actual = Context.Provider.Dot(gpuVec1,gpuVec2,stepLength);
             var diff = Math.Abs(expected-actual);
-            Assert.True(diff<ErrorEpsilon);
+            Assert.True(diff<0.01);
         }
     }
 }

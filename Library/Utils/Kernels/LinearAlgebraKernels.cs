@@ -92,11 +92,18 @@ public class LinearAlgebraProvider
     {
         AddOuterProductLauncher((Index2D)m1.Extent, m1, v1, v2, multiplier);
     }
-    
-    public float Dot(VectorView v1, VectorView v2, int stepLength)
+    /// <summary>
+    /// Divides a vectors into "stepLength" chunks and compute dot product in each chunk.<br/>
+    /// </summary>
+    /// <param name="stepLength">Will be set automatically if left to -1</param>
+    /// <returns></returns>
+    public float Dot(VectorView v1, VectorView v2, int stepLength = -1)
     {
+        if(stepLength<0)
+            stepLength=(int)Math.Sqrt(v1.Extent);
+        
         var size = v1.Extent / stepLength;
-        size = size <= 0 ? 1 : size;
+        size = size == 0 ? 1 : size;
         using var mapReduce = Accelerator.Allocate1D<float>(size);
         DotLauncher((Index1D)size, stepLength, v1, v2, mapReduce);
         var tmp = new float[size];
