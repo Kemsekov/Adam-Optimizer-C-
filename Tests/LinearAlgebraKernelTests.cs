@@ -172,7 +172,7 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
         }
     }
     [Fact]
-    public void AddOuterProductKernel()
+    public void AddOuterProduct()
     {
         for (int k = 0; k < 10; k++)
         {
@@ -212,6 +212,27 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
                     Assert.True(difference < ErrorEpsilon);
                 }
 
+        }
+    }
+    [Fact]
+    public void DotProduct(){
+        for (int k = 0; k < 10; k++){
+            var rows = Random.Shared.Next(1024) + 1;
+            var stepLength=Random.Shared.Next(rows);
+            using var gpuVec1 = Context.Accelerator.Allocate1D<float>(rows);
+            using var gpuVec2 = Context.Accelerator.Allocate1D<float>(rows);
+
+            var expected = 0.0f;
+            for(int i = 0;i<rows;i++){
+                var v1 = Random.Shared.NextSingle();
+                var v2 = Random.Shared.NextSingle();
+                gpuVec1.View.At(i,v1);
+                gpuVec2.View.At(i,v2);
+                expected += v1*v2;
+            }
+            var actual = Context.Provider.Dot(gpuVec1,gpuVec2,stepLength);
+            var diff = Math.Abs(expected-actual);
+            Assert.True(diff<ErrorEpsilon);
         }
     }
 }
