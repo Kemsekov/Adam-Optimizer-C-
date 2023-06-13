@@ -5,8 +5,28 @@ using MatrixView = ILGPU.Runtime.ArrayView2D<float, ILGPU.Stride2D.DenseY>;
 using VectorView = ILGPU.Runtime.ArrayView1D<float, ILGPU.Stride1D.Dense>;
 namespace GradientDescentSharp.Utils.Kernels;
 
+public record DisposableLinearAlgebraProvider(Context Context, Accelerator Accelerator, LinearAlgebraProvider Provider) : IDisposable
+{
+    ~DisposableLinearAlgebraProvider(){
+        Dispose();
+    }
+    public void Dispose()
+    {
+        Accelerator.Dispose();
+        Context.Dispose();
+    }
+}
+
 public class LinearAlgebraProvider
 {
+    /// <summary>
+    /// Creates a context
+    /// </summary>
+    public static DisposableLinearAlgebraProvider Create(bool preferCpu = false){
+        var context = Context.CreateDefault();
+        var accelerator = context.GetPreferredDevice(preferCpu).CreateAccelerator(context);
+        return new(context,accelerator,new(accelerator));
+    }
     /// <summary>
     /// Compiles all kernels
     /// </summary>
