@@ -7,14 +7,31 @@ namespace GradientDescentSharp.Utils.Kernels;
 
 public class LinearAlgebraProvider
 {
+    /// <summary>
+    /// Compiles all kernels
+    /// </summary>
+    public static void CompileAllKernels(){
+        using var context = Context.CreateDefault();
+        using var accelerator = context.GetPreferredDevice(false).CreateAccelerator(context);
+        var provider = new LinearAlgebraProvider(accelerator);
+        var kernels = new dynamic[]{
+            provider.AddOuterProductLauncher,
+            provider.MatrixMulLauncher,
+            provider.MatrixVectorRightSideMulLauncher,
+            provider.MatrixVectorLeftSideMulLauncher,
+            provider.AddMatricesLauncher,
+            provider.AddVectorsLauncher,
+            provider.DotLauncher
+        };
+    }
     public LinearAlgebraProvider(Accelerator accelerator)
     {
         Accelerator = accelerator;
     }
 
-    protected Action<Index2D, MatrixView, VectorView, VectorView, float> AddOuterProductLauncher =>
+    protected Action<Index1D, MatrixView, VectorView, VectorView, float> AddOuterProductLauncher =>
         Accelerator
-        .LoadAutoGroupedStreamKernel<Index2D, MatrixView, VectorView, VectorView, float>(AddOuterProductKernel);
+        .LoadAutoGroupedStreamKernel<Index1D, MatrixView, VectorView, VectorView, float>(AddOuterProductKernel);
     /// <summary>
     /// Index=(m1.Rows,m2.Columns) - result matrix sizes
     /// </summary>
@@ -37,13 +54,13 @@ public class LinearAlgebraProvider
         Accelerator
         .LoadAutoGroupedStreamKernel<Index1D, MatrixView, VectorView, VectorView>(MatrixTransposeVectorRightSideMulKernel);
 
-    protected Action<Index2D, MatrixView, MatrixView, float, MatrixView> AddMatricesLauncher =>
+    protected Action<Index1D, MatrixView, MatrixView, float, MatrixView> AddMatricesLauncher =>
         Accelerator.
-        LoadAutoGroupedStreamKernel<Index2D, MatrixView, MatrixView, float, MatrixView>(AddMatriciesKernel);
+        LoadAutoGroupedStreamKernel<Index1D, MatrixView, MatrixView, float, MatrixView>(AddMatricesKernel);
 
-    protected Action<Index1D, VectorView, VectorView, float, VectorView> AddVectorsLauncher =>
+    protected Action<Index1D, VectorView, VectorView, float, VectorView,int> AddVectorsLauncher =>
         Accelerator.
-        LoadAutoGroupedStreamKernel<Index1D, VectorView, VectorView, float, VectorView>(AddVectorsKernel);
+        LoadAutoGroupedStreamKernel<Index1D, VectorView, VectorView, float, VectorView,int>(AddVectorsKernel);
 
     protected Action<Index1D, int, VectorView, VectorView, VectorView> DotLauncher =>
         Accelerator.
@@ -55,14 +72,17 @@ public class LinearAlgebraProvider
     /// where multiplier is float
     /// </summary>
     public void AddMatrices(MatrixView m1, MatrixView m2, float multiplier, MatrixView result){
-        AddMatricesLauncher((Index2D)result.Extent, m1, m2, multiplier, result);
+        AddMatricesLauncher((Index1D)result.Extent.X, m1, m2, multiplier, result);
     }
     /// <summary>
     /// Adds v1 and v2, as result=v1+multiplier*v2;<br/>
-    /// where multiplier is float
+    /// where multiplier is float <br/>
+    /// stepLength is how many numbers of result vector to process on single work unit
     /// </summary>
-    public void AddVectors(VectorView v1, VectorView v2, float multiplier, VectorView result){
-        AddVectorsLauncher((Index1D)result.Extent,v1,v2,multiplier,result);
+    public void AddVectors(VectorView v1, VectorView v2, float multiplier, VectorView result,int stepLength=-1){
+        if(stepLength<0)
+            stepLength=(int)Math.Sqrt(v1.Extent);
+        AddVectorsLauncher((Index1D)result.Extent,v1,v2,multiplier,result,stepLength);
     }
     /// <summary>
     /// result=m*v
@@ -90,7 +110,7 @@ public class LinearAlgebraProvider
     /// </summary>
     public void AddOuterProduct(MatrixView m1, VectorView v1, VectorView v2, float multiplier)
     {
-        AddOuterProductLauncher((Index2D)m1.Extent, m1, v1, v2, multiplier);
+        AddOuterProductLauncher((Index1D)m1.Extent.X, m1, v1, v2, multiplier);
     }
     /// <summary>
     /// Divides a vectors into "stepLength" chunks and compute dot product in each chunk.<br/>
@@ -110,7 +130,6 @@ public class LinearAlgebraProvider
         mapReduce.CopyToCPU(tmp);
         return tmp.Sum();
     }
-
     static void DotKernel(Index1D index, int stepLength, VectorView v1, VectorView v2, VectorView mapReduceResult)
     {
         var midSum = 0.0f;
@@ -126,20 +145,35 @@ public class LinearAlgebraProvider
 
         mapReduceResult[index] = midSum;
     }
-
-    static void AddMatriciesKernel(Index2D index, MatrixView m1, MatrixView m2, float m2Multiplier, MatrixView result)
+    /// <summary>
+    /// Because we store matrices in DenseY stride, it is more preferable to iterate
+    /// over Y values in a single work unit to get max gpu cache hits
+    /// </summary>
+    static void AddMatricesKernel(Index1D xIndex, MatrixView m1, MatrixView m2, float m2Multiplier, MatrixView result)
     {
-        result[index] = m1[index] + m2Multiplier * m2[index];
+        var ySize = result.Extent.Y;
+        for(int y = 0;y<ySize;y++){
+            result[xIndex,y] = m1[xIndex,y] + m2Multiplier * m2[xIndex,y];
+        }
     }
-
-    static void AddVectorsKernel(Index1D index, VectorView v1, VectorView v2, float v2Multiplier, VectorView result)
+    static void AddVectorsKernel(Index1D index, VectorView v1, VectorView v2, float v2Multiplier, VectorView result,int stepLength)
     {
-        result[index] = v1[index] + v2Multiplier * v2[index];
+        var i = index * stepLength;
+        var end = i + stepLength;
+        if (v1.Extent - end < stepLength)
+            end = (Index1D)v1.Extent;
+
+        for (; i < end; i++)
+        {
+            result[i]= v1[i] + v2Multiplier*v2[i];
+        }
     }
-
-    static void AddOuterProductKernel(Index2D index, MatrixView matrix, VectorView v1, VectorView v2, float multiplier)
+    static void AddOuterProductKernel(Index1D xIndex, MatrixView matrix, VectorView v1, VectorView v2, float multiplier)
     {
-        matrix[index] += multiplier * v1[index.X] * v2[index.Y];
+        var ySize = matrix.Extent.Y;
+        var v1XValue=v1[xIndex];
+        for(int y = 0;y<ySize;y++)
+            matrix[xIndex,y] += multiplier * v1XValue * v2[y];
     }
     static void MatrixMulKernel(Index2D index, MatrixView m1, MatrixView m2, MatrixView result)
     {
@@ -162,7 +196,6 @@ public class LinearAlgebraProvider
         }
         result[index] = num;
     }
-
     static void MatrixTransposeVectorRightSideMulKernel(Index1D index, MatrixView mat, VectorView rightSide, VectorView result)
     {
         float num = 0f;

@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using GradientDescentSharp.Utils.Kernels;
 using ILGPU;
+using ILGPU.Runtime;
 using MathNet.Numerics.LinearAlgebra.Double;
 
 namespace GradientDescentSharp.Utils;
@@ -22,16 +24,13 @@ public class LinearModel{
     /// <returns>Linear model that can be used to make predictions</returns>
     public static LinearModel MseBestFit(Func<double[], double>[] basis, IEnumerable<double[]> inputX, IEnumerable<double> y)
     {
-        
-        
-        
         var C = DenseMatrix.Create(basis.Length, basis.Length, 0);
         var E = DenseVector.Create(basis.Length, 0);
         var B = DenseVector.Create(basis.Length, 0);
 
         foreach (var d in inputX.Zip(y))
         {
-            var a_i = DenseVector.Create(basis.Length, i => basis[i](d.First));
+            var a_i = DenseVector.Create(basis.Length, i => basis[i](d.First)).Values;
             C.MapIndexedInplace((i, j, x) => x + a_i[i] * a_i[j]);
             E.MapIndexedInplace((i, x) => (float)(x + d.Second * a_i[i]));
         }
@@ -39,6 +38,33 @@ public class LinearModel{
         C.Solve(E, B);
         return new(basis,B);
     }
+
+    public static LinearModel MseBestFitGpu(Func<double[], double>[] basis, IEnumerable<double[]> inputX, IEnumerable<double> y)
+    {
+        using var context = Context.CreateDefault();
+        using var accelerator = context.GetPreferredDevice(false).CreateAccelerator(context);
+        using var matrix = accelerator.Allocate2DDenseY<float>((basis.Length,basis.Length));
+        using var a_i_Gpu = accelerator.Allocate1D<float>(basis.Length);
+        
+        var provider = new LinearAlgebraProvider(accelerator);
+        var a_i = new float[basis.Length];
+        var E = MathNet.Numerics.LinearAlgebra.Single.DenseVector.Create(basis.Length, 0);
+        foreach (var d in inputX.Zip(y))
+        {
+            for(int i = 0;i<basis.Length;i++)
+                a_i[i]=(float)basis[i](d.First);
+            a_i_Gpu.CopyFromCPU(a_i);
+            provider.AddOuterProduct(matrix,a_i_Gpu,a_i_Gpu,1);
+            E.MapIndexedInplace((i, x) => (float)(x + d.Second * a_i[i]));
+        }
+
+        var B = MathNet.Numerics.LinearAlgebra.Single.DenseVector.Create(basis.Length, 0);
+        var C = MathNet.Numerics.LinearAlgebra.Single.DenseMatrix.Create(basis.Length,basis.Length,0);
+        matrix.View.BaseView.AsGeneral().CopyToCPU(C.Values);
+        C.Solve(E, B);
+        return new(basis,DenseVector.Create(basis.Length,i=>B[i]));
+    }
+
     public LinearModel(Func<double[], double>[] basis, DenseVector parameters){
         Basis = basis;
         Parameters = parameters;
