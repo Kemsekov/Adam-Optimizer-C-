@@ -30,10 +30,9 @@ public class LinearAlgebraProvider
     /// <summary>
     /// Compiles all kernels
     /// </summary>
-    public static void CompileAllKernels(){
-        using var context = Context.CreateDefault();
-        using var accelerator = context.GetPreferredDevice(false).CreateAccelerator(context);
-        var provider = new LinearAlgebraProvider(accelerator);
+    public static void CompileAllKernels(bool preferCpu = false){
+        using var source = LinearAlgebraProvider.Create(preferCpu);
+        var provider = source.Provider;
         var kernels = new dynamic[]{
             provider.AddOuterProductLauncher,
             provider.MatrixMulLauncher,
@@ -101,7 +100,9 @@ public class LinearAlgebraProvider
     /// </summary>
     public void AddVectors(VectorView v1, VectorView v2, float multiplier, VectorView result,int stepLength=-1){
         if(stepLength<0)
-            stepLength=(int)Math.Sqrt(v1.Extent);
+            stepLength=(int)v1.Extent/Accelerator.MaxNumThreadsPerMultiprocessor;
+        stepLength=stepLength==0 ? (int)Math.Sqrt(v1.Extent) : stepLength;
+        
         AddVectorsLauncher((Index1D)result.Extent,v1,v2,multiplier,result,stepLength);
     }
     /// <summary>
@@ -140,8 +141,8 @@ public class LinearAlgebraProvider
     public float Dot(VectorView v1, VectorView v2, int stepLength = -1)
     {
         if(stepLength<0)
-            stepLength=(int)Math.Sqrt(v1.Extent);
-        
+            stepLength=(int)v1.Extent/Accelerator.MaxNumThreadsPerMultiprocessor;
+        stepLength=stepLength==0 ? (int)Math.Sqrt(v1.Extent) : stepLength;
         var size = v1.Extent / stepLength;
         size = size == 0 ? 1 : size;
         using var mapReduce = Accelerator.Allocate1D<float>(size);
