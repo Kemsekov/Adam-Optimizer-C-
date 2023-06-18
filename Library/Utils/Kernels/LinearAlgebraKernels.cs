@@ -7,7 +7,8 @@ namespace GradientDescentSharp.Utils.Kernels;
 
 public record DisposableLinearAlgebraProvider(Context Context, Accelerator Accelerator, LinearAlgebraProvider Provider) : IDisposable
 {
-    ~DisposableLinearAlgebraProvider(){
+    ~DisposableLinearAlgebraProvider()
+    {
         Dispose();
     }
     public void Dispose()
@@ -22,15 +23,17 @@ public class LinearAlgebraProvider
     /// <summary>
     /// Creates a context
     /// </summary>
-    public static DisposableLinearAlgebraProvider Create(bool preferCpu = false){
+    public static DisposableLinearAlgebraProvider Create(bool preferCpu = false)
+    {
         var context = Context.CreateDefault();
         var accelerator = context.GetPreferredDevice(preferCpu).CreateAccelerator(context);
-        return new(context,accelerator,new(accelerator));
+        return new(context, accelerator, new(accelerator));
     }
     /// <summary>
     /// Compiles all kernels
     /// </summary>
-    public static void CompileAllKernels(bool preferCpu = false){
+    public static void CompileAllKernels(bool preferCpu = false)
+    {
         using var source = LinearAlgebraProvider.Create(preferCpu);
         var provider = source.Provider;
         var kernels = new dynamic[]{
@@ -77,20 +80,35 @@ public class LinearAlgebraProvider
         Accelerator.
         LoadAutoGroupedStreamKernel<Index1D, MatrixView, MatrixView, float, MatrixView>(AddMatricesKernel);
 
-    protected Action<Index1D, VectorView, VectorView, float, VectorView,int> AddVectorsLauncher =>
+    protected Action<Index1D, VectorView, VectorView, float, VectorView, int> AddVectorsLauncher =>
         Accelerator.
-        LoadAutoGroupedStreamKernel<Index1D, VectorView, VectorView, float, VectorView,int>(AddVectorsKernel);
+        LoadAutoGroupedStreamKernel<Index1D, VectorView, VectorView, float, VectorView, int>(AddVectorsKernel);
 
     protected Action<Index1D, int, VectorView, VectorView, VectorView> DotLauncher =>
         Accelerator.
         LoadAutoGroupedStreamKernel<Index1D, int, VectorView, VectorView, VectorView>(DotKernel);
-
+    protected Action<Index1D, int, MatrixView,int, VectorView> CopyRowLauncher =>
+        Accelerator.
+        LoadAutoGroupedStreamKernel<Index1D, int, MatrixView,int, VectorView>(CopyMatrixRowKernel);
+    
+    protected Action<Index1D, int, MatrixView,int, VectorView> CopyColumnLauncher =>
+        Accelerator.
+        LoadAutoGroupedStreamKernel<Index1D, int, MatrixView,int, VectorView>(CopyMatrixColumnKernel);
     public Accelerator Accelerator { get; }
+    public void CopyRow(MatrixView matrix, int row, VectorView result){
+        var stepLength = DetermineStepLength(result, -1);
+        CopyRowLauncher((Index1D)result.Extent,stepLength,matrix,row,result);
+    }
+    public void CopyColumn(MatrixView matrix, int column, VectorView result){
+        var stepLength = DetermineStepLength(result, -1);
+        CopyColumnLauncher((Index1D)result.Extent,stepLength,matrix,column,result);
+    }
     /// <summary>
     /// Adds m1 and m2, as result=m1+multiplier*m2;<br/>
     /// where multiplier is float
     /// </summary>
-    public void AddMatrices(MatrixView m1, MatrixView m2, float multiplier, MatrixView result){
+    public void AddMatrices(MatrixView m1, MatrixView m2, float multiplier, MatrixView result)
+    {
         AddMatricesLauncher((Index1D)result.Extent.X, m1, m2, multiplier, result);
     }
     /// <summary>
@@ -98,13 +116,20 @@ public class LinearAlgebraProvider
     /// where multiplier is float <br/>
     /// stepLength is how many numbers of result vector to process on single work unit
     /// </summary>
-    public void AddVectors(VectorView v1, VectorView v2, float multiplier, VectorView result,int stepLength=-1){
-        if(stepLength<0)
-            stepLength=(int)v1.Extent/Accelerator.MaxNumThreadsPerMultiprocessor;
-        stepLength=stepLength==0 ? (int)Math.Sqrt(v1.Extent) : stepLength;
-        
-        AddVectorsLauncher((Index1D)result.Extent,v1,v2,multiplier,result,stepLength);
+    public void AddVectors(VectorView v1, VectorView v2, float multiplier, VectorView result, int stepLength = -1)
+    {
+        stepLength = DetermineStepLength(v1, stepLength);
+        AddVectorsLauncher((Index1D)result.Extent, v1, v2, multiplier, result, stepLength);
     }
+
+    private int DetermineStepLength(VectorView result, int stepLength)
+    {
+        if (stepLength < 0)
+            stepLength = (int)result.Extent / Accelerator.MaxNumThreadsPerMultiprocessor;
+        stepLength = stepLength == 0 ? (int)Math.Sqrt(result.Extent) : stepLength;
+        return stepLength;
+    }
+
     /// <summary>
     /// result=m*v
     /// </summary>
@@ -140,9 +165,7 @@ public class LinearAlgebraProvider
     /// <returns></returns>
     public float Dot(VectorView v1, VectorView v2, int stepLength = -1)
     {
-        if(stepLength<0)
-            stepLength=(int)v1.Extent/Accelerator.MaxNumThreadsPerMultiprocessor;
-        stepLength=stepLength==0 ? (int)Math.Sqrt(v1.Extent) : stepLength;
+        stepLength = DetermineStepLength(v2, stepLength);
         var size = v1.Extent / stepLength;
         size = size == 0 ? 1 : size;
         using var mapReduce = Accelerator.Allocate1D<float>(size);
@@ -166,6 +189,26 @@ public class LinearAlgebraProvider
 
         mapReduceResult[index] = midSum;
     }
+    static void CopyMatrixColumnKernel(Index1D index, int stepLength, MatrixView m, int column, VectorView result)
+    {
+        var i = index * stepLength;
+        var end = i + stepLength;
+        if (result.Extent - end < stepLength)
+            end = (Index1D)result.Extent;
+        for (; i < end; i++){
+            result[i]=m[i,column];
+        }
+    }
+    static void CopyMatrixRowKernel(Index1D index, int stepLength, MatrixView m, int row, VectorView result)
+    {
+        var i = index * stepLength;
+        var end = i + stepLength;
+        if (result.Extent - end < stepLength)
+            end = (Index1D)result.Extent;
+        for (; i < end; i++){
+            result[i]=m[row,i];
+        }
+    }
     /// <summary>
     /// Because we store matrices in DenseY stride, it is more preferable to iterate
     /// over Y values in a single work unit to get max gpu cache hits
@@ -173,11 +216,12 @@ public class LinearAlgebraProvider
     static void AddMatricesKernel(Index1D xIndex, MatrixView m1, MatrixView m2, float m2Multiplier, MatrixView result)
     {
         var ySize = result.Extent.Y;
-        for(int y = 0;y<ySize;y++){
-            result[xIndex,y] = m1[xIndex,y] + m2Multiplier * m2[xIndex,y];
+        for (int y = 0; y < ySize; y++)
+        {
+            result[xIndex, y] = m1[xIndex, y] + m2Multiplier * m2[xIndex, y];
         }
     }
-    static void AddVectorsKernel(Index1D index, VectorView v1, VectorView v2, float v2Multiplier, VectorView result,int stepLength)
+    static void AddVectorsKernel(Index1D index, VectorView v1, VectorView v2, float v2Multiplier, VectorView result, int stepLength)
     {
         var i = index * stepLength;
         var end = i + stepLength;
@@ -186,15 +230,15 @@ public class LinearAlgebraProvider
 
         for (; i < end; i++)
         {
-            result[i]= v1[i] + v2Multiplier*v2[i];
+            result[i] = v1[i] + v2Multiplier * v2[i];
         }
     }
     static void AddOuterProductKernel(Index1D xIndex, MatrixView matrix, VectorView v1, VectorView v2, float multiplier)
     {
         var ySize = matrix.Extent.Y;
-        var v1XValue=v1[xIndex];
-        for(int y = 0;y<ySize;y++)
-            matrix[xIndex,y] += multiplier * v1XValue * v2[y];
+        var v1XValue = v1[xIndex];
+        for (int y = 0; y < ySize; y++)
+            matrix[xIndex, y] += multiplier * v1XValue * v2[y];
     }
     static void MatrixMulKernel(Index2D index, MatrixView m1, MatrixView m2, MatrixView result)
     {

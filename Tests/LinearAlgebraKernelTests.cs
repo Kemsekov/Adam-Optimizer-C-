@@ -40,6 +40,50 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
     //to ensure that absolute difference is small.
     double ErrorEpsilon = 0.0001;
     [Fact]
+    public void CopyRow()
+    {
+        for (int k = 0; k < 10; k++)
+        {
+            var rows = Random.Shared.Next(10) + 1;
+            var cols = Random.Shared.Next(10) + 1;
+            var mat = DenseMatrix.Create(rows, cols, (i, j) => Random.Shared.NextSingle());
+            using var gpuMat = Context.Accelerator.Allocate2DDenseY<float>((rows, cols));
+            gpuMat.CopyFromCPU(mat.ToArray());
+            using var actual = Context.Accelerator.Allocate1D<float>(mat.ColumnCount);
+            for (int i = 0; i < mat.RowCount; i++)
+            {
+                var expected = mat.Row(i);
+                Context.Provider.CopyRow(gpuMat, i, actual);
+                for (int c = 0; c < expected.Count; c++)
+                {
+                    Assert.Equal(expected[c], actual.View.At(c));
+                }
+            }
+        }
+    }
+    [Fact]
+    public void CopyColumn()
+    {
+        for (int k = 0; k < 10; k++)
+        {
+            var rows = Random.Shared.Next(10) + 1;
+            var cols = Random.Shared.Next(10) + 1;
+            var mat = DenseMatrix.Create(rows, cols, (i, j) => Random.Shared.NextSingle());
+            using var gpuMat = Context.Accelerator.Allocate2DDenseY<float>((rows, cols));
+            gpuMat.CopyFromCPU(mat.ToArray());
+            using var actual = Context.Accelerator.Allocate1D<float>(mat.RowCount);
+            for (int i = 0; i < mat.ColumnCount; i++)
+            {
+                var expected = mat.Column(i);
+                Context.Provider.CopyColumn(gpuMat, i, actual);
+                for (int c = 0; c < expected.Count; c++)
+                {
+                    Assert.Equal(expected[c], actual.View.At(c));
+                }
+            }
+        }
+    }
+    [Fact]
     public void AddMatricies()
     {
         for (int k = 0; k < 10; k++)
@@ -129,7 +173,7 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
             using var actualLeft = Context.Accelerator.Allocate1D<float>(expectedLeft.Count);
             using var actualRight = Context.Accelerator.Allocate1D<float>(expectedRight.Count);
 
-            Context.Provider.MatrixVectorMul(gpuVec1,gpuMat, actualLeft);
+            Context.Provider.MatrixVectorMul(gpuVec1, gpuMat, actualLeft);
             Context.Provider.MatrixVectorMul(gpuMat, gpuVec2, actualRight);
 
             for (int i = 0; i < expectedRight.Count; i++)
@@ -215,24 +259,27 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
         }
     }
     [Fact]
-    public void DotProduct(){
-        for (int k = 0; k < 10; k++){
+    public void DotProduct()
+    {
+        for (int k = 0; k < 10; k++)
+        {
             var rows = Random.Shared.Next(1024) + 1;
-            var stepLength=Random.Shared.Next(rows);
+            var stepLength = Random.Shared.Next(rows);
             using var gpuVec1 = Context.Accelerator.Allocate1D<float>(rows);
             using var gpuVec2 = Context.Accelerator.Allocate1D<float>(rows);
 
             var expected = 0.0f;
-            for(int i = 0;i<rows;i++){
-                var v1 = Random.Shared.NextSingle()*5;
-                var v2 = Random.Shared.NextSingle()*5;
-                gpuVec1.View.At(i,v1);
-                gpuVec2.View.At(i,v2);
-                expected += v1*v2;
+            for (int i = 0; i < rows; i++)
+            {
+                var v1 = Random.Shared.NextSingle() * 5;
+                var v2 = Random.Shared.NextSingle() * 5;
+                gpuVec1.View.At(i, v1);
+                gpuVec2.View.At(i, v2);
+                expected += v1 * v2;
             }
-            var actual = Context.Provider.Dot(gpuVec1,gpuVec2,stepLength);
-            var diff = Math.Abs(expected-actual);
-            Assert.True(diff<0.01);
+            var actual = Context.Provider.Dot(gpuVec1, gpuVec2, stepLength);
+            var diff = Math.Abs(expected - actual);
+            Assert.True(diff < 0.01);
         }
     }
 }
