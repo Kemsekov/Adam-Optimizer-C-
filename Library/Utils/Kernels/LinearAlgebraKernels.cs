@@ -87,14 +87,27 @@ public class LinearAlgebraProvider
     protected Action<Index1D, int, VectorView, VectorView, VectorView> DotLauncher =>
         Accelerator.
         LoadAutoGroupedStreamKernel<Index1D, int, VectorView, VectorView, VectorView>(DotKernel);
+    protected Action<Index1D, int, MatrixView,int, VectorView> SetRowLauncher =>
+        Accelerator.
+        LoadAutoGroupedStreamKernel<Index1D, int, MatrixView,int, VectorView>(SetMatrixRowKernel);
+    protected Action<Index1D, int, MatrixView,int, VectorView> SetColumnLauncher =>
+        Accelerator.
+        LoadAutoGroupedStreamKernel<Index1D, int, MatrixView,int, VectorView>(SetMatrixColumnKernel);
     protected Action<Index1D, int, MatrixView,int, VectorView> CopyRowLauncher =>
         Accelerator.
         LoadAutoGroupedStreamKernel<Index1D, int, MatrixView,int, VectorView>(CopyMatrixRowKernel);
-    
     protected Action<Index1D, int, MatrixView,int, VectorView> CopyColumnLauncher =>
         Accelerator.
         LoadAutoGroupedStreamKernel<Index1D, int, MatrixView,int, VectorView>(CopyMatrixColumnKernel);
     public Accelerator Accelerator { get; }
+    public void SetRow(MatrixView matrix, int row, VectorView source){
+        var stepLength = DetermineStepLength(source, -1);
+        SetRowLauncher((Index1D)source.Extent,stepLength,matrix,row,source);
+    }
+    public void SetColumn(MatrixView matrix, int column, VectorView source){
+        var stepLength = DetermineStepLength(source, -1);
+        SetColumnLauncher((Index1D)source.Extent,stepLength,matrix,column,source);
+    }
     public void CopyRow(MatrixView matrix, int row, VectorView result){
         var stepLength = DetermineStepLength(result, -1);
         CopyRowLauncher((Index1D)result.Extent,stepLength,matrix,row,result);
@@ -126,7 +139,7 @@ public class LinearAlgebraProvider
     {
         if (stepLength < 0)
             stepLength = (int)result.Extent / Accelerator.MaxNumThreadsPerMultiprocessor;
-        stepLength = stepLength == 0 ? (int)Math.Sqrt(result.Extent) : stepLength;
+        stepLength = stepLength < 4 ? (int)Math.Sqrt(result.Extent) : stepLength;
         return stepLength;
     }
 
@@ -177,10 +190,8 @@ public class LinearAlgebraProvider
     static void DotKernel(Index1D index, int stepLength, VectorView v1, VectorView v2, VectorView mapReduceResult)
     {
         var midSum = 0.0f;
-        var i = index * stepLength;
-        var end = i + stepLength;
-        if (v1.Extent - end < stepLength)
-            end = (Index1D)v1.Extent;
+        Index1D i, end;
+        ComputeIndexes(index, stepLength, v1, out i, out end);
 
         for (; i < end; i++)
         {
@@ -189,22 +200,42 @@ public class LinearAlgebraProvider
 
         mapReduceResult[index] = midSum;
     }
+    static void SetMatrixColumnKernel(Index1D index, int stepLength, MatrixView m, int column, VectorView source){
+        Index1D i, end;
+        ComputeIndexes(index, stepLength, source, out i, out end);
+        for (; i < end; i++)
+        {
+            m[i, column]=source[i];
+        }
+    }
+    static void SetMatrixRowKernel(Index1D index, int stepLength, MatrixView m, int row, VectorView source){
+        Index1D i, end;
+        ComputeIndexes(index, stepLength, source, out i, out end);
+        for (; i < end; i++)
+        {
+            m[row,i]=source[i];
+        }
+    }
     static void CopyMatrixColumnKernel(Index1D index, int stepLength, MatrixView m, int column, VectorView result)
     {
-        var i = index * stepLength;
-        var end = i + stepLength;
+        Index1D i, end;
+        ComputeIndexes(index, stepLength, result, out i, out end);
+        for (; i < end; i++)
+        {
+            result[i] = m[i, column];
+        }
+    }
+    private static void ComputeIndexes(Index1D index, int stepLength, VectorView result, out Index1D i, out Index1D end)
+    {
+        i = index * stepLength;
+        end = i + stepLength;
         if (result.Extent - end < stepLength)
             end = (Index1D)result.Extent;
-        for (; i < end; i++){
-            result[i]=m[i,column];
-        }
     }
     static void CopyMatrixRowKernel(Index1D index, int stepLength, MatrixView m, int row, VectorView result)
     {
-        var i = index * stepLength;
-        var end = i + stepLength;
-        if (result.Extent - end < stepLength)
-            end = (Index1D)result.Extent;
+        Index1D i, end;
+        ComputeIndexes(index, stepLength, result, out i, out end);
         for (; i < end; i++){
             result[i]=m[row,i];
         }
@@ -223,10 +254,8 @@ public class LinearAlgebraProvider
     }
     static void AddVectorsKernel(Index1D index, VectorView v1, VectorView v2, float v2Multiplier, VectorView result, int stepLength)
     {
-        var i = index * stepLength;
-        var end = i + stepLength;
-        if (v1.Extent - end < stepLength)
-            end = (Index1D)v1.Extent;
+        Index1D i, end;
+        ComputeIndexes(index, stepLength, result, out i, out end);
 
         for (; i < end; i++)
         {

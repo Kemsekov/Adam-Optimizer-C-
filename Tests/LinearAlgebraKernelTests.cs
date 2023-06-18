@@ -40,7 +40,7 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
     //to ensure that absolute difference is small.
     double ErrorEpsilon = 0.0001;
     [Fact]
-    public void CopyRow()
+    public void SetCopyRow()
     {
         for (int k = 0; k < 10; k++)
         {
@@ -57,12 +57,18 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
                 for (int c = 0; c < expected.Count; c++)
                 {
                     Assert.Equal(expected[c], actual.View.At(c));
+                    expected[c] = Random.Shared.NextSingle();
+                    actual.View.At(c, expected[c]);
                 }
+                Context.Provider.SetRow(gpuMat, i, actual);
+                mat.SetRow(i, expected);
             }
+            CheckSame(mat, gpuMat);
         }
     }
+
     [Fact]
-    public void CopyColumn()
+    public void SetCopyColumn()
     {
         for (int k = 0; k < 10; k++)
         {
@@ -79,8 +85,13 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
                 for (int c = 0; c < expected.Count; c++)
                 {
                     Assert.Equal(expected[c], actual.View.At(c));
+                    expected[c] = Random.Shared.NextSingle();
+                    actual.View.At(c, expected[c]);
                 }
+                Context.Provider.SetColumn(gpuMat, i, actual);
+                mat.SetColumn(i, expected);
             }
+            CheckSame(mat, gpuMat);
         }
     }
     [Fact]
@@ -207,12 +218,7 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
             gpuMat1.CopyFromCPU(mat1.ToArray());
             gpuMat2.CopyFromCPU(mat2.ToArray());
             Context.Provider.MatrixMul(gpuMat1, gpuMat2, actual);
-            for (int i = 0; i < expected.RowCount; i++)
-                for (int j = 0; j < expected.ColumnCount; j++)
-                {
-                    var difference = Math.Abs(expected[i, j] - actual.View.At(i, j));
-                    Assert.True(difference < ErrorEpsilon);
-                }
+            CheckSame(expected, actual);
         }
     }
     [Fact]
@@ -281,5 +287,14 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
             var diff = Math.Abs(expected - actual);
             Assert.True(diff < 0.01);
         }
+    }
+    void CheckSame(DenseMatrix expected, MemoryBuffer2D<float, Stride2D.DenseY> actual)
+    {
+        for (int i = 0; i < expected.RowCount; i++)
+            for (int j = 0; j < expected.ColumnCount; j++)
+            {
+                var difference = Math.Abs(expected[i, j] - actual.View.At(i, j));
+                Assert.True(difference < ErrorEpsilon);
+            }
     }
 }
