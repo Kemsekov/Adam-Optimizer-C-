@@ -102,19 +102,19 @@ public class LinearAlgebraProvider
     public Accelerator Accelerator { get; }
     public void SetRow(MatrixView matrix, int row, VectorView source){
         var stepLength = DetermineStepLength(source, -1);
-        SetRowLauncher((Index1D)source.Extent,stepLength,matrix,row,source);
+        SetRowLauncher(DetermineStepsCount(source,stepLength),stepLength,matrix,row,source);
     }
     public void SetColumn(MatrixView matrix, int column, VectorView source){
         var stepLength = DetermineStepLength(source, -1);
-        SetColumnLauncher((Index1D)source.Extent,stepLength,matrix,column,source);
+        SetColumnLauncher(DetermineStepsCount(source,stepLength),stepLength,matrix,column,source);
     }
     public void CopyRow(MatrixView matrix, int row, VectorView result){
         var stepLength = DetermineStepLength(result, -1);
-        CopyRowLauncher((Index1D)result.Extent,stepLength,matrix,row,result);
+        CopyRowLauncher(DetermineStepsCount(result,stepLength),stepLength,matrix,row,result);
     }
     public void CopyColumn(MatrixView matrix, int column, VectorView result){
         var stepLength = DetermineStepLength(result, -1);
-        CopyColumnLauncher((Index1D)result.Extent,stepLength,matrix,column,result);
+        CopyColumnLauncher(DetermineStepsCount(result,stepLength),stepLength,matrix,column,result);
     }
     /// <summary>
     /// Adds m1 and m2, as result=m1+multiplier*m2;<br/>
@@ -132,10 +132,14 @@ public class LinearAlgebraProvider
     public void AddVectors(VectorView v1, VectorView v2, float multiplier, VectorView result, int stepLength = -1)
     {
         stepLength = DetermineStepLength(v1, stepLength);
-        AddVectorsLauncher((Index1D)result.Extent, v1, v2, multiplier, result, stepLength);
+        AddVectorsLauncher(DetermineStepsCount(v1,stepLength), v1, v2, multiplier, result, stepLength);
     }
-
-    private int DetermineStepLength(VectorView result, int stepLength)
+    Index1D DetermineStepsCount(VectorView result, int stepLength){
+        var size = result.Extent / stepLength;
+        size = size == 0 ? 1 : size;
+        return (Index1D)size;
+    }
+    int DetermineStepLength(VectorView result, int stepLength)
     {
         if (stepLength < 0)
             stepLength = (int)result.Extent / Accelerator.MaxNumThreadsPerMultiprocessor;
@@ -179,10 +183,9 @@ public class LinearAlgebraProvider
     public float Dot(VectorView v1, VectorView v2, int stepLength = -1)
     {
         stepLength = DetermineStepLength(v2, stepLength);
-        var size = v1.Extent / stepLength;
-        size = size == 0 ? 1 : size;
+        var size = DetermineStepsCount(v1,stepLength);
         using var mapReduce = Accelerator.Allocate1D<float>(size);
-        DotLauncher((Index1D)size, stepLength, v1, v2, mapReduce);
+        DotLauncher(size, stepLength, v1, v2, mapReduce);
         var tmp = new float[size];
         mapReduce.CopyToCPU(tmp);
         return tmp.Sum();
@@ -225,11 +228,11 @@ public class LinearAlgebraProvider
             result[i] = m[i, column];
         }
     }
-    private static void ComputeIndexes(Index1D index, int stepLength, VectorView result, out Index1D i, out Index1D end)
+    static void ComputeIndexes(Index1D index, int stepLength, VectorView result, out Index1D i, out Index1D end)
     {
         i = index * stepLength;
         end = i + stepLength;
-        if (result.Extent - end < stepLength)
+        if (result.Extent-end<stepLength)
             end = (Index1D)result.Extent;
     }
     static void CopyMatrixRowKernel(Index1D index, int stepLength, MatrixView m, int row, VectorView result)
@@ -256,7 +259,8 @@ public class LinearAlgebraProvider
     {
         Index1D i, end;
         ComputeIndexes(index, stepLength, result, out i, out end);
-
+        var copyI = i;
+        var copyEnd = end;
         for (; i < end; i++)
         {
             result[i] = v1[i] + v2Multiplier * v2[i];

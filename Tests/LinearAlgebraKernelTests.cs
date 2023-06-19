@@ -231,7 +231,6 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
             var mat = DenseMatrix.Create(rows, cols, (i, j) => Random.Shared.NextSingle());
             var vec1 = DenseVector.Create(rows, x => Random.Shared.NextSingle());
             var vec2 = DenseVector.Create(cols, x => Random.Shared.NextSingle());
-
             using var gpuMat = Context.Accelerator.Allocate2DDenseY<float>((rows, cols));
             using var gpuVec1 = Context.Accelerator.Allocate1D<float>(rows);
             using var gpuVec2 = Context.Accelerator.Allocate1D<float>(cols);
