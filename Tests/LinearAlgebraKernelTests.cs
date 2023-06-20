@@ -40,6 +40,27 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
     //to ensure that absolute difference is small.
     double ErrorEpsilon = 0.0001;
     [Fact]
+    public void L2(){
+        for (int k = 0; k < 10; k++)
+        {
+            var rows = Random.Shared.Next(10) + 1;
+            var cols = Random.Shared.Next(10) + 1;
+            var mat = DenseMatrix.Create(rows, cols, (i, j) => Random.Shared.NextSingle());
+            var vec = DenseVector.Create(rows,x=>Random.Shared.NextSingle());
+            using var gpuMat = Context.Provider.CreateMatrix(rows, cols);
+            using var gpuVec = Context.Provider.CreateVector(rows);
+            gpuMat.CopyFromCPU(mat.ToArray());
+            gpuVec.CopyFromCPU(vec.Values);
+            var expectedVecL2 = vec.Values.Sum(x=>x*x);
+            var expectedMatL2 = mat.Values.Sum(x=>x*x);
+            var actualVecL2 = Context.Provider.L2(gpuVec);
+            var actualMatL2 = Context.Provider.L2(gpuMat);
+            
+            var diff = Math.Abs(expectedVecL2-actualVecL2)+Math.Abs(expectedMatL2-actualMatL2);
+            Assert.True(diff<ErrorEpsilon);
+        }
+    }
+    [Fact]
     public void SetCopyRow()
     {
         for (int k = 0; k < 10; k++)
