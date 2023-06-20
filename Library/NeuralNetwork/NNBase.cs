@@ -82,6 +82,40 @@ public abstract class NNBase
         return input;
     }
     /// <summary>
+    /// Replaces saturated weights with new one from same weights distribution, but tries
+    /// to keep weight mean on it's original value.<br/>
+    /// Does not affect biases.<br/>
+    /// Use this method when your model meets new kind of data, and needs to be retrained, but
+    /// cannot because model weights is too saturated.<br/>
+    /// Causes catastrophic forgetting too, so be cautious.
+    /// </summary>
+    /// <param name="weightsCount">How many weights to regenerate, left it -1 to regenerate all weights that smaller than min value or bigger than max value</param>
+    /// <param name="minValue">Weights smaller than this value will be regenerated</param>
+    /// <param name="maxValue">Weights bigger than this value will be regenerated</param>
+    /// <param name="variation">How big change from previous weight value we need to make</param>
+    /// <returns>Count of replaced weights</returns>
+    public int RegenerateSaturatedWeights(int weightsCount = -1, float minValue = 0.01f, float maxValue = 0.99f, float variation = 1)
+    {
+        int count = 0;
+        foreach (var layer in Layers)
+        {
+            var weights = layer.Weights;
+            for (int i = 0; i < layer.Weights.RowCount; i++)
+                for (int j = 0; j < layer.Weights.ColumnCount; j++)
+                {
+                    var weight = weights[i, j];
+                    var sample = layer.WeightsInit.SampleWeight(weights);
+                    if (weight > maxValue || weight < minValue)
+                    {
+                        weights[i, j] = weight + sample * variation;
+                        count++;
+                    }
+                    if (weightsCount > 0 && count > weightsCount) return count;
+                }
+        }
+        return count;
+    }
+    /// <summary>
     /// Learns a model on loss function. Use it when you don't have a dataset to train on.
     /// </summary>
     /// <param name="input">Given input to model</param>
