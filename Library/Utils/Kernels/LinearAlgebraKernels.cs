@@ -1,4 +1,5 @@
 
+using System.Diagnostics;
 using ILGPU;
 using ILGPU.Runtime;
 using MatrixView = ILGPU.Runtime.ArrayView2D<float, ILGPU.Stride2D.DenseY>;
@@ -184,24 +185,22 @@ public class LinearAlgebraProvider
     {
         stepLength = DetermineStepLength(v2, stepLength);
         var size = DetermineStepsCount(v1,stepLength);
-        using var mapReduce = Accelerator.Allocate1D<float>(size);
+        using var mapReduce = Accelerator.Allocate1D<float>(1);
         DotLauncher(size, stepLength, v1, v2, mapReduce);
-        var tmp = new float[size];
+        var tmp = new float[1];
         mapReduce.CopyToCPU(tmp);
-        return tmp.Sum();
+        return tmp[0];
     }
     static void DotKernel(Index1D index, int stepLength, VectorView v1, VectorView v2, VectorView mapReduceResult)
     {
         var midSum = 0.0f;
         Index1D i, end;
         ComputeIndexes(index, stepLength, v1, out i, out end);
-
         for (; i < end; i++)
         {
             midSum += v1[i] * v2[i];
         }
-
-        mapReduceResult[index] = midSum;
+        ILGPU.Atomic.Add(ref mapReduceResult[0],midSum);
     }
     static void SetMatrixColumnKernel(Index1D index, int stepLength, MatrixView m, int column, VectorView source){
         Index1D i, end;
@@ -259,8 +258,6 @@ public class LinearAlgebraProvider
     {
         Index1D i, end;
         ComputeIndexes(index, stepLength, result, out i, out end);
-        var copyI = i;
-        var copyEnd = end;
         for (; i < end; i++)
         {
             result[i] = v1[i] + v2Multiplier * v2[i];
