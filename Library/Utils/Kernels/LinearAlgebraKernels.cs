@@ -120,13 +120,33 @@ public unsafe class LinearAlgebraProvider
     /// </returns>
     public MatrixBuffer CreateMatrix(int rows, int columns)
         =>Accelerator.Allocate2DDenseY<float>((rows,columns));
+    /// <summary>
+    /// Sets values of given matrix using map function
+    /// </summary>
+    /// <param name="map">(x,y)=>matrix value at given point</param>
+    public void MapInplace(MatrixView matrix, Func<int,int,float> map){
+        var tmp = new float[matrix.Extent.Y];
+        for(int x = 0;x<matrix.Extent.X;x++){
+            for(int y = 0;y<matrix.Extent.Y;y++)
+                tmp[y] = map(x,y);
+            matrix.SubView((x,0),(1,matrix.Extent.Y)).AsGeneral().BaseView.CopyFromCPU(tmp);
+        }
+    }
     public void SetRow(MatrixView matrix, int row, VectorView source){
         var stepLength = DetermineStepLength(source, -1);
         SetRowLauncher(DetermineStepsCount(source,stepLength),stepLength,matrix,row,source);
     }
+    public void SetRow(MatrixView matrix, int row, float[] source){
+        matrix.SubView((row,0),(1,matrix.Extent.Y)).BaseView.CopyFromCPU(source);
+    }
     public void SetColumn(MatrixView matrix, int column, VectorView source){
         var stepLength = DetermineStepLength(source, -1);
         SetColumnLauncher(DetermineStepsCount(source,stepLength),stepLength,matrix,column,source);
+    }
+    public void SetColumn(MatrixView matrix, int column, float[] source){
+        using var gpuCopy = Accelerator.Allocate1D<float>(source.Length);
+        gpuCopy.CopyFromCPU(source);
+        SetColumn(matrix,column,gpuCopy);
     }
     public void CopyRow(MatrixView matrix, int row, VectorView result){
         var stepLength = DetermineStepLength(result, -1);
