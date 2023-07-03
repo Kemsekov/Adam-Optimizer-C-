@@ -125,12 +125,13 @@ public unsafe class LinearAlgebraProvider
     /// </summary>
     /// <param name="map">(x,y)=>matrix value at given point</param>
     public void MapInplace(MatrixView matrix, Func<int,int,float> map){
-        var tmp = new float[matrix.Extent.Y];
-        for(int x = 0;x<matrix.Extent.X;x++){
+        ThreadLocal<float[]> tmp = new(()=>new float[matrix.Extent.Y]);
+        Parallel.For(0,matrix.Extent.X,x=>
+        {
             for(int y = 0;y<matrix.Extent.Y;y++)
-                tmp[y] = map(x,y);
-            matrix.SubView((x,0),(1,matrix.Extent.Y)).AsGeneral().BaseView.CopyFromCPU(tmp);
-        }
+                tmp.Value[y] = map((int)x,y);
+            matrix.SubView((x,0),(1,matrix.Extent.Y)).AsGeneral().BaseView.CopyFromCPU(tmp.Value);
+        });
     }
     public void SetRow(MatrixView matrix, int row, VectorView source){
         var stepLength = DetermineStepLength(source, -1);
