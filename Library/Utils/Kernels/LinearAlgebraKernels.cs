@@ -21,7 +21,7 @@ public record DisposableLinearAlgebraProvider(Context Context, Accelerator Accel
     }
 }
 
-public class LinearAlgebraProvider
+public unsafe class LinearAlgebraProvider
 {
     /// <summary>
     /// Creates a context
@@ -182,7 +182,6 @@ public class LinearAlgebraProvider
     public void MatrixVectorMul(VectorView v, MatrixView m, VectorView result)
     {
         MatrixVectorLeftSideMulLauncher((int)result.Extent, m, v, result);
-        // Accelerator.LoadAutoGroupedStreamKernel<Index1D, MatrixView, VectorView, VectorView>(MatrixTransposeVectorRightSideMulKernel2)((Index1D)v.Extent,m,v,result);
     }
     /// <summary>
     /// result=m1*m2
@@ -317,28 +316,22 @@ public class LinearAlgebraProvider
         }
         result[i, j] = num;
     }
-    static void MatrixVectorRightSideMulKernel(Index1D index, MatrixView mat, VectorView rightSide, VectorView result)
+    
+    static unsafe void MatrixVectorRightSideMulKernel(Index1D index, MatrixView mat, VectorView rightSide, VectorView result)
     {
         float num = 0f;
-        for (int j = 0; j < mat.Extent.Y; j++)
+        fixed(float* rowStart = &mat[index,0])
+        fixed(float* vectorStart = &rightSide[0])
         {
-            num += mat[index, j] * rightSide[j];
+            float* rowEnd = rowStart+mat.Extent.Y;
+            float* currentVectorPos = vectorStart;
+            for (float* current=rowStart; current < rowEnd; current++)
+            {
+                num += *current * *currentVectorPos;
+                currentVectorPos++;
+            }
         }
         result[index] = num;
-    }
-    static void MatrixTransposeVectorRightSideMulKernelInReverseOrder(Index1D index, MatrixView mat, VectorView rightSide, VectorView result){
-        var rightSideValue = rightSide[index];
-        for(int i = 0;i<result.Extent;i++){
-            Atomic.Add(ref result[i],rightSideValue*mat[index,i]);
-        }
-    }
-    static void MatrixL2Kernel(Index1D index, MatrixView matrix, VectorView result){
-        var sum = 0.0f;
-        for (int i = 0;i<matrix.Extent.Y;i++){
-            float tmp = matrix[index, i];
-            sum +=tmp*tmp;
-        }
-        result[index]=sum;
     }
     static void MatrixTransposeVectorRightSideMulKernel(Index1D index, MatrixView mat, VectorView rightSide, VectorView result)
     {
@@ -348,5 +341,13 @@ public class LinearAlgebraProvider
             num += mat[j, index] * rightSide[j];
         }
         result[index] = num;
+    }
+    static void MatrixL2Kernel(Index1D index, MatrixView matrix, VectorView result){
+        var sum = 0.0f;
+        for (int i = 0;i<matrix.Extent.Y;i++){
+            float tmp = matrix[index, i];
+            sum +=tmp*tmp;
+        }
+        result[index]=sum;
     }
 }
