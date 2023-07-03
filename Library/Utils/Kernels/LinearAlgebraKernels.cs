@@ -28,7 +28,11 @@ public class LinearAlgebraProvider
     /// </summary>
     public static DisposableLinearAlgebraProvider Create(bool preferCpu = false)
     {
-        var context = Context.CreateDefault();
+        var context = Context.Create(b=>{
+            b.Optimize(OptimizationLevel.Release);
+            b.EnableAlgorithms();
+            b.Default();
+        });
         var accelerator = context.GetPreferredDevice(preferCpu).CreateAccelerator(context);
         return new(context, accelerator, new(accelerator));
     }
@@ -159,6 +163,8 @@ public class LinearAlgebraProvider
     {
         if (stepLength < 0)
             stepLength = (int)result.Extent / Accelerator.MaxNumThreadsPerMultiprocessor;
+        if(stepLength>=result.Extent)
+            stepLength = (int)result.Extent;
         stepLength = stepLength < 4 ? (int)Math.Sqrt(result.Extent) : stepLength;
         return stepLength;
     }
@@ -212,27 +218,25 @@ public class LinearAlgebraProvider
     /// Divides a vectors into "stepLength" chunks and compute dot product in each chunk.<br/>
     /// </summary>
     /// <param name="stepLength">Will be set automatically if left to -1</param>
-    /// <returns></returns>
     public float Dot(VectorView v1, VectorView v2, int stepLength = -1)
     {
         stepLength = DetermineStepLength(v2, stepLength);
         var size = DetermineStepsCount(v1,stepLength);
-        using var result = Accelerator.Allocate1D<float>(1);
+        using var result = Accelerator.Allocate1D<float>(size);
         DotLauncher(size, stepLength, v1, v2, result);
-        var tmp = new float[1];
-        result.CopyToCPU(tmp);
-        return tmp[0];
+        return result.GetAsArray1D().Sum();
     }
     static void DotKernel(Index1D index, int stepLength, VectorView v1, VectorView v2, VectorView mapReduceResult)
     {
         var midSum = 0.0f;
         Index1D i, end;
         ComputeIndexes(index, stepLength, v1, out i, out end);
+        
         for (; i < end; i++)
         {
             midSum += v1[i] * v2[i];
         }
-        ILGPU.Atomic.Add(ref mapReduceResult[0],midSum);
+        mapReduceResult[index]=midSum;
     }
     static void SetMatrixColumnKernel(Index1D index, int stepLength, MatrixView m, int column, VectorView source){
         Index1D i, end;
@@ -313,7 +317,6 @@ public class LinearAlgebraProvider
         }
         result[i, j] = num;
     }
-    //index = result length
     static void MatrixVectorRightSideMulKernel(Index1D index, MatrixView mat, VectorView rightSide, VectorView result)
     {
         float num = 0f;

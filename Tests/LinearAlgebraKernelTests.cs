@@ -43,8 +43,8 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
     public void L2(){
         for (int k = 0; k < 10; k++)
         {
-            var rows = Random.Shared.Next(10) + 1;
-            var cols = Random.Shared.Next(10) + 1;
+            var rows = Random.Shared.Next(100) + 1;
+            var cols = Random.Shared.Next(100) + 1;
             var mat = DenseMatrix.Create(rows, cols, (i, j) => Random.Shared.NextSingle());
             var vec = DenseVector.Create(rows,x=>Random.Shared.NextSingle());
             using var gpuMat = Context.Provider.CreateMatrix(rows, cols);
@@ -185,8 +185,8 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
     {
         for (int k = 0; k < 10; k++)
         {
-            var rows = Random.Shared.Next(10) + 1;
-            var cols = Random.Shared.Next(10) + 1;
+            var rows = Random.Shared.Next(1024) + 1;
+            var cols = Random.Shared.Next(1024) + 1;
 
             var vec1 = DenseVector.Create(rows, x => Random.Shared.NextSingle());
             var vec2 = DenseVector.Create(cols, x => Random.Shared.NextSingle());
@@ -211,11 +211,15 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
             for (int i = 0; i < expectedRight.Count; i++)
             {
                 var diff = Math.Abs(expectedRight[i] - actualRight.View.At(i));
+                var last1 = expectedRight[^1];
+                var last2 = actualRight.View.At(expectedRight.Count-1);
                 Assert.True(diff < ErrorEpsilon);
             }
             for (int i = 0; i < expectedLeft.Count; i++)
             {
                 var diff = Math.Abs(expectedLeft[i] - actualLeft.View.At(i));
+                var last1 = expectedLeft[^1];
+                var last2 = actualLeft.View.At(expectedLeft.Count-1);
                 Assert.True(diff < ErrorEpsilon);
             }
         }
