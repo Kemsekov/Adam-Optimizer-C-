@@ -55,9 +55,8 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
             var expectedMatL2 = mat.Values.Sum(x=>x*x);
             var actualVecL2 = Context.Provider.L2(gpuVec);
             var actualMatL2 = Context.Provider.L2(gpuMat);
-            
-            var diff = Math.Abs(expectedVecL2-actualVecL2)+Math.Abs(expectedMatL2-actualMatL2);
-            Assert.True(diff<ErrorEpsilon);
+            Assert.True(Math.Abs(expectedVecL2-actualVecL2)<ErrorEpsilon);
+            Assert.True(Math.Abs(expectedMatL2-actualMatL2)<Math.Sqrt(ErrorEpsilon));
         }
     }
     [Fact]

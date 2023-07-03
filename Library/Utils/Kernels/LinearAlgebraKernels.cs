@@ -209,9 +209,7 @@ public unsafe class LinearAlgebraProvider
     public float L2(MatrixView matrix){
         using var result = Accelerator.Allocate1D<float>(matrix.Extent.X);
         MatrixL2Launcher((Index1D)matrix.Extent.X,matrix,result);
-        var tmp = new float[matrix.Extent.X];
-        result.CopyToCPU(tmp);
-        return tmp.Sum();
+        return result.GetAsArray1D().Sum();
     }
     /// <summary>
     /// Divides a vectors into "stepLength" chunks and compute dot product in each chunk.<br/>
