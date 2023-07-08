@@ -4,16 +4,16 @@ namespace GradientDescentSharp.NeuralNetwork.ActivationFunction;
 
 public class Softmax : IActivationFunction
 {
-    public Vector Activation(Vector x)
+    public FVector Activation(FVector x)
     {
         var sum = x.Sum(x=>MathF.Exp(x));
-        return (Vector)x.Map(x=>MathF.Exp(x)/sum);
+        return (FVector)x.Map(x=>MathF.Exp(x)/sum);
     }
 
-    public Vector ActivationDerivative(Vector x)
+    public FVector ActivationDerivative(FVector x)
     {
         var sum = x.Sum(x=>MathF.Exp(x));
-        return (Vector)x.Map(x=>{
+        return (FVector)x.Map(x=>{
             var ex = MathF.Exp(x);
             var variable = ex/sum;
             return variable-variable*variable;

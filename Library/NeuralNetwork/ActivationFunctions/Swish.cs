@@ -9,14 +9,14 @@ public class Swish : IActivationFunction
     public Swish(float beta){
         this.beta = beta;
     }
-    public Vector Activation(Vector x)
+    public FVector Activation(FVector x)
     {
-        return (Vector)x.Map(x=>x/(1+MathF.Exp(-beta*x)));
+        return (FVector)x.Map(x=>x/(1+MathF.Exp(-beta*x)));
     }
 
-    public Vector ActivationDerivative(Vector x)
+    public FVector ActivationDerivative(FVector x)
     {
-        return (Vector)x.Map(x=>{
+        return (FVector)x.Map(x=>{
             x*=beta;
             var sigmoid = 1.0f/(1+MathF.Exp(-x));
             var sigmoidDerivative = 1-sigmoid;

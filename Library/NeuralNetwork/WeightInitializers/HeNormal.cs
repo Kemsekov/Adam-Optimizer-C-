@@ -11,17 +11,17 @@ public class HeNormal : IWeightsInit
     {
         this.Rand = rand ?? new Random();
     }
-    public void InitWeights(Vector bias)
+    public void InitWeights(FVector bias)
     {
         bias.MapInplace(x=>Rand.NextSingle());
     }
-    public void InitWeights(Matrix layer)
+    public void InitWeights(FMatrix layer)
     {
         var stddev = Math.Sqrt(2.0/layer.ColumnCount);
         layer.MapInplace(x=> (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev));
     }
 
-    public float SampleWeight(Matrix layer)
+    public float SampleWeight(FMatrix layer)
     {
         var stddev = Math.Sqrt(2.0/layer.ColumnCount);
         return (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev);
@@ -36,17 +36,17 @@ public class He2Normal : IWeightsInit
     {
         this.Rand = rand ?? new Random();
     }
-    public void InitWeights(Vector bias)
+    public void InitWeights(FVector bias)
     {
         bias.MapInplace(x=>Rand.NextSingle());
     }
-    public void InitWeights(Matrix layer)
+    public void InitWeights(FMatrix layer)
     {
         var stddev = Math.Sqrt(1.0/layer.ColumnCount);
         layer.MapInplace(x=> (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev));
     }
 
-    public float SampleWeight(Matrix layer)
+    public float SampleWeight(FMatrix layer)
     {
         var stddev = Math.Sqrt(1.0/layer.ColumnCount);
         return (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev);
@@ -61,17 +61,17 @@ public class He3Normal : IWeightsInit
     {
         this.Rand = rand ?? new Random();
     }
-    public void InitWeights(Vector bias)
+    public void InitWeights(FVector bias)
     {
         bias.MapInplace(x=>Rand.NextSingle());
     }
-    public void InitWeights(Matrix layer)
+    public void InitWeights(FMatrix layer)
     {
         var stddev = Math.Sqrt(6.0/layer.ColumnCount);
         layer.MapInplace(x=> (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev));
     }
 
-    public float SampleWeight(Matrix layer)
+    public float SampleWeight(FMatrix layer)
     {
         var stddev = Math.Sqrt(6.0/layer.ColumnCount);
         return (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev);

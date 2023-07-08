@@ -3,7 +3,7 @@ using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Single;
 
 namespace GradientDescentSharp.NeuralNetwork;
-
+public record Gradient(FVector biasesGradients, FVector layerInput );
 /// <summary>
 /// Basic neural network implementation, with some additional features
 /// </summary>
@@ -23,7 +23,7 @@ public abstract class NNBase
     /// <summary>
     /// Raw layer outputs from learning forward method, used for training
     /// </summary>
-    protected ObjectPool<Dictionary<ILayer, Vector>> RawLayerOutputStorage { get; }
+    protected ObjectPool<Dictionary<ILayer, FVector>> RawLayerOutputStorage { get; }
 
     /// <summary>
     /// Network learning rate
@@ -45,17 +45,17 @@ public abstract class NNBase
     public NNBase(params ILayer[] layers)
     {
         Layers = layers;
-        this.RawLayerOutputStorage = new ObjectPool<Dictionary<ILayer, Vector>>(()=>{
-            var rawLayerOutput = new Dictionary<ILayer, Vector>();
+        this.RawLayerOutputStorage = new ObjectPool<Dictionary<ILayer, FVector>>(()=>{
+            var rawLayerOutput = new Dictionary<ILayer, FVector>();
             foreach (var layer in layers)
             {
-                rawLayerOutput[layer] = (Vector)layer.Bias.Map(x => 0.0f);
+                rawLayerOutput[layer] = layer.Bias.Map(x => 0.0f);
             }
             return rawLayerOutput;
         });
     }
     /// <returns>Model prediction</returns>
-    public virtual Vector Forward(Vector input)
+    public virtual FVector Forward(FVector input)
     {
         ILayer layer;
         for (int i = 0; i < Layers.Length; i++)
@@ -68,7 +68,7 @@ public abstract class NNBase
     /// <summary>
     /// Does same forward, but keeps intermediate values to use it for training later
     /// </summary>
-    protected virtual Vector ForwardForLearning(Vector input, out Dictionary<ILayer, Vector> rawLayerOutput)
+    protected virtual FVector ForwardForLearning(FVector input, out Dictionary<ILayer, FVector> rawLayerOutput)
     {
         rawLayerOutput = RawLayerOutputStorage.GetObject();
         ILayer layer;
@@ -130,7 +130,7 @@ public abstract class NNBase
     /// 3) It need to use Forward method(maybe even several times) from given to it neural network parameter.<br/>
     /// </param>
     /// <returns>BackpropResult that can be used to apply computed gradients</returns>
-    public BackpropResult LearnOnLoss(Vector input, float theta, Func<Vector, PredictOnlyNN, float> lossFunction)
+    public BackpropResult LearnOnLoss(FVector input, float theta, Func<FVector, PredictOnlyNN, float> lossFunction)
     {
         var errorDerivative = ComputeDerivativeOfLossFunction(input, theta, lossFunction, out var rawLayerOutput);
         var learned = BuildLearner(ComputeGradients(input,errorDerivative,rawLayerOutput));
@@ -142,7 +142,7 @@ public abstract class NNBase
     /// Default backpropagation implementation. Learns a model to predict given expected value from input
     /// </summary>
     /// <returns>BackpropResult that can be used to apply computed gradients</returns>
-    public BackpropResult Backwards(Vector input, Vector expected)
+    public BackpropResult Backwards(FVector input, FVector expected)
     {
         // compute error derivative for MSE
         var error = (ForwardForLearning(input,out var rawLayersOutput) - expected) * 2;
@@ -152,11 +152,11 @@ public abstract class NNBase
         return new BackpropResult(learner);
     }
     /// <returns>MSE error from input and expected value from model prediction</returns>
-    public float Error(Vector input, Vector expected)
+    public float Error(FVector input, FVector expected)
     {
         return (Forward(input) - expected).Sum(x => x * x);
     }
-    private Vector<float> ComputeDerivativeOfLossFunction(Vector input, float theta, Func<Vector, PredictOnlyNN, float> errorFunction, out Dictionary<ILayer, Vector> rawLayerOutput)
+    private FVector ComputeDerivativeOfLossFunction(FVector input, float theta, Func<FVector, PredictOnlyNN, float> errorFunction, out Dictionary<ILayer, FVector> rawLayerOutput)
     {
         var original = errorFunction(input, new(this));
         var originalOutput = ForwardForLearning(input,out rawLayerOutput);
@@ -188,15 +188,14 @@ public abstract class NNBase
         return errorDerivative;
     }
 
-    record Gradient(int layerId, Vector<float> biasesGradients, Vector<float> layerInput );
-    Gradient[] ComputeGradients(Vector input, Vector<float> errorDerivative, Dictionary<ILayer, Vector> rawLayersOutput){
+    Gradient[] ComputeGradients(FVector input, FVector errorDerivative, Dictionary<ILayer, FVector> rawLayersOutput){
         var result = new Gradient[Layers.Length];
         for (int i = Layers.Length - 1; i >= 0; i--)
         {
             var layer = Layers[i];
+            var layerOutput = rawLayersOutput[layer];
 
             var biases = layer.Bias;
-            var layerOutput = rawLayersOutput[layer];
             var activation = layer.Activation.Activation;
             var derivative = layer.Activation.ActivationDerivative;
 
@@ -211,7 +210,7 @@ public abstract class NNBase
             var layerInput = i > 0 ? activation(rawLayersOutput[Layers[i - 1]]) : input.Clone();
 
             //here we update weights
-            result[i] = new(i,biasesGradient,layerInput);
+            result[i] = new(biasesGradient,layerInput);
         }
         return result;
     }
@@ -220,13 +219,12 @@ public abstract class NNBase
     {
         var learned = new List<DefaultLearner>();
         
-        foreach(var layerInfo in gradients)
+        foreach(var layerInfo in Layers.Zip(gradients))
         {
-            var layer = Layers[layerInfo.layerId];
-            var layerInput = layerInfo.layerInput;
-            var biasesGradient = layerInfo.biasesGradients;
-
-            var data = new LearningData(layer, (Vector)biasesGradient, (Vector)layerInput, LearningRate);
+            var layer = layerInfo.First;
+            var layerInput = layerInfo.Second.layerInput;
+            var biasesGradient = layerInfo.Second.biasesGradients;
+            var data = new LearningData(layer, biasesGradient, layerInput, LearningRate);
             learned.Add(new DefaultLearner(data));
         }
         return learned;

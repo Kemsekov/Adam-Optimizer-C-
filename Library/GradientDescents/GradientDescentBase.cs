@@ -26,6 +26,7 @@ public abstract class GradientDescentBase : IGradientDescent
     /// If gradient descent step error function value changes less than this value, it means
     /// we need to step descending. <br/>
     /// In short terms, this value defines how precise our find local minima need to be.<br/>
+    /// Set to zero, if you need to find the most precise possible solution
     /// </summary>
     public double Theta = 0.0001;
     /// <summary>

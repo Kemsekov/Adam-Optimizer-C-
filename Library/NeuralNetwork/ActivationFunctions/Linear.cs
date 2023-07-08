@@ -1,16 +1,14 @@
-using MathNet.Numerics.LinearAlgebra.Single;
-
 namespace GradientDescentSharp.NeuralNetwork.ActivationFunction;
 
 public class Linear : IActivationFunction
 {
-    public Vector Activation(Vector x)
+    public FVector Activation(FVector x)
     {
-        return (Vector)x.Map(x=>x);
+        return (FVector)x.Map(x=>x);
     }
 
-    public Vector ActivationDerivative(Vector x)
+    public FVector ActivationDerivative(FVector x)
     {
-        return (Vector)x.Map(x=>1.0f);
+        return (FVector)x.Map(x=>1.0f);
     }
 }

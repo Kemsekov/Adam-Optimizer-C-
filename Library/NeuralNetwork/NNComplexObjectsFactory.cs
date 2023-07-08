@@ -7,10 +7,10 @@ namespace GradientDescentSharp.NeuralNetwork;
 public class NNComplexObjectsFactory : IComplexObjectsFactory<float>
 {
     ///<inheritdoc/>
-    public Matrix<float> CreateMatrix(int rows, int columns)
+    public FMatrix CreateMatrix(int rows, int columns)
         => DenseMatrix.Create(rows, columns, 0);
 
     ///<inheritdoc/>
-    public Vector<float> CreateVector(int length)
+    public FVector CreateVector(int length)
         => DenseVector.Create(length, 0);
 }

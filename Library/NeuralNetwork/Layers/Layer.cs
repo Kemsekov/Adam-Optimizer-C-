@@ -1,19 +1,20 @@
 
+using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Single;
 
 namespace GradientDescentSharp.NeuralNetwork;
 
 public class Layer : ILayer
 {
-    public Matrix Weights { get; }
-    public Vector Bias { get; }
+    public FMatrix Weights { get; }
+    public FVector Bias { get; }
     /// <summary>
     /// Output without applied activation function. <br/>
     /// To get true output call
     /// <see cref="ActivatedOutput"/>
     /// </summary>
     /// <value></value>
-    public Vector RawOutput { get; }
+    public FVector RawOutput { get; }
     public IActivationFunction Activation { get; }
 
     public IWeightsInit WeightsInit { get; }
@@ -26,17 +27,33 @@ public class Layer : ILayer
     public Layer(IComplexObjectsFactory<float> factory, int inputSize, int outputSize, IActivationFunction activation, IWeightsInit weightsInit)
     {
         Weights = (Matrix)factory.CreateMatrix(outputSize, inputSize);
-        Bias = (Vector)factory.CreateVector(outputSize);
-        RawOutput = (Vector)factory.CreateVector(outputSize);
+        Bias = factory.CreateVector(outputSize);
+        RawOutput = factory.CreateVector(outputSize);
         Activation = activation;
         weightsInit.InitWeights(Bias);
         weightsInit.InitWeights(Weights);
         WeightsInit = weightsInit;
     }
-    public Vector Forward(Vector input)
+    public FVector Forward(FVector input)
     {
         var raw = Weights * input + Bias;
-        return (Vector)raw;
+        return raw;
     }
 
+    public Gradient ComputeGradient(FVector layerOutput,FVector inputLossDerivative)
+    {
+        var activation = Activation.Activation;
+        var derivative = Activation.ActivationDerivative;
+
+        var layerOutputDerivative = derivative(layerOutput);
+        var biasesGradient = layerOutputDerivative.MapIndexed((j, x) => x * inputLossDerivative[j]);
+        throw new NotImplementedException();
+        // if (i > 0)
+        // {
+        //     inputLossDerivative.MapIndexedInplace((j, x) => x * layerOutputDerivative[j]);
+        //     Weights.LeftMultiply(inputLossDerivative,inputLossDerivative);
+        // }
+        // var layerInput = i > 0 ? activation(rawLayersOutput[Layers[i - 1]]) : input.Clone();
+
+    }
 }

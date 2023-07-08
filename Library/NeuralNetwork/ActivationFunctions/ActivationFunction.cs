@@ -1,23 +1,20 @@
-using GradientDescentSharp.NeuralNetwork.WeightInitializers;
-using MathNet.Numerics.LinearAlgebra.Single;
-
 namespace GradientDescentSharp.NeuralNetwork.ActivationFunction;
 
 public class ActivationFunction : IActivationFunction{
-    private Func<Vector, Vector> activation;
-    private Func<Vector, Vector> derivative;
+    private Func<FVector, FVector> activation;
+    private Func<FVector, FVector> derivative;
     /// <summary>
     /// Epsilon that is used to compute activation function derivatives, in case
     /// when explicit derivative is not given
     /// </summary>
     /// <returns></returns>
     public static float Epsilon = 0.001f;
-    public ActivationFunction(Func<Vector, Vector> activation, Func<Vector, Vector>? derivative  = null){
+    public ActivationFunction(Func<FVector, FVector> activation, Func<FVector, FVector>? derivative  = null){
         this.activation = activation;
-        var a = (Vector v)=>(Vector)((activation((Vector)(v + Epsilon)) -activation(v))/Epsilon);
+        var a = (FVector v)=>(FVector)((activation((FVector)(v + Epsilon)) -activation(v))/Epsilon);
         this.derivative = derivative ?? a;
     }
-    public static ActivationFunction Of(Func<Vector,Vector> activation, Func<Vector,Vector>? activationDerivative = null)
+    public static ActivationFunction Of(Func<FVector,FVector> activation, Func<FVector,FVector>? activationDerivative = null)
         => new(activation,activationDerivative);
     /// <summary>
     /// Use <see cref="Guassian"/> initializer
@@ -62,6 +59,6 @@ public class ActivationFunction : IActivationFunction{
     public static Softmax Softmax(){
         return new();
     }
-    public Vector Activation(Vector x) => activation(x);
-    public Vector ActivationDerivative(Vector x) => derivative(x);
+    public FVector Activation(FVector x) => activation(x);
+    public FVector ActivationDerivative(FVector x) => derivative(x);
 }

@@ -2,6 +2,7 @@ namespace Playground;
 using MathNet.Numerics.LinearAlgebra.Single;
 
 using GradientDescentSharp.NeuralNetwork;
+using MathNet.Numerics.LinearAlgebra;
 
 public partial class Examples
 {
@@ -28,7 +29,7 @@ public partial class Examples
     static void _NeuralNetworkExample(NNBase nn, Func<float, float, float> y1, Func<float, float, float> y2)
     {
         //used to pretty print vectors
-        string formatVector(Vector v) => $"{v[0]:0.000}, {v[1]:0.000}";
+        string formatVector(Vector<float> v) => $"{v[0]:0.000}, {v[1]:0.000}";
 
         //learning rate is changing dynamically depending on layer weights,
         //so in solution space we step always +- same distance to local minima

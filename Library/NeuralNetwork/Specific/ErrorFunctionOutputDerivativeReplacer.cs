@@ -26,7 +26,7 @@ public class LossFunctionOutputDerivativeReplacer{
     /// derivative of output of neural network
     /// </summary>
     /// <param name="output"></param>
-    public void ReplaceOutputParameter(Vector output){
+    public void ReplaceOutputParameter(FVector output){
         if(ChangedOutputIndex!=-1)
             output[ChangedOutputIndex] += ChangedOutputTheta;
     }

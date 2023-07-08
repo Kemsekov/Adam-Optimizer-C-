@@ -3,6 +3,7 @@ using MathNet.Numerics.LinearAlgebra.Single;
 
 using GradientDescentSharp.NeuralNetwork;
 using GradientDescentSharp.NeuralNetwork.Specific;
+using MathNet.Numerics.LinearAlgebra;
 
 public partial class Examples
 {
@@ -23,7 +24,7 @@ public partial class Examples
     static void _NeuralNetworkLearnOnLossFunctionExample(NNBase nn){
         var xValues = Enumerable.Range(0, 1000).Select(x => DenseVector.Create(1, Random.Shared.NextSingle() * 4)).ToArray();
         //Here we define a problem, which is error function.
-        var problem = (Vector input, PredictOnlyNN nn) =>
+        var problem = (Vector<float> input, PredictOnlyNN nn) =>
         {
             var result = nn.Forward(input);
             //we really need to approximate x^2.5 function

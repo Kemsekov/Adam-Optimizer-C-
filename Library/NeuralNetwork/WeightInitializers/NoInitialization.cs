@@ -8,15 +8,15 @@ using MathNet.Numerics.LinearAlgebra.Single;
 /// </summary>
 public class NoInitialization : IWeightsInit
 {
-    public void InitWeights(Vector bias)
+    public void InitWeights(FVector bias)
     {
     }
 
-    public void InitWeights(Matrix layer)
+    public void InitWeights(FMatrix layer)
     {
     }
 
-    public float SampleWeight(Matrix layer)
+    public float SampleWeight(FMatrix layer)
     {
         return 0;
     }

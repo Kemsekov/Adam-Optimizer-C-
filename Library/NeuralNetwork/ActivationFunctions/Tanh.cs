@@ -4,14 +4,14 @@ namespace GradientDescentSharp.NeuralNetwork.ActivationFunction;
 
 public class Tanh : IActivationFunction
 {
-    public Vector Activation(Vector x)
+    public FVector Activation(FVector x)
     {
-        return (Vector)x.Map(x=>MathF.Tanh(x));
+        return (FVector)x.Map(x=>MathF.Tanh(x));
     }
 
-    public Vector ActivationDerivative(Vector x)
+    public FVector ActivationDerivative(FVector x)
     {
-        return (Vector)x.Map(x=>{
+        return (FVector)x.Map(x=>{
             var tanh = MathF.Tanh(x);
             return 1-tanh*tanh;
         });

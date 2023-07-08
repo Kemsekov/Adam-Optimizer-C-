@@ -12,17 +12,17 @@ public class Guassian: IWeightsInit
     {
         this.Rand = rand ?? new Random();
     }
-    public void InitWeights(Vector bias)
+    public void InitWeights(FVector bias)
     {
         bias.MapInplace(x=>Rand.NextSingle());
     }
-    public void InitWeights(Matrix layer)
+    public void InitWeights(FMatrix layer)
     {
         var stddev = Math.Sqrt(2.0/(layer.RowCount+layer.ColumnCount));
         layer.MapInplace(x=> (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev));
     }
 
-    public float SampleWeight(Matrix layer)
+    public float SampleWeight(FMatrix layer)
     {
         var stddev = Math.Sqrt(2.0/(layer.RowCount+layer.ColumnCount));
         return (float)MathNet.Numerics.Distributions.Normal.Sample(Rand,0,stddev);

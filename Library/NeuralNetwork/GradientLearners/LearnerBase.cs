@@ -13,11 +13,11 @@ public interface ILearner{
 public abstract record LearnerBase(LearningData LearningData) : ILearner
 {
     protected ILayer layer => LearningData.layer;
-    protected Vector biasesGradient => LearningData.biasesGradient;
-    protected Vector layerInput => LearningData.layerInput;
+    protected FVector biasesGradient => LearningData.biasesGradient;
+    protected FVector layerInput => LearningData.layerInput;
     protected float learningRate => LearningData.learningRate;
     public abstract void Learn();
     public abstract void Unlearn();
 }
 
-public record LearningData(ILayer layer, Vector biasesGradient, Vector layerInput, float learningRate);
+public record LearningData(ILayer layer, FVector biasesGradient, FVector layerInput, float learningRate);

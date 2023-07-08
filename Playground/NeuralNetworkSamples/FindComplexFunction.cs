@@ -2,6 +2,7 @@ using GradientDescentSharp.NeuralNetwork;
 using ScottPlot;
 using MathNet.Numerics.LinearAlgebra.Single;
 using GradientDescentSharp.NeuralNetwork.Specific;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace Playground;
 public partial class Examples
@@ -14,7 +15,7 @@ public partial class Examples
         //this problem is unsolvable by ordinary backpropagation Backwards method,
         //because we don't have any dataset, but it is solvable by error function!
 
-        float Problem(Vector input, PredictOnlyNN nn)
+        float Problem(Vector<float> input, PredictOnlyNN nn)
         {
             var x = input[0];
             var y1 = nn.Forward(input)[0];
