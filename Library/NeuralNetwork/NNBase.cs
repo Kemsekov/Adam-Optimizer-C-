@@ -188,29 +188,17 @@ public abstract class NNBase
         return errorDerivative;
     }
 
-    Gradient[] ComputeGradients(FVector input, FVector errorDerivative, Dictionary<ILayer, FVector> rawLayersOutput){
+    Gradient[] ComputeGradients(FVector input, FVector lossDerivative, Dictionary<ILayer, FVector> rawLayersOutput){
         var result = new Gradient[Layers.Length];
         for (int i = Layers.Length - 1; i >= 0; i--)
         {
             var layer = Layers[i];
             var layerOutput = rawLayersOutput[layer];
-
-            var biases = layer.Bias;
-            var activation = layer.Activation.Activation;
-            var derivative = layer.Activation.ActivationDerivative;
-
-            var layerOutputDerivative = derivative(layerOutput);
-            var biasesGradient = layerOutputDerivative.MapIndexed((j,x)=>x*errorDerivative[j]);
-
-            if (i > 0)
-            {
-                errorDerivative.MapIndexedInplace((j, x) => x * layerOutputDerivative[j]);
-                errorDerivative *= layer.Weights;
-            }
-            var layerInput = i > 0 ? activation(rawLayersOutput[Layers[i - 1]]) : input.Clone();
-
-            //here we update weights
-            result[i] = new(biasesGradient,layerInput);
+            bool updateLossDerivative = i>0;
+            var layerInput = i > 0 ? layer.Activation.Activation(rawLayersOutput[Layers[i - 1]]) : input.Clone();
+            result[i] = layer.ComputeGradient(layerInput,layerOutput,lossDerivative,updateLossDerivative,out var newLoss);
+            if(newLoss is not null)
+                lossDerivative = newLoss;
         }
         return result;
     }

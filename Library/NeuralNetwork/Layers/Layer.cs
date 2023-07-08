@@ -40,20 +40,19 @@ public class Layer : ILayer
         return raw;
     }
 
-    public Gradient ComputeGradient(FVector layerOutput,FVector inputLossDerivative)
+    public Gradient ComputeGradient(FVector layerInput,FVector layerOutput,FVector inputLossDerivative, bool updateLossDerivative, out FVector? newLossDerivative)
     {
         var activation = Activation.Activation;
         var derivative = Activation.ActivationDerivative;
 
         var layerOutputDerivative = derivative(layerOutput);
         var biasesGradient = layerOutputDerivative.MapIndexed((j, x) => x * inputLossDerivative[j]);
-        throw new NotImplementedException();
-        // if (i > 0)
-        // {
-        //     inputLossDerivative.MapIndexedInplace((j, x) => x * layerOutputDerivative[j]);
-        //     Weights.LeftMultiply(inputLossDerivative,inputLossDerivative);
-        // }
-        // var layerInput = i > 0 ? activation(rawLayersOutput[Layers[i - 1]]) : input.Clone();
-
+        newLossDerivative=null;
+        if (updateLossDerivative)
+        {
+            inputLossDerivative.MapIndexedInplace((j, x) => x * layerOutputDerivative[j]);
+            newLossDerivative = inputLossDerivative*Weights;
+        }
+        return new(biasesGradient,layerInput);
     }
 }
