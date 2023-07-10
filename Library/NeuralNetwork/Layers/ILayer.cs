@@ -1,6 +1,3 @@
-using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.LinearAlgebra.Single;
-
 namespace GradientDescentSharp.NeuralNetwork;
 public interface ILayer
 {

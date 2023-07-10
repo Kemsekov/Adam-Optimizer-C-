@@ -1,6 +1,4 @@
 namespace GradientDescentSharp.NeuralNetwork.Specific;
-using MathNet.Numerics.LinearAlgebra.Single;
-
 public class NNErrorDerivativeComputation : NNBase{
     /// <summary>
     /// See the class description to understand what it does

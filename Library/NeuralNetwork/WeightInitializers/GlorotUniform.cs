@@ -1,6 +1,4 @@
 namespace GradientDescentSharp.NeuralNetwork.WeightInitializers;
-using MathNet.Numerics.LinearAlgebra.Single;
-
 public class GlorotUniform : IWeightsInit
 {
     public Random Rand { get; set;}

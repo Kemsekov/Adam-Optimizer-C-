@@ -1,7 +1,3 @@
-
-using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.LinearAlgebra.Single;
-
 namespace GradientDescentSharp.NeuralNetwork;
 
 public class Layer : ILayer
@@ -26,7 +22,7 @@ public class Layer : ILayer
     /// <param name="weightsInit">Weight initialization.</param>
     public Layer(IComplexObjectsFactory<float> factory, int inputSize, int outputSize, IActivationFunction activation, IWeightsInit weightsInit)
     {
-        Weights = (Matrix)factory.CreateMatrix(outputSize, inputSize);
+        Weights = factory.CreateMatrix(outputSize, inputSize);
         Bias = factory.CreateVector(outputSize);
         RawOutput = factory.CreateVector(outputSize);
         Activation = activation;

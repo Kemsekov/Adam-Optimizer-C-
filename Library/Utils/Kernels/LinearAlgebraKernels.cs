@@ -120,19 +120,64 @@ public unsafe class LinearAlgebraProvider
     /// </returns>
     public MatrixBuffer CreateMatrix(int rows, int columns)
         =>Accelerator.Allocate2DDenseY<float>((rows,columns));
+    // TODO: test
     /// <summary>
     /// Sets values of given matrix using map function
     /// </summary>
-    /// <param name="map">(x,y)=>matrix value at given point</param>
-    public void MapInplace(MatrixView matrix, Func<int,int,float> map){
+    /// <param name="matrix">Matrix, that used to set values</param>
+    /// <param name="setter">(x,y)=>matrix value at given point</param>
+    public void SetValues(MatrixView matrix, Func<int,int,float> setter){
         ThreadLocal<float[]> tmp = new(()=>new float[matrix.Extent.Y]);
         Parallel.For(0,matrix.Extent.X,x=>
         {
+            var array = tmp.Value;
+            if(array is null) return;
+
             for(int y = 0;y<matrix.Extent.Y;y++)
-                tmp.Value[y] = map((int)x,y);
+                array[y] = setter((int)x,y);
+            matrix.SubView((x,0),(1,matrix.Extent.Y)).AsGeneral().BaseView.CopyFromCPU(array);
+        });
+    }
+    // TODO: test
+    /// <summary>
+    /// Sets values of vector by setter function
+    /// </summary>
+    public void SetValues(VectorView vector, Func<int,float> setter){
+        var tmp = new float[vector.Length];
+        for(int i = 0;i<tmp.Length;i++)
+            tmp[i] = setter(i);
+        vector.CopyFromCPU(tmp);
+    }
+    /// <summary>
+    /// Maps matrix values to new values, using map function
+    /// </summary>
+    /// <param name="matrix">Matrix to map</param>
+    /// <param name="map">(int row, int column,float oldValue)=>newValue</param>
+    public void MapIndexedInplace(MatrixView matrix, Func<int,int,float,float> map){
+        ThreadLocal<float[]> tmp = new(()=>new float[matrix.Extent.Y]);
+        Parallel.For(0,matrix.Extent.X,x=>
+        {
+            var array = tmp.Value;
+            if(array is null) return;
+
+            matrix.SubView((x,0),(1,matrix.Extent.Y)).AsGeneral().BaseView.CopyToCPU(array);
+            for(int y = 0;y<matrix.Extent.Y;y++)
+                array[y] = map((int)x,y,array[y]);
             matrix.SubView((x,0),(1,matrix.Extent.Y)).AsGeneral().BaseView.CopyFromCPU(tmp.Value);
         });
     }
+    /// <summary>
+    /// Maps vector values to new values, using map function
+    /// </summary>
+    /// <param name="vector">Vector to map</param>
+    /// <param name="map">(int index,float oldValue)=>newValue</param>
+    public void MapIndexedInplace(VectorView vector, Func<int,float,float> map){
+        var tmp = vector.GetAsArray1D();
+        for(int i = 0;i<tmp.Length;i++)
+            tmp[i] = map(i,tmp[i]);
+        vector.CopyFromCPU(tmp);
+    }
+
     public void SetRow(MatrixView matrix, int row, VectorView source){
         var stepLength = DetermineStepLength(source, -1);
         SetRowLauncher(DetermineStepsCount(source,stepLength),stepLength,matrix,row,source);

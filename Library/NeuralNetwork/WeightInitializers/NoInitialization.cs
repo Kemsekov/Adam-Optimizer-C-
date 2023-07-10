@@ -1,6 +1,4 @@
 namespace GradientDescentSharp.NeuralNetwork.WeightInitializers;
-using MathNet.Numerics.LinearAlgebra.Single;
-
 /// <summary>
 /// No weight initialization implementation. <br/>
 /// Layer creation requires some weight initializer with it, use

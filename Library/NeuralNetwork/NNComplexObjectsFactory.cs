@@ -1,8 +1,5 @@
-using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Single;
-
 namespace GradientDescentSharp.NeuralNetwork;
-
 ///<inheritdoc/>
 public class NNComplexObjectsFactory : IComplexObjectsFactory<float>
 {

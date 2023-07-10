@@ -1,7 +1,4 @@
 using GradientDescentSharp.NeuralNetwork.Specific;
-using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.LinearAlgebra.Single;
-
 namespace GradientDescentSharp.NeuralNetwork;
 public record Gradient(FVector biasesGradients, FVector layerInput );
 /// <summary>

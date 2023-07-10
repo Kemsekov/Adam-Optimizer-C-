@@ -1,6 +1,3 @@
-using MathNet.Numerics.LinearAlgebra.Single;
-using MathNet.Numerics.LinearAlgebra.Single;
-
 namespace GradientDescentSharp.NeuralNetwork.WeightInitializers;
 
 public class HeNormal : IWeightsInit

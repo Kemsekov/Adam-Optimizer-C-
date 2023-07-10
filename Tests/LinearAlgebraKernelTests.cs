@@ -1,6 +1,7 @@
 using GradientDescentSharp.Utils.Kernels;
 using ILGPU;
 using ILGPU.Runtime;
+using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Single;
 
 namespace Tests;
@@ -40,23 +41,70 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
     //to ensure that absolute difference is small.
     double ErrorEpsilon = 0.0001;
     [Fact]
-    public void L2(){
+    public void SetValues(){
         for (int k = 0; k < 10; k++)
         {
             var rows = Random.Shared.Next(100) + 1;
             var cols = Random.Shared.Next(100) + 1;
             var mat = DenseMatrix.Create(rows, cols, (i, j) => Random.Shared.NextSingle());
-            var vec = DenseVector.Create(rows,x=>Random.Shared.NextSingle());
+            var vec = DenseVector.Create(rows, x => Random.Shared.NextSingle());
             using var gpuMat = Context.Provider.CreateMatrix(rows, cols);
             using var gpuVec = Context.Provider.CreateVector(rows);
             gpuMat.CopyFromCPU(mat.ToArray());
             gpuVec.CopyFromCPU(vec.Values);
-            var expectedVecL2 = vec.Values.Sum(x=>x*x);
-            var expectedMatL2 = mat.Values.Sum(x=>x*x);
+
+            Context.Provider.SetValues(gpuMat, (x, y) => x*MathF.PI+y*MathF.E);
+            mat.MapIndexedInplace((x, y, value) => x*MathF.PI+y*MathF.E);
+
+            Context.Provider.SetValues(gpuVec, (x) => x*MathF.PI);
+            vec.MapIndexedInplace((x,value) => x*MathF.PI);
+            
+            CheckSame(mat,gpuMat);
+            CheckSame(vec,gpuVec);
+        }
+    }
+    [Fact]
+    public void MapInplace()
+    {
+        for (int k = 0; k < 10; k++)
+        {
+            var rows = Random.Shared.Next(100) + 1;
+            var cols = Random.Shared.Next(100) + 1;
+            var mat = DenseMatrix.Create(rows, cols, (i, j) => Random.Shared.NextSingle());
+            var vec = DenseVector.Create(rows, x => Random.Shared.NextSingle());
+            using var gpuMat = Context.Provider.CreateMatrix(rows, cols);
+            using var gpuVec = Context.Provider.CreateVector(rows);
+            gpuMat.CopyFromCPU(mat.ToArray());
+            gpuVec.CopyFromCPU(vec.Values);
+
+            Context.Provider.MapIndexedInplace(gpuMat, (x, y, value) => value + x * y);
+            mat.MapIndexedInplace((x, y, value) => value + x * y);
+
+            Context.Provider.MapIndexedInplace(gpuVec, (x, value) => value + x);
+            vec.MapIndexedInplace((x,value) => value + x);
+            CheckSame(mat,gpuMat);
+            CheckSame(vec,gpuVec);
+        }
+    }
+    [Fact]
+    public void L2()
+    {
+        for (int k = 0; k < 10; k++)
+        {
+            var rows = Random.Shared.Next(100) + 1;
+            var cols = Random.Shared.Next(100) + 1;
+            var mat = DenseMatrix.Create(rows, cols, (i, j) => Random.Shared.NextSingle());
+            var vec = DenseVector.Create(rows, x => Random.Shared.NextSingle());
+            using var gpuMat = Context.Provider.CreateMatrix(rows, cols);
+            using var gpuVec = Context.Provider.CreateVector(rows);
+            gpuMat.CopyFromCPU(mat.ToArray());
+            gpuVec.CopyFromCPU(vec.Values);
+            var expectedVecL2 = vec.Values.Sum(x => x * x);
+            var expectedMatL2 = mat.Values.Sum(x => x * x);
             var actualVecL2 = Context.Provider.L2(gpuVec);
             var actualMatL2 = Context.Provider.L2(gpuMat);
-            Assert.True(Math.Abs(expectedVecL2-actualVecL2)<ErrorEpsilon);
-            Assert.True(Math.Abs(expectedMatL2-actualMatL2)<Math.Sqrt(ErrorEpsilon));
+            Assert.True(Math.Abs(expectedVecL2 - actualVecL2) < ErrorEpsilon);
+            Assert.True(Math.Abs(expectedMatL2 - actualMatL2) < Math.Sqrt(ErrorEpsilon));
         }
     }
     [Fact]
@@ -207,20 +255,8 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
             Context.Provider.MatrixVectorMul(gpuVec1, gpuMat, actualLeft);
             Context.Provider.MatrixVectorMul(gpuMat, gpuVec2, actualRight);
 
-            for (int i = 0; i < expectedRight.Count; i++)
-            {
-                var diff = Math.Abs(expectedRight[i] - actualRight.View.At(i));
-                var last1 = expectedRight[^1];
-                var last2 = actualRight.View.At(expectedRight.Count-1);
-                Assert.True(diff < ErrorEpsilon);
-            }
-            for (int i = 0; i < expectedLeft.Count; i++)
-            {
-                var diff = Math.Abs(expectedLeft[i] - actualLeft.View.At(i));
-                var last1 = expectedLeft[^1];
-                var last2 = actualLeft.View.At(expectedLeft.Count-1);
-                Assert.True(diff < ErrorEpsilon);
-            }
+            CheckSame(expectedRight,actualRight);
+            CheckSame(expectedLeft,actualLeft);
         }
     }
     [Fact]
@@ -311,7 +347,7 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
             Assert.True(diff < 0.01);
         }
     }
-    void CheckSame(DenseMatrix expected, MemoryBuffer2D<float, Stride2D.DenseY> actual)
+    void CheckSame(Matrix<float> expected, MemoryBuffer2D<float, Stride2D.DenseY> actual)
     {
         for (int i = 0; i < expected.RowCount; i++)
             for (int j = 0; j < expected.ColumnCount; j++)
@@ -319,5 +355,13 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
                 var difference = Math.Abs(expected[i, j] - actual.View.At(i, j));
                 Assert.True(difference < ErrorEpsilon);
             }
+    }
+    void CheckSame(Vector<float> extected, MemoryBuffer1D<float, Stride1D.Dense> actual)
+    {
+        for (int i = 0; i < extected.Count; i++)
+        {
+            var diff = Math.Abs(extected[i] - actual.View.At(i));
+            Assert.True(diff < ErrorEpsilon);
+        }
     }
 }

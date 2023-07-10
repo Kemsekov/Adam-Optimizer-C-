@@ -1,5 +1,3 @@
-using MathNet.Numerics.LinearAlgebra.Single;
-
 namespace GradientDescentSharp.NeuralNetwork;
 /// <summary>
 /// Wrapper around neural network that limits it's capabilities to only predicting values

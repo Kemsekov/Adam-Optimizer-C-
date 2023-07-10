@@ -1,4 +1,3 @@
-using MathNet.Numerics.LinearAlgebra.Single;
 namespace GradientDescentSharp.NeuralNetwork.WeightInitializers;
 
 /// <summary>

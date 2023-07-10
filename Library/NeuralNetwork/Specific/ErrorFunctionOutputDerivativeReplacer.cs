@@ -1,5 +1,3 @@
-using MathNet.Numerics.LinearAlgebra.Single;
-
 namespace GradientDescentSharp.NeuralNetwork.Specific;
 
 /// <summary>
