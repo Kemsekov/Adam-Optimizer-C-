@@ -22,7 +22,7 @@ public class MineDescent : GradientDescentBase
     }
     void ComputeChangeMine(IDataAccess<double> change, double learningRate, double currentEvaluation)
     {
-        ComputeGradient(change, currentEvaluation);
+        ComputeGradient(change,Variables, currentEvaluation);
         var length = Math.Sqrt(change.Sum(x => x * x));
         if (length == 0)
         {

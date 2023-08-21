@@ -1,6 +1,9 @@
 using GradientDescentSharp.NeuralNetwork.Specific;
 namespace GradientDescentSharp.NeuralNetwork;
-public record Gradient(FVector biasesGradients, FVector layerInput );
+/// <summary>
+/// Gradient storage
+/// </summary>
+public record Gradient(FVector biasesGradients, FVector layerInput);
 /// <summary>
 /// Basic neural network implementation, with some additional features
 /// </summary>

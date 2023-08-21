@@ -130,7 +130,7 @@ public class NaturalDescent : GradientDescentBase
     }
     void ComputeChange(IDataAccess<double> change, double learningRate, double currentEvaluation, Matrix fisherInformationInverse)
     {
-        ComputeGradient(change, currentEvaluation);
+        ComputeGradient(change,Variables, currentEvaluation);
         var gradientVector = new ComplexObjectsFactory(change).CreateVector(change.Length);
         var result = learningRate*fisherInformationInverse*gradientVector;
         for(int i = 0;i<change.Length;i++)

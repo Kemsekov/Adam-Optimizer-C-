@@ -6,6 +6,8 @@ using MatrixView = ILGPU.Runtime.ArrayView2D<float, ILGPU.Stride2D.DenseY>;
 using VectorView = ILGPU.Runtime.ArrayView1D<float, ILGPU.Stride1D.Dense>;
 using VectorBuffer = ILGPU.Runtime.MemoryBuffer1D<float, ILGPU.Stride1D.Dense>;
 using MatrixBuffer = ILGPU.Runtime.MemoryBuffer2D<float, ILGPU.Stride2D.DenseY>;
+using ILGPU.Runtime.Cuda;
+
 namespace GradientDescentSharp.Utils.Kernels;
 
 public record DisposableLinearAlgebraProvider(Context Context, Accelerator Accelerator, LinearAlgebraProvider Provider) : IDisposable
@@ -41,7 +43,7 @@ public unsafe class LinearAlgebraProvider
     /// </summary>
     public static void CompileAllKernels(bool preferCpu = false)
     {
-        using var source = LinearAlgebraProvider.Create(preferCpu);
+        using var source = Create(preferCpu);
         var provider = source.Provider;
         var kernels = new dynamic[]{
             provider.AddOuterProductLauncher,
@@ -56,6 +58,7 @@ public unsafe class LinearAlgebraProvider
     public LinearAlgebraProvider(Accelerator accelerator)
     {
         Accelerator = accelerator;
+
     }
 
     protected Action<Index1D, MatrixView, VectorView, VectorView, float> AddOuterProductLauncher =>
@@ -111,16 +114,17 @@ public unsafe class LinearAlgebraProvider
 
     public Accelerator Accelerator { get; }
     /// <returns>
-    /// Vector of given size. DO NOT FORGET TO DISPOSE IT!
+    /// Vector of given size. DO NOT FORGET TO DISPOSE IT! Or it will be automatically disposed by GC,
+    /// but with big matrices and vectors it works bad
     /// </returns>
     public VectorBuffer CreateVector(int length)
         =>Accelerator.Allocate1D<float>(length);
     /// <returns>
-    /// Matrix of given size. DO NOT FORGET TO DISPOSE IT!
+    /// Matrix of given size. DO NOT FORGET TO DISPOSE IT!Or it will be automatically disposed by GC,
+    /// but with big matrices and vectors it works bad
     /// </returns>
     public MatrixBuffer CreateMatrix(int rows, int columns)
         =>Accelerator.Allocate2DDenseY<float>((rows,columns));
-    // TODO: test
     /// <summary>
     /// Sets values of given matrix using map function
     /// </summary>
@@ -138,11 +142,11 @@ public unsafe class LinearAlgebraProvider
             matrix.SubView((x,0),(1,matrix.Extent.Y)).AsGeneral().BaseView.CopyFromCPU(array);
         });
     }
-    // TODO: test
     /// <summary>
     /// Sets values of vector by setter function
     /// </summary>
     public void SetValues(VectorView vector, Func<int,float> setter){
+        // new ILGPU.Runtime.Cuda.CuBlas(null).
         var tmp = new float[vector.Length];
         for(int i = 0;i<tmp.Length;i++)
             tmp[i] = setter(i);
@@ -206,7 +210,7 @@ public unsafe class LinearAlgebraProvider
     /// Adds m1 and m2, as result=m1+multiplier*m2;<br/>
     /// where multiplier is float
     /// </summary>
-    public void AddMatrices(MatrixView m1, MatrixView m2, float multiplier, MatrixView result)
+    public virtual void AddMatrices(MatrixView m1, MatrixView m2, float multiplier, MatrixView result)
     {
         AddMatricesLauncher((Index1D)result.Extent.X, m1, m2, multiplier, result);
     }
@@ -215,7 +219,7 @@ public unsafe class LinearAlgebraProvider
     /// where multiplier is float <br/>
     /// stepLength is how many numbers of result vector to process on single work unit
     /// </summary>
-    public void AddVectors(VectorView v1, VectorView v2, float multiplier, VectorView result, int stepLength = -1)
+    public virtual void AddVectors(VectorView v1, VectorView v2, float multiplier, VectorView result, int stepLength = -1)
     {
         stepLength = DetermineStepLength(v1, stepLength);
         AddVectorsLauncher(DetermineStepsCount(v1,stepLength), v1, v2, multiplier, result, stepLength);
@@ -238,41 +242,41 @@ public unsafe class LinearAlgebraProvider
     /// <summary>
     /// result=m*v
     /// </summary>
-    public void MatrixVectorMul(MatrixView m, VectorView v, VectorView result)
+    public virtual void MatrixVectorMul(MatrixView m, VectorView v, VectorView result)
     {
         MatrixVectorRightSideMulLauncher((int)result.Extent, m, v, result);
     }
     /// <summary>
     /// result=v*m
     /// </summary>
-    public void MatrixVectorMul(VectorView v, MatrixView m, VectorView result)
+    public virtual void MatrixVectorMul(VectorView v, MatrixView m, VectorView result)
     {
         MatrixVectorLeftSideMulLauncher((int)result.Extent, m, v, result);
     }
     /// <summary>
     /// result=m1*m2
     /// </summary>
-    public void MatrixMul(MatrixView m1, MatrixView m2, MatrixView result)
+    public virtual void MatrixMul(MatrixView m1, MatrixView m2, MatrixView result)
     {
         MatrixMulLauncher((Index2D)result.Extent, m1, m2, result);
     }
     /// <summary>
     /// Computes outer product of vector1 and vector2, multiplies it by multiplier and adds to matrix
     /// </summary>
-    public void AddOuterProduct(MatrixView m1, VectorView v1, VectorView v2, float multiplier)
+    public virtual void AddOuterProduct(MatrixView m1, VectorView v1, VectorView v2, float multiplier)
     {
         AddOuterProductLauncher((Index1D)m1.Extent.X, m1, v1, v2, multiplier);
     }
     /// <returns>
     /// L2 norm of vector = v1^2+v2^2+v3^2...
     /// </returns>
-    public float L2(VectorView vector){
+    public virtual float L2(VectorView vector){
         return Dot(vector,vector);
     }
     /// <returns>
     /// L2 norm of matrix = m11^2+m12^2...+m21^2+m22^2+...
     /// </returns>
-    public float L2(MatrixView matrix){
+    public virtual float L2(MatrixView matrix){
         using var result = Accelerator.Allocate1D<float>(matrix.Extent.X);
         MatrixL2Launcher((Index1D)matrix.Extent.X,matrix,result);
         return result.GetAsArray1D().Sum();
@@ -281,7 +285,7 @@ public unsafe class LinearAlgebraProvider
     /// Divides a vectors into "stepLength" chunks and compute dot product in each chunk.<br/>
     /// </summary>
     /// <param name="stepLength">Will be set automatically if left to -1</param>
-    public float Dot(VectorView v1, VectorView v2, int stepLength = -1)
+    public virtual float Dot(VectorView v1, VectorView v2, int stepLength = -1)
     {
         stepLength = DetermineStepLength(v2, stepLength);
         var size = DetermineStepsCount(v1,stepLength);
@@ -413,5 +417,52 @@ public unsafe class LinearAlgebraProvider
             sum +=tmp*tmp;
         }
         result[index]=sum;
+    }
+}
+
+public unsafe class CudaLinearAlgebraProvider : LinearAlgebraProvider
+{
+    public CudaLinearAlgebraProvider(Accelerator accelerator) : base(accelerator)
+    {
+        if(accelerator is CudaAccelerator cuAcc)
+            CuBlas = new CuBlas(cuAcc);
+    }
+    public CuBlas CuBlas { get; }
+    public override void AddMatrices(MatrixView m1, MatrixView m2, float multiplier, MatrixView result)
+    {
+        // CuBlas.Geam(CuBlasOperation.NonTranspose,CuBlasOperation.NonTranspose,m1.Extent.X,m1.Extent.Y,multiplier,m1,)
+        base.AddMatrices(m1, m2, multiplier, result);
+    }
+    public override void AddOuterProduct(MatrixView m1, VectorView v1, VectorView v2, float multiplier)
+    {
+        base.AddOuterProduct(m1, v1, v2, multiplier);
+    }
+    public override void AddVectors(VectorView v1, VectorView v2, float multiplier, VectorView result, int stepLength = -1)
+    {
+        base.AddVectors(v1, v2, multiplier, result, stepLength);
+    }
+    public override float Dot(VectorView v1, VectorView v2, int stepLength = -1)
+    {
+        return base.Dot(v1, v2, stepLength);
+    }
+    public override float L2(MatrixView matrix)
+    {
+        return base.L2(matrix);
+    }
+    public override float L2(VectorView vector)
+    {
+        return base.L2(vector);
+    }
+    public override void MatrixMul(MatrixView m1, MatrixView m2, MatrixView result)
+    {
+        base.MatrixMul(m1, m2, result);
+    }
+    public override void MatrixVectorMul(MatrixView m, VectorView v, VectorView result)
+    {
+        base.MatrixVectorMul(m, v, result);
+    }
+    public override void MatrixVectorMul(VectorView v, MatrixView m, VectorView result)
+    {
+        base.MatrixVectorMul(v, m, result);
     }
 }

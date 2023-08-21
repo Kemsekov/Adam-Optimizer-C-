@@ -163,7 +163,7 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
         }
     }
     [Fact]
-    public void AddMatricies()
+    public void AddMatrices()
     {
         for (int k = 0; k < 10; k++)
         {
@@ -356,11 +356,11 @@ public class LinearAlgebraKernelTests : IClassFixture<GpuContextFixture>
                 Assert.True(difference < ErrorEpsilon);
             }
     }
-    void CheckSame(Vector<float> extected, MemoryBuffer1D<float, Stride1D.Dense> actual)
+    void CheckSame(Vector<float> expected, MemoryBuffer1D<float, Stride1D.Dense> actual)
     {
-        for (int i = 0; i < extected.Count; i++)
+        for (int i = 0; i < expected.Count; i++)
         {
-            var diff = Math.Abs(extected[i] - actual.View.At(i));
+            var diff = Math.Abs(expected[i] - actual.View.At(i));
             Assert.True(diff < ErrorEpsilon);
         }
     }

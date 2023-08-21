@@ -24,7 +24,7 @@ public class AdamDescent : GradientDescentBase
     }
     void ComputeChangeAdam(IDataAccess<double> change, double learningRate, double currentEvaluation, int iteration)
     {
-        ComputeGradient(change, currentEvaluation);
+        ComputeGradient(change,Variables, currentEvaluation);
         var gradient = change;
         int t = iteration; // The timestep counter
 
