@@ -71,6 +71,7 @@ public class NaturalDescent : GradientDescentBase
             }
 
             using var derivative = derivativeOfLikelihood(variables);
+            if(derivative.Any(double.IsNaN)) return;
             lock(result)
                 result.MapIndexedInplace((i,x)=>x+derivative[i]*derivative[i]);
         });
@@ -97,6 +98,7 @@ public class NaturalDescent : GradientDescentBase
             }
 
             using var derivative = derivativeOfLikelihood(variables);
+            if(derivative.Any(double.IsNaN)) return;
             lock (matrix)
                 for (int i = 0; i < Dimensions; i++)
                 {
