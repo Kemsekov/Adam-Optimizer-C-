@@ -1,4 +1,5 @@
 
+#pragma warning disable
 using System.Diagnostics;
 using ILGPU;
 using ILGPU.Runtime;
@@ -9,7 +10,6 @@ using MatrixBuffer = ILGPU.Runtime.MemoryBuffer2D<float, ILGPU.Stride2D.DenseY>;
 using ILGPU.Runtime.Cuda;
 
 namespace GradientDescentSharp.Utils.Kernels;
-
 public record DisposableLinearAlgebraProvider(Context Context, Accelerator Accelerator, LinearAlgebraProvider Provider) : IDisposable
 {
     ~DisposableLinearAlgebraProvider()

@@ -1,4 +1,7 @@
 namespace GradientDescentSharp.Utils;
+/// <summary>
+/// Extensions for <see cref="IDataAccess{T}"/> 
+/// </summary>
 public static class DataAccessExtensions
 {
     /// <summary>

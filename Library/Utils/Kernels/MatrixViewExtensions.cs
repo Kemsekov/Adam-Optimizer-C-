@@ -1,18 +1,24 @@
+#pragma warning disable
 using ILGPU.Runtime;
 using MatrixView = ILGPU.Runtime.ArrayView2D<float, ILGPU.Stride2D.DenseY>;
 using VectorView = ILGPU.Runtime.ArrayView1D<float, ILGPU.Stride1D.Dense>;
 namespace GradientDescentSharp.Utils.Kernels;
 
-public static class MatrixViewExtensions
+/// <summary>
+/// Gpu view extensions
+/// </summary>
+public static class GpuViewExtensions
 {
-
+    /// <returns>Value from vector on gpu under given index</returns>
     public static float At(this VectorView v, int index)
     {
         var result = new float[1];
         v.SubView(index, 1).CopyToCPU(result);
         return result[0];
     }
-
+    /// <summary>
+    /// Stores value on gpu vector under given index
+    /// </summary>
     public static void At(this VectorView v, int index, float value)
     {
         var result = new float[1];

@@ -21,7 +21,9 @@ public class GradientDataAccess<T> : IDataAccess<T>
         ChangedIndex = changedIndex;
         ChangedValue = changedValue;
     }
-
+    /// <summary>
+    /// Get and set value under given index
+    /// </summary>
     public T this[int index]
     {
         get => (index == ChangedIndex) ? ChangedValue : DataAccess[index];
@@ -44,11 +46,22 @@ public class GradientDataAccess<T> : IDataAccess<T>
         ChangedIndex = changedIndex;
         ChangedValue = changedValue;
     }
+    /// <summary>
+    /// Source of data access
+    /// </summary>
     public IDataAccess<T> DataAccess { get; }
+    /// <summary>
+    /// Changed index, the value that we nudge to compute derivative
+    /// </summary>
     public int ChangedIndex { get; protected set; }
+    /// <summary>
+    /// Value nudge
+    /// </summary>
     public T ChangedValue { get; protected set; }
-    public int Length => DataAccess.Length;
+    ///<inheritdoc/>
 
+    public int Length => DataAccess.Length;
+    ///<inheritdoc/>
     public IEnumerator<T> GetEnumerator()
     {
         for (int i = 0; i < Length; i++)

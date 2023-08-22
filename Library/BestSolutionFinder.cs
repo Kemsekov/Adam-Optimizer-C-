@@ -13,6 +13,9 @@ public class BestSolutionFinder
     /// Variables length of error function input
     /// </summary>
     int VariablesLength;
+    /// <summary>
+    /// Func that is used to create gradient descent
+    /// </summary>
     public Func<IDataAccess<double>, IGradientDescent> GradientDescentFactory { get; }
     /// <summary>
     /// How many solutions to build

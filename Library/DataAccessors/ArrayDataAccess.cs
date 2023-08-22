@@ -5,6 +5,9 @@ namespace GradientDescentSharp.DataAccessors;
 /// <typeparam name="T"></typeparam>
 public class ArrayDataAccess<T> : IDataAccess<T>
 {
+    /// <summary>
+    /// Creates new <see cref="ArrayDataAccess{T}"/> 
+    /// </summary>
     public ArrayDataAccess(T[] array)
     {
         Array = array;
@@ -16,6 +19,9 @@ public class ArrayDataAccess<T> : IDataAccess<T>
     {
         Array = new T[length];
     }
+    /// <summary>
+    /// Get and set value under given index
+    /// </summary>
     public T this[int index]
     {
         get => Array[index];
@@ -29,11 +35,14 @@ public class ArrayDataAccess<T> : IDataAccess<T>
     /// Length of base array
     /// </summary>
     public int Length => Array.Length;
+    ///<inheritdoc/>
     public IEnumerator<T> GetEnumerator()
     {
         foreach (var v in Array) yield return v;
     }
     IEnumerator IEnumerable.GetEnumerator() => Array.GetEnumerator();
+    ///<inheritdoc/>
     public static implicit operator T[](ArrayDataAccess<T> t) => t.Array;
+    ///<inheritdoc/>
     public static implicit operator ArrayDataAccess<T>(T[] t) => new(t);
 }

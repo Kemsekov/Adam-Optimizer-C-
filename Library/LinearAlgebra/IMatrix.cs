@@ -1,4 +1,5 @@
 namespace GradientDescentSharp.LinearAlgebra;
+//TODO: COMPLETE
 //this is not full and proper definition of vector and matrix,
 //but rather it is a proxy interface to any proper implementation
 //definition here is just a bone minimum that I currently use for 
