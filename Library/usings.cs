@@ -8,5 +8,9 @@ global using GradientDescentSharp.NeuralNetwork.WeightInitializers;
 global using MathNet.Numerics.LinearAlgebra;
 //float vector
 global using FVector=MathNet.Numerics.LinearAlgebra.Vector<float>;
+global using DVector=MathNet.Numerics.LinearAlgebra.Vector<double>;
+global using CVector=MathNet.Numerics.LinearAlgebra.Vector<MathNet.Numerics.Complex32>;
 //float matrix
 global using FMatrix=MathNet.Numerics.LinearAlgebra.Matrix<float>;
+global using DMatrix=MathNet.Numerics.LinearAlgebra.Matrix<double>;
+global using CMatrix=MathNet.Numerics.LinearAlgebra.Matrix<MathNet.Numerics.Complex32>;

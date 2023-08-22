@@ -12,3 +12,14 @@ public class CustomVector : Vector
     {
     }
 }
+
+/// <summary>
+/// Custom vector that store it's values on data accessors that can be used by gradient descent
+/// </summary>
+public class CustomVectorSingle : MathNet.Numerics.LinearAlgebra.Single.Vector
+{
+    ///<inheritdoc/>
+    public CustomVectorSingle(VectorStorage<float> storage) : base(storage)
+    {
+    }
+}

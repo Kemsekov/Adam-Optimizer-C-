@@ -1,5 +1,8 @@
 namespace GradientDescentSharp.GradientDescents;
 
+/// <summary>
+/// Gradient descent interface
+/// </summary>
 public interface IGradientDescent
 {
     /// <summary>

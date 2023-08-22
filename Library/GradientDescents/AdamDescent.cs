@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace GradientDescentSharp.GradientDescents;
 
 /// <summary>
@@ -6,23 +8,39 @@ namespace GradientDescentSharp.GradientDescents;
 /// the model rollback it's values, reduce the learning rate and step again.<br/>
 /// It is guaranteed to find local minima.
 /// </summary>
-public class AdamDescent : GradientDescentBase
+public abstract class AdamDescent<TFloat> : GradientDescentBase<TFloat>
+where TFloat : unmanaged,INumber<TFloat>
 {
     /// <summary>
     /// Descent process can be logged here
     /// </summary>
     public ILogger? Logger;
-    RentedArray<double> firstMomentum;
-    RentedArray<double> secondMomentum;
-    public double Beta1 = 0.9;
-    public double Beta2 = 0.99;
-    
-    public AdamDescent(IDataAccess<double> variables, Func<IDataAccess<double>, double> function) : base(variables, function)
+    RentedArray<TFloat> firstMomentum;
+    RentedArray<TFloat> secondMomentum;
+    /// <summary>
+    /// Adam descent beta1 coefficient
+    /// </summary>
+    public TFloat Beta1;
+    /// <summary>
+    /// Adam descent beta2 coefficient
+    /// </summary>
+    public TFloat Beta2;
+    /// <summary>
+    /// Creates new instance of adam descent
+    /// </summary>
+    ///<inheritdoc/>
+    public AdamDescent(IDataAccess<TFloat> variables, Func<IDataAccess<TFloat>, TFloat> function) : base(variables, function)
     {
-        firstMomentum = ArrayPoolStorage.RentArray<double>(Dimensions);
-        secondMomentum = ArrayPoolStorage.RentArray<double>(Dimensions);
+        Beta1 = (TFloat)(0.9 as dynamic);
+        Beta2 = (TFloat)(0.99 as dynamic);
+        firstMomentum = ArrayPoolStorage.RentArray<TFloat>(Dimensions);
+        secondMomentum = ArrayPoolStorage.RentArray<TFloat>(Dimensions);
     }
-    void ComputeChangeAdam(IDataAccess<double> change, double learningRate, double currentEvaluation, int iteration)
+    /// <summary>
+    /// Computes sqrt from value
+    /// </summary>
+    protected abstract TFloat Sqrt(TFloat value);
+    void ComputeChangeAdam(IDataAccess<TFloat> change, TFloat learningRate, TFloat currentEvaluation, int iteration)
     {
         ComputeGradient(change,Variables, currentEvaluation);
         var gradient = change;
@@ -32,25 +50,25 @@ public class AdamDescent : GradientDescentBase
         Parallel.For(0,Dimensions,i=>
         {
             // Update the biased first moment estimate
-            firstMomentum[i] = Beta1 * firstMomentum[i] + (1 - Beta1) * gradient[i];
+            firstMomentum[i] = Beta1 * firstMomentum[i] + (TFloat.One - Beta1) * gradient[i];
 
             // Update the biased second moment estimate
-            secondMomentum[i] = Beta2 * secondMomentum[i] + (1 - Beta2) * gradient[i] * gradient[i];
-
+            secondMomentum[i] = Beta2 * secondMomentum[i] + (TFloat.One - Beta2) * gradient[i] * gradient[i];
             // Compute the bias-corrected first moment estimate
-            double m_hat = firstMomentum[i] / (1 - Math.Pow(Beta1, t));
+            TFloat m_hat = firstMomentum[i] / (TFloat.One - Math<TFloat>.Pow(Beta1, t));
 
             // Compute the bias-corrected second moment estimate
-            double v_hat = secondMomentum[i] / (1 - Math.Pow(Beta2, t));
+            TFloat v_hat = secondMomentum[i] / (TFloat.One - Math<TFloat>.Pow(Beta2, t));
 
             // Update the parameters    
-            change[i] = learningRate * m_hat / (Math.Sqrt(v_hat) + Epsilon);
+            change[i] = learningRate * m_hat / (Sqrt(v_hat) + Epsilon);
         });
     }
+    ///<inheritdoc/>
     public override int Descent(int maxIterations)
     {
         Logger?.LogLine("--------------Adam descent began");
-        using RentedArrayDataAccess<double> change = new(ArrayPoolStorage.RentArray<double>(Dimensions));
+        using RentedArrayDataAccess<TFloat> change = new(ArrayPoolStorage.RentArray<TFloat>(Dimensions));
         var iterations = 0;
         var descentRate = DescentRate;
         var beforeStep = Evaluate(Variables);
@@ -59,7 +77,7 @@ public class AdamDescent : GradientDescentBase
             ComputeChangeAdam(change, descentRate, beforeStep,iterations);
             Step(change);
             var afterStep = Evaluate(Variables);
-            var diff = Math.Abs(afterStep - beforeStep);
+            var diff = Math<TFloat>.Abs(afterStep - beforeStep);
             Logger?.LogLine($"Error is {afterStep}");
             Logger?.LogLine($"Changed by {diff}");
             if (diff <= Theta) break;    
@@ -67,7 +85,7 @@ public class AdamDescent : GradientDescentBase
             {
                 Logger?.LogLine($"Undo step, decreasing descentRate.");
                 UndoStep(change);
-                descentRate *= 1 - Beta1;
+                descentRate *= TFloat.One - Beta1;
             }
             else{
                 beforeStep = afterStep;
@@ -77,4 +95,25 @@ public class AdamDescent : GradientDescentBase
         Logger?.LogLine($"--------------Adam done in {iterations} iterations");
         return iterations;
     }
+}
+///<inheritdoc/>
+public class AdamDescent : AdamDescent<double>
+{
+    ///<inheritdoc/>
+    public AdamDescent(IDataAccess<double> variables, Func<IDataAccess<double>, double> function) : base(variables, function)
+    {
+    }
+    ///<inheritdoc/>
+    protected override double Sqrt(double value)=>Math.Sqrt(value);
+}
+
+///<inheritdoc/>
+public class AdamDescentSingle : AdamDescent<float>
+{
+    ///<inheritdoc/>
+    public AdamDescentSingle(IDataAccess<float> variables, Func<IDataAccess<float>, float> function) : base(variables, function)
+    {
+    }
+    ///<inheritdoc/>
+    protected override float Sqrt(float value)=>MathF.Sqrt(value);
 }

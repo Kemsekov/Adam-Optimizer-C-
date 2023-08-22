@@ -12,3 +12,14 @@ public class CustomMatrix : Matrix
     {
     }
 }
+
+/// <summary>
+/// Custom matrix
+/// </summary>
+public class CustomMatrixSingle : MathNet.Numerics.LinearAlgebra.Single.Matrix
+{
+    ///<inheritdoc/>
+    public CustomMatrixSingle(MatrixStorage<float> storage) : base(storage)
+    {
+    }
+}

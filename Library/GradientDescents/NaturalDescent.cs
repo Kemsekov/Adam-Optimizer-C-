@@ -1,31 +1,32 @@
+using System.Numerics;
 using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.LinearAlgebra.Double;
 
 namespace GradientDescentSharp.GradientDescents;
 
 /// <summary>
 /// Performs natural descent using fisher information matrix
 /// </summary>
-public class NaturalDescent : GradientDescentBase
+public abstract class NaturalDescent<TFloat> : GradientDescentBase<TFloat>
+where TFloat : unmanaged, INumber<TFloat>
 {
     /// <summary>
     /// Descent process can be logged here
     /// </summary>
     public ILogger? Logger;
-    Func<IDataAccess<double>, double> likelihood;
+    Func<IDataAccess<TFloat>, TFloat> likelihood;
     /// <summary>
     /// Used to randomly sample given parameters.<br/>
     /// When computing fisher information, we will need to compute expectation over
     /// some range of parameter space over some function, so this method is used
     /// to generate parameters.
     /// </summary>
-    public Func<int, double> GenerateParameterSample;
+    public Func<int, TFloat> GenerateParameterSample;
     /// <summary>
     /// How much decrease descent rate when we step into bigger error value.<br/>
     /// By default it is 0.1, so when we step into worse error function value,
     /// we will divide  learning rate by 10.
     /// </summary>
-    public double DescentRateDecreaseRate = 0.1;
+    public TFloat DescentRateDecreaseRate = (TFloat)(0.1 as dynamic);
     /// <summary>
     /// To compute expectation for fisher information, we need to generate a range of samples.
     /// This parameter describes how many of them to generate.<br/> 
@@ -33,17 +34,41 @@ public class NaturalDescent : GradientDescentBase
     /// exponentially proportional to parameters dimensions
     /// </summary>
     public int ExpectationsSampleCount = 100;
-    Matrix? FisherInformationMatrixInverse = null;
-    public NaturalDescent(IDataAccess<double> variables, Func<IDataAccess<double>, double> function) : base(variables, function)
+    Matrix<TFloat>? FisherInformationMatrixInverse = null;
+    /// <summary>
+    /// Method to get log of value
+    /// </summary>
+    protected abstract TFloat Log(TFloat value);
+    /// <summary>
+    /// Returns random float
+    /// </summary>
+    protected abstract TFloat Random();
+    /// <summary>
+    /// Returns empty vector of length
+    /// </summary>
+    protected abstract MathNet.Numerics.LinearAlgebra.Vector<TFloat> EmptyVector(int length);
+    /// <summary>
+    /// Returns empty matrix of given size
+    /// </summary>
+    protected abstract MathNet.Numerics.LinearAlgebra.Matrix<TFloat> EmptyMatrix(int rows,int cols);
+    /// <summary>
+    /// Creates complex objects factory of given TFloat type
+    /// </summary>
+    protected abstract IComplexObjectsFactory<TFloat> ComplexObjectsFactory(IDataAccess<TFloat> data);
+    /// <summary>
+    /// Creates natural descent <see cref="NaturalDescent"/> 
+    /// </summary>
+    ///<inheritdoc/>    
+    public NaturalDescent(IDataAccess<TFloat> variables, Func<IDataAccess<TFloat>, TFloat> function) : base(variables, function)
     {
         //to transform error function to likelihood function, use following mapping
-        likelihood = (IDataAccess<double> x) =>
+        likelihood = (IDataAccess<TFloat> x) =>
         {
             var err = function(x);
             // return Math.Exp(-err) * (err + 1) / 2;
-            return Math.Log(err+1)-err;
+            return Log(err+TFloat.One)-err;
         };
-        GenerateParameterSample = i => Random.Shared.NextDouble() * 2 - 1;
+        GenerateParameterSample = i => Random();
     }
     /// <summary>
     /// Computes fisher information for each variable, can be used to determine whether changing given 
@@ -56,26 +81,29 @@ public class NaturalDescent : GradientDescentBase
     /// </param>
     /// <returns>
     /// Fisher information for each of data parameters. <br/>
-    /// Call <see cref="Vector.Normalize(double)"/> with parameter 1 on this method output
+    /// Call Vector.Normalize() with parameter 1 on this method output
     /// to get percentage of parameter influence on problem function
     /// </returns>
-    public Vector FisherInformation(int expectationsSampleCount = 0){
+    public MathNet.Numerics.LinearAlgebra.Vector<TFloat> FisherInformation(int expectationsSampleCount = 0){
         expectationsSampleCount = expectationsSampleCount==0 ? ExpectationsSampleCount : expectationsSampleCount;
-        var result = DenseVector.Create(Dimensions,0);
+        var result = EmptyVector(Dimensions);
         Parallel.For(0, expectationsSampleCount, k =>{
-            using var arr = ArrayPoolStorage.RentArray<double>(Dimensions);
-            var variables = new RentedArrayDataAccess<double>(arr);
+            using var arr = ArrayPoolStorage.RentArray<TFloat>(Dimensions);
+            var variables = new RentedArrayDataAccess<TFloat>(arr);
             for (int i = 0; i < variables.Length; i++)
             {
                 variables[i] = GenerateParameterSample(i);
             }
 
             using var derivative = derivativeOfLikelihood(variables);
-            if(derivative.Any(double.IsNaN)) return;
+            if(derivative.Any(TFloat.IsNaN)) return;
             lock(result)
                 result.MapIndexedInplace((i,x)=>x+derivative[i]*derivative[i]);
         });
-        result.MapInplace(x=>x/expectationsSampleCount);
+
+        var convertedExpectationsSampleCount = (TFloat)(expectationsSampleCount as dynamic);
+
+        result.MapInplace(x=>x/convertedExpectationsSampleCount);
         return result;
     }
     /// <summary>
@@ -84,21 +112,21 @@ public class NaturalDescent : GradientDescentBase
     /// computed information matrix as average of sample results.
     /// </summary>
     /// <returns></returns>
-    public Matrix ComputeFisherInformationMatrix(int expectationsSampleCount)
+    public Matrix<TFloat> ComputeFisherInformationMatrix(int expectationsSampleCount)
     {
         expectationsSampleCount = expectationsSampleCount==0 ? ExpectationsSampleCount : expectationsSampleCount;
-        var matrix = DenseMatrix.Create(Dimensions, Dimensions, 0);
+        var matrix = EmptyMatrix(Dimensions,Dimensions);
         Parallel.For(0, expectationsSampleCount, k =>
         {
-            using var arr = ArrayPoolStorage.RentArray<double>(Dimensions);
-            var variables = new RentedArrayDataAccess<double>(arr);
+            using var arr = ArrayPoolStorage.RentArray<TFloat>(Dimensions);
+            var variables = new RentedArrayDataAccess<TFloat>(arr);
             for (int i = 0; i < variables.Length; i++)
             {
                 variables[i] = GenerateParameterSample(i);
             }
 
             using var derivative = derivativeOfLikelihood(variables);
-            if(derivative.Any(double.IsNaN)) return;
+            if(derivative.Any(TFloat.IsNaN)) return;
             lock (matrix)
                 for (int i = 0; i < Dimensions; i++)
                 {
@@ -110,16 +138,18 @@ public class NaturalDescent : GradientDescentBase
                     }
                 }
         });
-        matrix.MapInplace(x => x / expectationsSampleCount);
+        var convertedExpectationsSampleCount = (TFloat)(expectationsSampleCount as dynamic);
+
+        matrix.MapInplace(x => x / convertedExpectationsSampleCount);
         return matrix;
     }
     /// <summary>
     /// This method computes derivative of likelihood function,
     /// which is used for computing fisher information matrix
     /// </summary>
-    RentedArray<double> derivativeOfLikelihood(IDataAccess<double> Variables)
+    RentedArray<TFloat> derivativeOfLikelihood(IDataAccess<TFloat> Variables)
     {
-        var derivativeOfLikelihood = ArrayPoolStorage.RentArray<double>(Variables.Length);
+        var derivativeOfLikelihood = ArrayPoolStorage.RentArray<TFloat>(Variables.Length);
         var c = likelihood(Variables);
         for (int i = 0; i < Variables.Length; i++)
         {
@@ -130,21 +160,22 @@ public class NaturalDescent : GradientDescentBase
         };
         return derivativeOfLikelihood;
     }
-    void ComputeChange(IDataAccess<double> change, double learningRate, double currentEvaluation, Matrix fisherInformationInverse)
+    void ComputeChange(IDataAccess<TFloat> change, TFloat learningRate, TFloat currentEvaluation, Matrix<TFloat> fisherInformationInverse)
     {
         ComputeGradient(change,Variables, currentEvaluation);
-        var gradientVector = new ComplexObjectsFactory(change).CreateVector(change.Length);
+        var gradientVector = ComplexObjectsFactory(change).CreateVector(change.Length);
         var result = learningRate*fisherInformationInverse*gradientVector;
         for(int i = 0;i<change.Length;i++)
             change[i] = result[i];
     }
+    ///<inheritdoc/>
     public override int Descent(int maxIterations)
     {
         Logger?.LogLine("--------------Natural descent began");
 
-        FisherInformationMatrixInverse ??= (Matrix)ComputeFisherInformationMatrix(ExpectationsSampleCount).Inverse();
+        FisherInformationMatrixInverse ??= ComputeFisherInformationMatrix(ExpectationsSampleCount).Inverse();
 
-        using RentedArrayDataAccess<double> change = new(ArrayPoolStorage.RentArray<double>(Dimensions));
+        using RentedArrayDataAccess<TFloat> change = new(ArrayPoolStorage.RentArray<TFloat>(Dimensions));
         var iterations = 0;
         var descentRate = DescentRate;
         var beforeStep = Evaluate(Variables);
@@ -153,11 +184,11 @@ public class NaturalDescent : GradientDescentBase
             ComputeChange(change, descentRate, beforeStep,FisherInformationMatrixInverse);
             Step(change);
             var afterStep = Evaluate(Variables);
-            var diff = Math.Abs(afterStep - beforeStep);
+            var diff = Math<TFloat>.Abs(afterStep - beforeStep);
             Logger?.LogLine($"Error is {afterStep}");
             Logger?.LogLine($"Changed by {diff}");
             if (diff <= Theta) break;
-            if (afterStep >= beforeStep || double.IsNaN(afterStep))
+            if (afterStep >= beforeStep || TFloat.IsNaN(afterStep))
             {
                 Logger?.LogLine($"Undo step. Decreasing descentRate.");
                 UndoStep(change);
@@ -172,5 +203,83 @@ public class NaturalDescent : GradientDescentBase
         Logger?.LogLine($"--------------Natural descent done in {iterations} iterations");
 
         return iterations;
+    }
+}
+    ///<inheritdoc/>
+
+public class NaturalDescent : NaturalDescent<double>
+{
+    ///<inheritdoc/>
+    public NaturalDescent(IDataAccess<double> variables, Func<IDataAccess<double>, double> function) : base(variables, function)
+    {
+    }
+
+    ///<inheritdoc/>
+    protected override IComplexObjectsFactory<double> ComplexObjectsFactory(IDataAccess<double> data)
+    {
+        return new ComplexObjectsFactory(data);
+    }
+
+    ///<inheritdoc/>
+    protected override DMatrix EmptyMatrix(int rows, int cols)
+    {
+        return MathNet.Numerics.LinearAlgebra.Double.DenseMatrix.Create(rows,cols,0);
+    }
+
+    ///<inheritdoc/>
+    protected override DVector EmptyVector(int length)
+    {
+        return MathNet.Numerics.LinearAlgebra.Double.DenseVector.Create(length,0);
+    }
+
+    ///<inheritdoc/>
+    protected override double Log(double value)
+    {
+        return Math.Log(value);
+    }
+
+    ///<inheritdoc/>
+    protected override double Random()
+    {
+        return System.Random.Shared.NextDouble()*2-1;
+    }
+}
+
+    ///<inheritdoc/>
+public class NaturalDescentSingle : NaturalDescent<float>
+{
+    ///<inheritdoc/>
+    public NaturalDescentSingle(IDataAccess<float> variables, Func<IDataAccess<float>, float> function) : base(variables, function)
+    {
+    }
+
+    ///<inheritdoc/>
+    protected override IComplexObjectsFactory<float> ComplexObjectsFactory(IDataAccess<float> data)
+    {
+        return new ComplexObjectsFactorySingle(data);
+    }
+
+    ///<inheritdoc/>
+    protected override FMatrix EmptyMatrix(int rows, int cols)
+    {
+        return MathNet.Numerics.LinearAlgebra.Single.DenseMatrix.Create(rows,cols,0);
+    }
+
+    ///<inheritdoc/>
+    protected override FVector EmptyVector(int length)
+    {
+        return MathNet.Numerics.LinearAlgebra.Single.DenseVector.Create(length,0);
+    }
+
+    ///<inheritdoc/>
+    protected override float Log(float value)
+    {
+        return MathF.Log(value);
+    }
+
+    ///<inheritdoc/>
+    protected override float Random()
+    {
+        return System.Random.Shared.NextSingle()*2-1;
     }
 }
