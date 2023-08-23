@@ -19,7 +19,7 @@ where TFloat : unmanaged, INumber<TFloat>
     /// By default it is 0.1, so when we step into worse error function value,
     /// we will divide  learning rate by 10.
     /// </summary>
-    public TFloat DescentRateDecreaseRate = (TFloat)(0.1 as dynamic);
+    public TFloat DescentRateDecreaseRate = TFloat.One*(0.1 as dynamic);
     /// <summary>
     /// Creates new instance of <see cref="MineDescent"/> 
     /// </summary>

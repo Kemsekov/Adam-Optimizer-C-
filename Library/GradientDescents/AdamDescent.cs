@@ -117,3 +117,5 @@ public class AdamDescentSingle : AdamDescent<float>
     ///<inheritdoc/>
     protected override float Sqrt(float value)=>MathF.Sqrt(value);
 }
+
+
