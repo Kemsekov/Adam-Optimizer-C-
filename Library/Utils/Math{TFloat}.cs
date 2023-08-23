@@ -27,6 +27,6 @@ public static class Math<TFloat>
     }
     /// <returns>Absolute value</returns>
     public static TFloat Abs(TFloat value){
-        return value>TFloat.Zero ? value : -value;
+        return value>=TFloat.Zero ? value : -value;
     }
 }
