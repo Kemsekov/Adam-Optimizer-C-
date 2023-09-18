@@ -5,7 +5,6 @@ using MathNet.Numerics.LinearAlgebra.Double;
 
 var watch = new Stopwatch();
 watch.Start();
-Examples.NeuralNetworkClassificationExample();
-System.Console.WriteLine(Complex.One);
+// Examples.NeuralNetworkClassificationExample();
+Examples.CompareAdamAndMineDescent(Examples.Functions[1],3);
 System.Console.WriteLine("Done in " + watch.ElapsedMilliseconds);
-

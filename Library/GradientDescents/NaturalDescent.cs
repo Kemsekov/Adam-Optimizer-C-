@@ -6,13 +6,9 @@ namespace GradientDescentSharp.GradientDescents;
 /// <summary>
 /// Performs natural descent using fisher information matrix
 /// </summary>
-public abstract class NaturalDescent<TFloat> : GradientDescentBase<TFloat>
+public abstract class NaturalDescent<TFloat> : ReversibleLoggedGradientDescentBase<TFloat>
 where TFloat : unmanaged, INumber<TFloat>
 {
-    /// <summary>
-    /// Descent process can be logged here
-    /// </summary>
-    public ILogger? Logger;
     Func<IDataAccess<TFloat>, TFloat> likelihood;
     /// <summary>
     /// Used to randomly sample given parameters.<br/>
@@ -26,7 +22,7 @@ where TFloat : unmanaged, INumber<TFloat>
     /// By default it is 0.1, so when we step into worse error function value,
     /// we will divide  learning rate by 10.
     /// </summary>
-    public TFloat DescentRateDecreaseRate = (TFloat)(0.1 as dynamic);
+    public override TFloat DescentRateDecreaseRate{get;set;} = (TFloat)(0.1 as dynamic);
     /// <summary>
     /// To compute expectation for fisher information, we need to generate a range of samples.
     /// This parameter describes how many of them to generate.<br/> 
@@ -160,53 +156,18 @@ where TFloat : unmanaged, INumber<TFloat>
         };
         return derivativeOfLikelihood;
     }
-    void ComputeChange(IDataAccess<TFloat> change, TFloat learningRate, TFloat currentEvaluation, Matrix<TFloat> fisherInformationInverse)
+    ///<inheritdoc/>
+    protected override void ComputeChange(IDataAccess<TFloat> change, TFloat learningRate, TFloat currentEvaluation)
     {
         ComputeGradient(change,Variables, currentEvaluation);
         var gradientVector = ComplexObjectsFactory(change).CreateVector(change.Length);
-        var result = learningRate*fisherInformationInverse*gradientVector;
+        var result = learningRate*FisherInformationMatrixInverse*gradientVector;
         for(int i = 0;i<change.Length;i++)
             change[i] = result[i];
     }
-    ///<inheritdoc/>
-    public override int Descent(int maxIterations)
-    {
-        Logger?.LogLine("--------------Natural descent began");
-
-        FisherInformationMatrixInverse ??= ComputeFisherInformationMatrix(ExpectationsSampleCount).Inverse();
-
-        using RentedArrayDataAccess<TFloat> change = new(ArrayPoolStorage.RentArray<TFloat>(Dimensions));
-        var iterations = 0;
-        var descentRate = DescentRate;
-        var beforeStep = Evaluate(Variables);
-        while (iterations++ < maxIterations)
-        {
-            ComputeChange(change, descentRate, beforeStep,FisherInformationMatrixInverse);
-            Step(change);
-            var afterStep = Evaluate(Variables);
-            var diff = Math<TFloat>.Abs(afterStep - beforeStep);
-            Logger?.LogLine($"Error is {afterStep}");
-            Logger?.LogLine($"Changed by {diff}");
-            if (diff <= Theta) break;
-            if (afterStep >= beforeStep || TFloat.IsNaN(afterStep))
-            {
-                Logger?.LogLine($"Undo step. Decreasing descentRate.");
-                UndoStep(change);
-                descentRate *= DescentRateDecreaseRate;
-            }
-            else
-            {
-                beforeStep = afterStep;
-            }
-            Logger?.LogLine($"-------------");
-        }
-        Logger?.LogLine($"--------------Natural descent done in {iterations} iterations");
-
-        return iterations;
-    }
 }
-    ///<inheritdoc/>
 
+///<inheritdoc/>
 public class NaturalDescent : NaturalDescent<double>
 {
     ///<inheritdoc/>

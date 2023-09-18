@@ -7,19 +7,15 @@ namespace GradientDescentSharp.GradientDescents;
 /// Have similar logic under the hood, whenever we hit a worse error function value
 /// than before, we rollback, decrease learning rate and continue.
 /// </summary>
-public abstract class MineDescent<TFloat> : GradientDescentBase<TFloat>
+public abstract class MineDescent<TFloat> : ReversibleLoggedGradientDescentBase<TFloat>
 where TFloat : unmanaged, INumber<TFloat>
 {
     /// <summary>
-    /// Descent process can be logged here
-    /// </summary>
-    public ILogger? Logger;
-    /// <summary>
     /// How much decrease descent rate when we step into bigger error value.<br/>
     /// By default it is 0.1, so when we step into worse error function value,
-    /// we will divide  learning rate by 10.
+    /// we will divide learning rate by 10.
     /// </summary>
-    public TFloat DescentRateDecreaseRate = (TFloat)(0.1 as dynamic);
+    public override TFloat DescentRateDecreaseRate{get;set;} = (TFloat)(0.1 as dynamic);
     /// <summary>
     /// Creates new instance of <see cref="MineDescent"/> 
     /// </summary>
@@ -31,7 +27,8 @@ where TFloat : unmanaged, INumber<TFloat>
     /// Computes length of vector <paramref name="change"/> 
     /// </summary>
     protected abstract TFloat Length(IDataAccess<TFloat> change);
-    void ComputeChangeMine(IDataAccess<TFloat> change, TFloat learningRate, TFloat currentEvaluation)
+    ///<inheritdoc/>
+    protected override void ComputeChange(IDataAccess<TFloat> change, TFloat learningRate, TFloat currentEvaluation)
     {
         ComputeGradient(change, Variables, currentEvaluation);
         var length = Length(change);
@@ -45,40 +42,6 @@ where TFloat : unmanaged, INumber<TFloat>
         {
             change[i] *= coefficient;
         }
-    }
-    ///<inheritdoc/>
-    public override int Descent(int maxIterations)
-    {
-        Logger?.LogLine("--------------Mine descent began");
-
-        using RentedArrayDataAccess<TFloat> change = new(ArrayPoolStorage.RentArray<TFloat>(Dimensions));
-        var iterations = 0;
-        var descentRate = DescentRate;
-        var beforeStep = Evaluate(Variables);
-        while (iterations++ < maxIterations)
-        {
-            ComputeChangeMine(change, descentRate, beforeStep);
-            Step(change);
-            var afterStep = Evaluate(Variables);
-            var diff = Math<TFloat>.Abs(afterStep - beforeStep);
-            Logger?.LogLine($"Error is {afterStep}");
-            Logger?.LogLine($"Changed by {diff}");
-            if (diff <= Theta) break;
-            if (afterStep >= beforeStep || TFloat.IsNaN(afterStep))
-            {
-                Logger?.LogLine($"Undo step. Decreasing descentRate.");
-                UndoStep(change);
-                descentRate *= DescentRateDecreaseRate;
-            }
-            else
-            {
-                beforeStep = afterStep;
-            }
-            Logger?.LogLine($"-------------");
-        }
-        Logger?.LogLine($"--------------Mine done in {iterations} iterations");
-
-        return iterations;
     }
 }
 ///<inheritdoc/>

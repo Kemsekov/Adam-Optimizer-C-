@@ -5,8 +5,9 @@ namespace GradientDescentSharp.GradientDescents;
 /// Base class for gradient descent implementations
 /// </summary>
 public abstract class GradientDescentBase<TFloat> : IGradientDescent
-where TFloat : INumber<TFloat>
+where TFloat : unmanaged, INumber<TFloat>
 {
+
     /// <summary>
     /// Parameters: <br/> First is gradient output.<br/> 
     /// You need to set each value under each index to a gradient of a <see cref="Function"/> <br/> <br/> 
@@ -16,7 +17,7 @@ where TFloat : INumber<TFloat>
     /// By default this method is set to find gradient numerically - which is slow <br/> 
     /// So if you have a analytic gradient formula, then redefine this action and get fast performance.
     /// </summary>
-    public Action<IDataAccess<TFloat>, IDataAccess<TFloat>, TFloat> ComputeGradient{get;set;}
+    public Action<IDataAccess<TFloat>, IDataAccess<TFloat>, TFloat> ComputeGradient { get; set; }
     /// <summary>
     /// Error function that we need to minimize. Returns values >= 0
     /// </summary>
@@ -47,6 +48,10 @@ where TFloat : INumber<TFloat>
     /// </summary>
     public TFloat Epsilon;// = 0.0001;
     /// <summary>
+    /// Current iteration number
+    /// </summary>
+    protected int Iteration;
+    /// <summary>
     /// Create new instance of gradient descent
     /// </summary>
     /// <param name="variables">Variables that will be adjusted</param>
@@ -59,16 +64,20 @@ where TFloat : INumber<TFloat>
     {
         DescentRate = (TFloat)(0.05 as dynamic);
         Theta = (TFloat)(0.0001 as dynamic);
-        Epsilon= (TFloat)(0.0001 as dynamic);
+        Epsilon = (TFloat)(0.0001 as dynamic);
         Function = function;
         Variables = variables;
         Dimensions = variables.Length;
         ComputeGradient = ComputeGradientDefaultImplementation;
     }
     /// <summary>
+    /// Computes variables change
+    /// </summary>
+    protected abstract void ComputeChange(IDataAccess<TFloat> change, TFloat learningRate, TFloat currentEvaluation);
+    /// <summary>
     /// Evaluate function that we try to minimize at given variables
     /// </summary>
-    protected TFloat Evaluate(IDataAccess<TFloat> variables)
+    public TFloat Evaluate(IDataAccess<TFloat> variables)
     {
         return Function(variables);
     }
@@ -101,5 +110,70 @@ where TFloat : INumber<TFloat>
         });
     }
     ///<inheritdoc/>
-    public abstract int Descent(int maxIterations);
+    public abstract IEnumerable<int> Descent();
+    /// <summary>
+    /// Does up to maxIterations descent steps
+    /// </summary>
+    /// <returns>Number of descent steps</returns>
+    public int Descent(int maxIterations){
+        Descent().Take(maxIterations).ToArray();
+        return Iteration;
+    }
+}
+
+/// <summary>
+/// Reversible descent impl.
+/// </summary>
+/// <typeparam name="TFloat"></typeparam>
+public abstract class ReversibleLoggedGradientDescentBase<TFloat> : GradientDescentBase<TFloat>
+where TFloat : unmanaged, INumber<TFloat>
+{
+    /// <summary>
+    /// How much decrease descent rate when we step into bigger error value.<br/>
+    /// If it is 0.1, then when we step into worse error function value,
+    /// we will divide learning rate by 10.
+    /// </summary>
+    public abstract TFloat DescentRateDecreaseRate { get;set; }
+    /// <summary>
+    /// Descent process can be logged here
+    /// </summary>
+    public ILogger? Logger;
+    ///<inheritdoc/>
+    protected ReversibleLoggedGradientDescentBase(IDataAccess<TFloat> variables, Func<IDataAccess<TFloat>, TFloat> function) : base(variables, function)
+    {
+    }
+
+    ///<inheritdoc/>
+    public override IEnumerable<int> Descent()
+    {
+        Logger?.LogLine("--------------Mine descent began");
+        Iteration = 0;
+        using RentedArrayDataAccess<TFloat> change = new(ArrayPoolStorage.RentArray<TFloat>(Dimensions));
+        var descentRate = DescentRate;
+        var beforeStep = Evaluate(Variables);
+        while (true)
+        {
+            Iteration++;
+            ComputeChange(change, descentRate, beforeStep);
+            Step(change);
+            var afterStep = Evaluate(Variables);
+            var diff = Math<TFloat>.Abs(afterStep - beforeStep);
+            Logger?.LogLine($"Error is {afterStep}");
+            Logger?.LogLine($"Changed by {diff}");
+            if (diff <= Theta) break;
+            if (afterStep >= beforeStep || TFloat.IsNaN(afterStep))
+            {
+                Logger?.LogLine($"Undo step. Decreasing descentRate.");
+                UndoStep(change);
+                descentRate *= DescentRateDecreaseRate;
+            }
+            else
+            {
+                beforeStep = afterStep;
+            }
+            Logger?.LogLine($"-------------");
+            yield return Iteration;
+        }
+        Logger?.LogLine($"--------------Mine done in {Iteration} iterations");
+    }
 }
