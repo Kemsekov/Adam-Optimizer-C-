@@ -34,7 +34,6 @@ where TFloat : unmanaged, INumber<TFloat>
         var length = Length(change);
         if (length == TFloat.Zero)
         {
-            Logger?.LogLine("Found exact minima!");
             return;
         }
         var coefficient = learningRate / length;
