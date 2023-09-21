@@ -30,7 +30,11 @@ where TFloat : unmanaged, INumber<TFloat>
     /// exponentially proportional to parameters dimensions
     /// </summary>
     public int ExpectationsSampleCount = 100;
-    Matrix<TFloat>? FisherInformationMatrixInverse = null;
+    Lazy<Matrix<TFloat>> fisherInformationMatrix;
+    /// <summary>
+    /// Inverse of fisher information matrix
+    /// </summary>
+    public Matrix<TFloat> FisherInformationMatrixInverse => fisherInformationMatrix.Value;
     /// <summary>
     /// Method to get log of value
     /// </summary>
@@ -65,6 +69,8 @@ where TFloat : unmanaged, INumber<TFloat>
             return Log(err+TFloat.One)-err;
         };
         GenerateParameterSample = i => Random();
+        ExpectationsSampleCount = (int)Math.Pow(10,variables.Length);
+        fisherInformationMatrix = new(()=>ComputeFisherInformationMatrix(ExpectationsSampleCount).Inverse());
     }
     /// <summary>
     /// Computes fisher information for each variable, can be used to determine whether changing given 
