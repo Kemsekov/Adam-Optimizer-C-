@@ -15,7 +15,7 @@ where TFloat : unmanaged, INumber<TFloat>
     /// So you can tweak each of them, reevaluate function, compute gradients - or just use derivative formula.<br/> <br/> 
     /// Third is current evaluation of function <see cref="Function"/> at the second parameter(variables) <br/> <br/> 
     /// By default this method is set to find gradient numerically - which is slow <br/> 
-    /// So if you have a analytic gradient formula, then redefine this action and get fast performance.
+    /// So if you have a analytic gradient formula, then redefine this action and get good performance.
     /// </summary>
     public Action<IDataAccess<TFloat>, IDataAccess<TFloat>, TFloat> ComputeGradient { get; set; }
     /// <summary>
@@ -146,7 +146,7 @@ where TFloat : unmanaged, INumber<TFloat>
     ///<inheritdoc/>
     public override IEnumerable<IDescentStep> Descent()
     {
-        Logger?.LogLine("--------------Mine descent began");
+        Logger?.LogLine("--------------Descent began");
         Iteration = 0;
         using RentedArrayDataAccess<TFloat> change = new(ArrayPoolStorage.RentArray<TFloat>(Dimensions));
         var descentRate = DescentRate;
@@ -160,6 +160,10 @@ where TFloat : unmanaged, INumber<TFloat>
             var diff = Math<TFloat>.Abs(afterStep - beforeStep);
             Logger?.LogLine($"Error is {afterStep}");
             Logger?.LogLine($"Changed by {diff}");
+            if(diff == TFloat.Zero){
+                Logger?.LogLine("Found exact minima!");
+                break;
+            }
             if (diff <= Theta) break;
             if (afterStep >= beforeStep || TFloat.IsNaN(afterStep))
             {
@@ -174,6 +178,6 @@ where TFloat : unmanaged, INumber<TFloat>
             Logger?.LogLine($"-------------");
             yield return new DescentStep((double)(beforeStep as dynamic),(double)(diff as dynamic),(long)Iteration,beforeStep==afterStep);
         }
-        Logger?.LogLine($"--------------Mine done in {Iteration} iterations");
+        Logger?.LogLine($"--------------Descent done in {Iteration} iterations");
     }
 }
