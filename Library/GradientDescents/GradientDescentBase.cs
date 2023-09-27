@@ -149,12 +149,11 @@ where TFloat : unmanaged, INumber<TFloat>
         Logger?.LogLine("--------------Descent began");
         Iteration = 0;
         using RentedArrayDataAccess<TFloat> change = new(ArrayPoolStorage.RentArray<TFloat>(Dimensions));
-        var descentRate = DescentRate;
         var beforeStep = Evaluate(Variables);
         while (true)
         {
             Iteration++;
-            ComputeChange(change, descentRate, beforeStep);
+            ComputeChange(change, DescentRate, beforeStep);
             Step(change);
             var afterStep = Evaluate(Variables);
             var diff = Math<TFloat>.Abs(afterStep - beforeStep);
@@ -169,7 +168,7 @@ where TFloat : unmanaged, INumber<TFloat>
             {
                 Logger?.LogLine($"Undo step. Decreasing descentRate.");
                 UndoStep(change);
-                descentRate *= DescentRateDecreaseRate;
+                DescentRate *= DescentRateDecreaseRate;
             }
             else
             {
