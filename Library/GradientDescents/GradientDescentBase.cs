@@ -33,7 +33,7 @@ where TFloat : unmanaged, INumber<TFloat>
     public int Dimensions { get; }
 
     /// <summary>
-    /// Descent rate. The higher, the more.
+    /// Descent rate. The higher, the faster descent is happening. This is numerical equal to size of step that descent does into minimum of function.
     /// </summary>
     public TFloat DescentRate;// = 0.05;
     /// <summary>
@@ -110,7 +110,7 @@ where TFloat : unmanaged, INumber<TFloat>
         });
     }
     ///<inheritdoc/>
-    public abstract IEnumerable<int> Descent();
+    public abstract IEnumerable<IDescentStep> Descent();
     /// <summary>
     /// Does up to maxIterations descent steps
     /// </summary>
@@ -144,7 +144,7 @@ where TFloat : unmanaged, INumber<TFloat>
     }
 
     ///<inheritdoc/>
-    public override IEnumerable<int> Descent()
+    public override IEnumerable<IDescentStep> Descent()
     {
         Logger?.LogLine("--------------Mine descent began");
         Iteration = 0;
@@ -172,7 +172,7 @@ where TFloat : unmanaged, INumber<TFloat>
                 beforeStep = afterStep;
             }
             Logger?.LogLine($"-------------");
-            yield return Iteration;
+            yield return new DescentStep((double)(beforeStep as dynamic),(double)(diff as dynamic),(long)Iteration,beforeStep==afterStep);
         }
         Logger?.LogLine($"--------------Mine done in {Iteration} iterations");
     }

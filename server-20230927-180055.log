@@ -1,4 +1,3 @@
-JsonRpc Information: 3 : Listening started.
 JsonRpc Information: 7 : {"id":null,"method":"exit"}
 JsonRpc Verbose: 7 : Received: {
   "jsonrpc": "2.0",
