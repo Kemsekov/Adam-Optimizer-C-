@@ -40,9 +40,9 @@ public partial class Examples
         }
 
         var defaultFactory = new NNComplexObjectsFactory();
-        var layer1 = new Layer(defaultFactory, 2, 16, ActivationFunction.Relu(), Initializers.Guassian);
-        var layer2 = new Layer(defaultFactory, 16, 4, ActivationFunction.Tanh(), Initializers.GlorotUniform);
-        var layer3 = new Layer(defaultFactory, 4, 2, ActivationFunction.Relu(), Initializers.GlorotUniform);
+        var layer1 = new Layer(defaultFactory, 2, 16, ActivationFunction.Relu());
+        var layer2 = new Layer(defaultFactory, 16, 4, ActivationFunction.Tanh());
+        var layer3 = new Layer(defaultFactory, 4, 2, ActivationFunction.Relu());
 
         var nn = new ForwardNN(layer1, layer2, layer3)
         {

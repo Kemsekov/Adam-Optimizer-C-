@@ -11,9 +11,9 @@ public partial class Examples
     {
 
         var defaultFactory = new NNComplexObjectsFactory();
-        var layer1 = new Layer(defaultFactory, 5, 32, ActivationFunction.Tanh(), Initializers.GlorotUniform);
-        var layer2 = new Layer(defaultFactory, 32, 16, ActivationFunction.Tanh(), Initializers.GlorotUniform);
-        var layer3 = new Layer(defaultFactory, 16, 1, ActivationFunction.Linear(), Initializers.Guassian);
+        var layer1 = new Layer(defaultFactory, 5, 32, ActivationFunction.Tanh());
+        var layer2 = new Layer(defaultFactory, 32, 16, ActivationFunction.Tanh());
+        var layer3 = new Layer(defaultFactory, 16, 1, ActivationFunction.Linear());
 
         var pricePredictor = new ForwardNN(layer1, layer2, layer3);
         using var reader = new StreamReader("datasets/USA_Housing.csv");

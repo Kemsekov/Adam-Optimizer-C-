@@ -10,16 +10,18 @@ namespace GradientDescentSharp.NeuralNetwork;
 /// You may imagine it as if we are rolling down from a mountain and riding on almost flat
 /// surface all in the same fixated speed.
 /// </summary>
-public record NormalizedLearner(LearningData LearningData) : LearnerBase(LearningData)
+public record NormalizedLearner(LearningData LearningData,IRegularization? Regularization = null) : LearnerBase(LearningData)
 {
-    public static Func<LearningData, ILearner> Factory()
+    ///<inheritdoc/>
+    public static Func<LearningData, ILearner> Factory(IRegularization? regularization = null)
     {
-        return x=>new NormalizedLearner(x);
+        return x=>new NormalizedLearner(x,regularization);
     }
-
     float normalizedLearningRate = float.MaxValue;
+    ///<inheritdoc/>
     public override void Learn()
     {
+        var reg = Regularization ?? new NoRegularization();
         // Because it is expensive to compute this value, I decided to make it in one-initialization
         if(normalizedLearningRate==float.MaxValue){
             var sum = layerInput.Sum();
@@ -35,13 +37,14 @@ public record NormalizedLearner(LearningData LearningData) : LearnerBase(Learnin
             if (kInput == 0) continue;
             for (int j = 0; j < layer.Weights.RowCount; j++)
             {
-                var weightGradient = biasesGradient[j] * kInput;
+                var weightGradient = biasesGradient[j] * kInput + reg.WeightDerivative(layer.Weights[j, k]);
                 layer.Weights[j, k] -= normalizedLearningRate * weightGradient;
             }
         }
         layer.Bias.MapIndexedInplace((j, x) => x - biasLearningRate * biasesGradient[j]);
     }
 
+    ///<inheritdoc/>
     public override void Unlearn()
     {
         var weightsGradient = (int j, int k) => biasesGradient[j] * layerInput[k];

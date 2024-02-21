@@ -103,7 +103,7 @@ public abstract class NNBase
                 for (int j = 0; j < layer.Weights.ColumnCount; j++)
                 {
                     var weight = weights[i, j];
-                    var sample = layer.WeightsInit.SampleWeight(weights);
+                    var sample = layer.Activation.WeightsInit.SampleWeight(weights);
                     if (weight > maxValue || weight < minValue)
                     {
                         weights[i, j] = weight + sample * variation;

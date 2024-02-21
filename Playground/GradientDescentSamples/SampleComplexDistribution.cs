@@ -38,10 +38,10 @@ public partial class Examples
         {
         };
         var defaultFactory = new NNComplexObjectsFactory();
-        var layer1 = new Layer(defaultFactory, 2, 64, ActivationFunction.Sigmoid(), Initializers.Guassian);
-        var layer2 = new Layer(defaultFactory, 64, 128, ActivationFunction.Sigmoid(), Initializers.Guassian);
-        var layer3 = new Layer(defaultFactory, 128, 32, ActivationFunction.Sigmoid(), Initializers.Guassian);
-        var layer4 = new Layer(defaultFactory, 32, 1, ActivationFunction.Tanh(), Initializers.Guassian);
+        var layer1 = new Layer(defaultFactory, 2, 64, ActivationFunction.Sigmoid());
+        var layer2 = new Layer(defaultFactory, 64, 128, ActivationFunction.Sigmoid());
+        var layer3 = new Layer(defaultFactory, 128, 32, ActivationFunction.Sigmoid());
+        var layer4 = new Layer(defaultFactory, 32, 1, ActivationFunction.Tanh());
         var nn = new ForwardNN(layer1, layer2, layer3,layer4);
 
         var sample = ()=>{

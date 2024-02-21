@@ -15,23 +15,19 @@ public class Layer : ILayer
     public FVector RawOutput { get; }
     ///<inheritdoc/>
     public IActivationFunction Activation { get; }
-    ///<inheritdoc/>
-    public IWeightsInit WeightsInit { get; }
 
     /// <param name="factory">Linear objects factory</param>
     /// <param name="inputSize">Layer input size</param>
     /// <param name="outputSize">Layer output size</param>
     /// <param name="activation">Activation function. May choose from <see cref="ActivationFunction"/></param>
-    /// <param name="weightsInit">Weight initialization.</param>
-    public Layer(IComplexObjectsFactory<float> factory, int inputSize, int outputSize, IActivationFunction activation, IWeightsInit weightsInit)
+    public Layer(IComplexObjectsFactory<float> factory, int inputSize, int outputSize, IActivationFunction activation)
     {
         Weights = factory.CreateMatrix(outputSize, inputSize);
         Bias = factory.CreateVector(outputSize);
         RawOutput = factory.CreateVector(outputSize);
         Activation = activation;
-        weightsInit.InitWeights(Bias);
-        weightsInit.InitWeights(Weights);
-        WeightsInit = weightsInit;
+        Activation.WeightsInit.InitWeights(Bias);
+        Activation.WeightsInit.InitWeights(Weights);
     }
     ///<inheritdoc/>
     public FVector Forward(FVector input)

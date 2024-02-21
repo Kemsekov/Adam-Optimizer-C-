@@ -25,9 +25,9 @@ public partial class Examples
         };
 
         var defaultFactory = new NNComplexObjectsFactory();
-        var layer1 = new Layer(defaultFactory, 1, 24, ActivationFunction.Tanh(), Initializers.GlorotUniform);
-        var layer2 = new Layer(defaultFactory, 24, 16, ActivationFunction.Tanh(), Initializers.GlorotUniform);
-        var layer3 = new Layer(defaultFactory, 16, 1, ActivationFunction.Linear(), Initializers.Guassian);
+        var layer1 = new Layer(defaultFactory, 1, 24, ActivationFunction.Tanh());
+        var layer2 = new Layer(defaultFactory, 24, 16, ActivationFunction.Tanh());
+        var layer3 = new Layer(defaultFactory, 16, 1, ActivationFunction.Linear());
         var nn = new ForwardNN(layer1, layer2, layer3);
 
         var testInputs = Enumerable.Range(-10, 10).Select(x => DenseVector.Create(1, x * 1.0f / 20)).ToArray();

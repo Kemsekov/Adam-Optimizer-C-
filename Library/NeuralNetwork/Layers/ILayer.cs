@@ -5,10 +5,6 @@ namespace GradientDescentSharp.NeuralNetwork;
 public interface ILayer
 {
     /// <summary>
-    /// Weights initialization
-    /// </summary>
-    IWeightsInit WeightsInit{get;}
-    /// <summary>
     /// Layer weights
     /// </summary>
     FMatrix Weights{get;}

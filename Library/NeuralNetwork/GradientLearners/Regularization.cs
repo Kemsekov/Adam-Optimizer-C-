@@ -45,3 +45,15 @@ public record L1Regularization : IRegularization
         return _alpha*float.Sign(weight);
     }
 }
+/// <summary>
+/// no regularization
+/// </summary>
+public record NoRegularization : IRegularization
+{
+    ///<inheritdoc/>
+    public float WeightDerivative(float weight)
+    {
+        return 0;
+    }
+}
+

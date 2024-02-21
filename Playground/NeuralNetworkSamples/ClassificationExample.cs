@@ -18,9 +18,9 @@ public partial class Examples
         var test = records[..20];
 
         var defaultFactory = new NNComplexObjectsFactory();
-        var layer1 = new Layer(defaultFactory, 4, 32, ActivationFunction.Tanh(), Initializers.GlorotUniform);
-        var layer2 = new Layer(defaultFactory, 32, 16, ActivationFunction.Tanh(), Initializers.GlorotUniform);
-        var layer3 = new Layer(defaultFactory, 16, 3, ActivationFunction.Softmax(), Initializers.HeNormal);
+        var layer1 = new Layer(defaultFactory, 4, 32, ActivationFunction.Tanh());
+        var layer2 = new Layer(defaultFactory, 32, 16, ActivationFunction.Tanh());
+        var layer3 = new Layer(defaultFactory, 16, 3, ActivationFunction.Softmax());
 
         var speciesPredictor = new ForwardNN(layer1, layer2, layer3)
         {
