@@ -15,14 +15,20 @@ public record DefaultLearner(LearningData LearningData, IRegularization? Regular
     public override void Learn()
     {
         var reg = Regularization ?? new NoRegularization();
-        for (int k = 0; k < layerInput.Count; k++)
+        var layerSize = layerInput.Count;
+        var rows = layer.Weights.RowCount;
+        var weights = layer.Weights;
+        var regularization = reg.WeightDerivative;
+
+        for (int k = 0; k < layerSize; k++)
         {
             var kInput = layerInput[k];
             if (kInput == 0) continue;
-            for (int j = 0; j < layer.Weights.RowCount; j++)
+
+            for (int j = 0; j < rows; j++)
             {
-                var weightGradient = biasesGradient[j] * kInput + reg.WeightDerivative(layer.Weights[j, k]);
-                layer.Weights[j, k] -= learningRate * weightGradient;
+                var weightGradient = biasesGradient[j] * kInput + regularization(weights[j, k]);
+                weights[j, k] -= learningRate * weightGradient;
             }
         }
         layer.Bias.MapIndexedInplace((j, x) => x - learningRate * biasesGradient[j]);

@@ -6,6 +6,6 @@ using MathNet.Numerics.LinearAlgebra.Single;
 using ScottPlot;
 using ScottPlot.Colormaps;
 
-Examples.Regularization();
+Examples.NeuralNetworkClassificationExample();
 
 

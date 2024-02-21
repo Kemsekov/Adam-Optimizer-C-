@@ -5,6 +5,10 @@ namespace GradientDescentSharp.NeuralNetwork;
 /// </summary>
 public interface ILearner{
     /// <summary>
+    /// Learning data
+    /// </summary>
+    LearningData LearningData{get;}
+    /// <summary>
     /// Learns
     /// </summary>
     void Learn();

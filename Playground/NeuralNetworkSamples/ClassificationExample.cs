@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Globalization;
 using CsvHelper;
 using GradientDescentSharp.NeuralNetwork;
@@ -24,7 +25,8 @@ public partial class Examples
 
         var speciesPredictor = new ForwardNN(layer1, layer2, layer3)
         {
-            LearningRate = 0.05f
+            LearningRate = 0.05f,
+            LearnerFactory=DefaultLearner.Factory(new L2Regularization(0.001f))
         };
 
         var getError = () => test.Average(x =>
@@ -33,17 +35,33 @@ public partial class Examples
             return speciesPredictor.Error(data.input, data.output);
         });
 
+        var trainData = train.Select(t=>t.BuildData()).ToList();
+        var timer = new Stopwatch();
+        var learnTimer = new Stopwatch();
+        timer.Start();
+        
         for (int epoch = 0; epoch < 40; epoch++)
         {
             System.Console.WriteLine($"Error is {getError()}");
-            foreach (var record in train)
-            {
-                var (input, expected) = record.BuildData();
-                var backprop = speciesPredictor.Backwards(input, expected);
-                backprop.Learn();
-            }
+            trainData.OrderBy(n=>Random.Shared.Next())
+            .Chunk(10)
+            .ToList()
+            .ForEach(chunk=>
+                chunk
+                .Select(d=>speciesPredictor.Backwards(d.input, d.output))
+                .ToList()
+                .ForEach(n=>{learnTimer.Start();n.Learn();learnTimer.Stop();})
+            );
+            // foreach (var record in trainData)
+            // {
+            //     var (input, expected) = record;
+            //     var backprop = speciesPredictor.Backwards(input, expected);
+            //     backprop.Learn();
+            // }
         }
         System.Console.WriteLine($"Final error is {getError()}");
+        System.Console.WriteLine("Total time "+timer.ElapsedMilliseconds);
+        System.Console.WriteLine("Learn time "+learnTimer.ElapsedMilliseconds);
 
         for(int i =0;i<5;i++){
             var actual = test[i];

@@ -136,7 +136,7 @@ public abstract class NNBase
         RawLayerOutputStorage.PutObject(rawLayerOutput);
         return new BackpropResult(learned);
     }
-
+    
     /// <summary>
     /// Default backpropagation implementation. Learns a model to predict given expected value from input
     /// </summary>
