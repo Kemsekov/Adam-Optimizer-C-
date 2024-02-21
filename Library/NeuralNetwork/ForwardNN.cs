@@ -5,7 +5,7 @@ namespace GradientDescentSharp.NeuralNetwork;
 public class ForwardNN : NNBase
 {
     ///<inheritdoc/>
-    public ForwardNN(params Layer[] layers) : base(layers)
+    public ForwardNN(params ILayer[] layers) : base(layers)
     {
     }
 }

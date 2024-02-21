@@ -73,42 +73,6 @@ where TFloat : unmanaged, INumber<TFloat>
         fisherInformationMatrix = new(()=>ComputeFisherInformationMatrix(ExpectationsSampleCount).Inverse());
     }
     /// <summary>
-    /// Computes fisher information for each variable, can be used to determine whether changing given 
-    /// variable at some index holding much value for error function
-    /// </summary>
-    /// <param name="expectationsSampleCount">
-    /// This method computes fisher information as average over some amount of parameters-space,
-    /// by randomly sampling them. Change this value to get more/less precise fisher
-    /// information matrix in exchange for time used
-    /// </param>
-    /// <returns>
-    /// Fisher information for each of data parameters. <br/>
-    /// Call Vector.Normalize() with parameter 1 on this method output
-    /// to get percentage of parameter influence on problem function
-    /// </returns>
-    public MathNet.Numerics.LinearAlgebra.Vector<TFloat> FisherInformation(int expectationsSampleCount = 0){
-        expectationsSampleCount = expectationsSampleCount==0 ? ExpectationsSampleCount : expectationsSampleCount;
-        var result = EmptyVector(Dimensions);
-        Parallel.For(0, expectationsSampleCount, k =>{
-            using var arr = ArrayPoolStorage.RentArray<TFloat>(Dimensions);
-            var variables = new RentedArrayDataAccess<TFloat>(arr);
-            for (int i = 0; i < variables.Length; i++)
-            {
-                variables[i] = GenerateParameterSample(i);
-            }
-
-            using var derivative = derivativeOfLikelihood(variables);
-            if(derivative.Any(TFloat.IsNaN)) return;
-            lock(result)
-                result.MapIndexedInplace((i,x)=>x+derivative[i]*derivative[i]);
-        });
-
-        var convertedExpectationsSampleCount = (TFloat)(expectationsSampleCount as dynamic);
-
-        result.MapInplace(x=>x/convertedExpectationsSampleCount);
-        return result;
-    }
-    /// <summary>
     /// Computes fisher information matrix using monte-carlo approximation.<br/>
     /// It generates <see cref="ExpectationsSampleCount"/> samples and returns
     /// computed information matrix as average of sample results.

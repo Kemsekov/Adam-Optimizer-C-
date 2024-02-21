@@ -6,14 +6,17 @@ namespace GradientDescentSharp.NeuralNetwork.WeightInitializers;
 /// </summary>
 public class NoInitialization : IWeightsInit
 {
+    ///<inheritdoc/>
     public void InitWeights(FVector bias)
     {
     }
 
+    ///<inheritdoc/>
     public void InitWeights(FMatrix layer)
     {
     }
 
+    ///<inheritdoc/>
     public float SampleWeight(FMatrix layer)
     {
         return 0;

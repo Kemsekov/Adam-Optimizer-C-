@@ -1,18 +1,21 @@
 namespace GradientDescentSharp.NeuralNetwork;
-
+/// <summary>
+/// Default layer
+/// </summary>
 public class Layer : ILayer
 {
+    ///<inheritdoc/>
     public FMatrix Weights { get; }
+    ///<inheritdoc/>
     public FVector Bias { get; }
     /// <summary>
     /// Output without applied activation function. <br/>
-    /// To get true output call
-    /// <see cref="ActivatedOutput"/>
     /// </summary>
     /// <value></value>
     public FVector RawOutput { get; }
+    ///<inheritdoc/>
     public IActivationFunction Activation { get; }
-
+    ///<inheritdoc/>
     public IWeightsInit WeightsInit { get; }
 
     /// <param name="factory">Linear objects factory</param>
@@ -30,12 +33,13 @@ public class Layer : ILayer
         weightsInit.InitWeights(Weights);
         WeightsInit = weightsInit;
     }
+    ///<inheritdoc/>
     public FVector Forward(FVector input)
     {
         var raw = Weights * input + Bias;
         return raw;
     }
-
+    ///<inheritdoc/>
     public Gradient ComputeGradient(FVector layerInput,FVector layerOutput,FVector inputLossDerivative, bool updateLossDerivative, out FVector? newLossDerivative)
     {
         var activation = Activation.Activation;

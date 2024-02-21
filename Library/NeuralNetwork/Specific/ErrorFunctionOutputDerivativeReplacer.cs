@@ -17,7 +17,13 @@ namespace GradientDescentSharp.NeuralNetwork.Specific;
 /// the best I could think of.
 /// </summary>
 public class LossFunctionOutputDerivativeReplacer{
+    /// <summary>
+    /// Index of output variable that will be replaced in derivative computation
+    /// </summary>
     public int ChangedOutputIndex = -1;
+    /// <summary>
+    /// Epsilon in derivative computation
+    /// </summary>
     public float ChangedOutputTheta;
     /// <summary>
     /// replaces some of output parameter by adding theta to it, so we could compute 

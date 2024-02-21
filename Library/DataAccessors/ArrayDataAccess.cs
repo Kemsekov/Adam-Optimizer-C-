@@ -45,4 +45,9 @@ public class ArrayDataAccess<T> : IDataAccess<T>
     public static implicit operator T[](ArrayDataAccess<T> t) => t.Array;
     ///<inheritdoc/>
     public static implicit operator ArrayDataAccess<T>(T[] t) => new(t);
+    ///<inheritdoc/>
+    public override string ToString()
+    {
+        return "ArrayDataAccess<"+typeof(T)+">\n"+string.Join("\n",Array);
+    }
 }

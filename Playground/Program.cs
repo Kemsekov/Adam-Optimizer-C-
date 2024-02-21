@@ -8,33 +8,37 @@ var watch = new Stopwatch();
 watch.Start();
 // Examples.NeuralNetworkClassificationExample();
 // Examples.CompareAdamAndMineDescent(Examples.Functions[1],3);
-var A = DenseMatrix.Create(10,10,(i,j)=>Random.Shared.NextDouble()*4-2);
 
-var b = DenseVector.Create(10,i=>Random.Shared.NextSingle()*2);
-
-var x = new ArrayDataAccess<double>(10);
-
-var solution = A.Solve(b);
-
-for(int i = 0;i<x.Length;i++)
-    x[i] = b[i];
-System.Console.WriteLine(loss(x));
+var x = new ArrayDataAccess<double>(2);
+x[0] = 1;
+x[1] = 1;
 double loss(IDataAccess<double> x){
-    var xVec = new ComplexObjectsFactory(x).CreateVector(10);
-    var res =A*xVec;
-    return (b-res).L2Norm();
+    var xReal = x[0];
+    var xImaginary = x[1];
+    var complex = new Complex(xReal,xImaginary);
+    var complexPow2 = complex*complex;
+    var complexPow4 = complexPow2*complexPow2;
+    return (complexPow4-complexPow2*complex-2*complexPow2+3*complex-3).Magnitude;
 }
 
-var descent = new MineDescent(x,loss){
+var descent = new AdamDescent(x,loss){
     Logger = new ConsoleLogger(),
-    DescentRate=10,
+    DescentRate=1,
     Theta=0,
-    DescentRateDecreaseRate=0.5
+    DescentRateDecreaseRate=0.1
 };
-descent.Descent(40);
+double previousLoss = 1;
+foreach(var d in descent.Descent().Take(400)){
+    var loss1 = d.Loss;
+    var lossAvg = (previousLoss+loss1)/2;
+    var diff = Math.Abs(1-loss1/lossAvg);
+    if(diff<0.1){
+        descent.DescentRate*=1.2;
+    }
+    previousLoss = loss1;
+}
 System.Console.WriteLine(loss(x));
 
-System.Console.WriteLine(new ComplexObjectsFactory(x).CreateVector(10));
-System.Console.WriteLine(solution);
+System.Console.WriteLine(x);
 
 System.Console.WriteLine("Done in " + watch.ElapsedMilliseconds);

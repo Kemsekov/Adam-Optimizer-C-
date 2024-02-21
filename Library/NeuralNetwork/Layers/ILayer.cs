@@ -1,10 +1,28 @@
 namespace GradientDescentSharp.NeuralNetwork;
+/// <summary>
+/// Layer interface
+/// </summary>
 public interface ILayer
 {
+    /// <summary>
+    /// Weights initialization
+    /// </summary>
     IWeightsInit WeightsInit{get;}
+    /// <summary>
+    /// Layer weights
+    /// </summary>
     FMatrix Weights{get;}
+    /// <summary>
+    /// Layer bias
+    /// </summary>
     FVector Bias{get;}
+    /// <summary>
+    /// Layer activation function
+    /// </summary>
     IActivationFunction Activation{get;}
+    /// <summary>
+    /// Layer forward pass
+    /// </summary>
     FVector Forward(FVector input);
     /// <summary>
     /// Computes gradients for current layer

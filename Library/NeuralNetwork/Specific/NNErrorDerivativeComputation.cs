@@ -1,5 +1,6 @@
 namespace GradientDescentSharp.NeuralNetwork.Specific;
-public class NNErrorDerivativeComputation : NNBase{
+
+internal class NNErrorDerivativeComputation : NNBase{
     /// <summary>
     /// See the class description to understand what it does
     /// </summary>
