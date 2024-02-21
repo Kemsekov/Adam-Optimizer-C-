@@ -47,17 +47,17 @@ public partial class Examples
         var nn = new ForwardNN(layer1, layer2, layer3)
         {
             LearningRate = 0.01f,
-            LearnerFactory = d => new DefaultLearner(d, new L2Regularization(0.01f))
+            LearnerFactory = DefaultLearner.Factory(new L2Regularization(0.01f))
             // LearnerFactory = d => new DefaultLearner(d, null)
         };
 
         for (int epoch = 0; epoch < 1000; epoch++)
         {
-            foreach (var (x, y) in data.OrderBy(x => Random.Shared.Next()))
-            {
-                var bw = nn.Backwards(x, y / 100);
-                bw.Learn();
-            }
+            //we first compute backward operations and then apply learn on all of them at once
+            data
+            .Select(row=>nn.Backwards(row.First,row.Second/100))
+            .ToList()
+            .ForEach(n=>n.Learn());
         }
 
         //draw predictions

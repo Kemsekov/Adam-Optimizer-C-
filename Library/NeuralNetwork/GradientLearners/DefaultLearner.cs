@@ -33,6 +33,9 @@ public record DefaultLearner(LearningData LearningData, IRegularization? Regular
     /// </summary>
     public override void Unlearn()
     {
+        if(Regularization is not null){
+            throw new NotSupportedException("Unlearn supported only on learners without regularization");
+        }
         var weightsGradient = (int j, int k) => biasesGradient[j] * layerInput[k];
         layer.Weights.MapIndexedInplace((j, k, x) => x + learningRate * weightsGradient(j, k));
         layer.Bias.MapIndexedInplace((j, x) => x + learningRate * biasesGradient[j]);

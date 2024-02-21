@@ -47,6 +47,9 @@ public record NormalizedLearner(LearningData LearningData,IRegularization? Regul
     ///<inheritdoc/>
     public override void Unlearn()
     {
+        if(Regularization is not null){
+            throw new NotSupportedException("Unlearn supported only on learners without regularization");
+        }
         var weightsGradient = (int j, int k) => biasesGradient[j] * layerInput[k];
         var biasLearningRate = (float)(learningRate/biasesGradient.L2Norm());    
 
