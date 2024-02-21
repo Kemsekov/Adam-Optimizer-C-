@@ -3,16 +3,16 @@ using MathNet.Numerics.LinearAlgebra.Single;
 
 using GradientDescentSharp.NeuralNetwork;
 using MathNet.Numerics.LinearAlgebra;
+using ScottPlot;
 
 public partial class Examples
 {
-
     public static void NeuralNetworkExample()
     {
         var defaultFactory = new NNComplexObjectsFactory();
 
-        var layer1 = new Layer(defaultFactory, 2, 32, ActivationFunction.Tanh(), Initializers.GlorotUniform);
-        var layer2 = new Layer(defaultFactory, 32, 16, ActivationFunction.Tanh(), Initializers.GlorotNormal);
+        var layer1 = new Layer(defaultFactory, 2, 32, ActivationFunction.Tanh(), Initializers.Guassian);
+        var layer2 = new Layer(defaultFactory, 32, 16, ActivationFunction.Tanh(), Initializers.Guassian);
 
         //output layed needs to be linear so both positive and negative values can be 
         //predicted by a model
@@ -54,7 +54,7 @@ public partial class Examples
             var input = DenseVector.Create(2, 0);
             input[0] = num1;
             input[1] = num2;
-            
+
             var result = nn.Forward(input);
 
             System.Console.WriteLine("-------------");

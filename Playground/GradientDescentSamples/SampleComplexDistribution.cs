@@ -1,7 +1,5 @@
 using System.Security.Cryptography;
-using Avalonia.FreeDesktop.DBusIme;
 using GradientDescentSharp.NeuralNetwork;
-using ILGPU.IR.Values;
 using MathNet.Numerics.Integration;
 using MathNet.Numerics.LinearAlgebra.Single;
 using ScottPlot;
@@ -40,10 +38,10 @@ public partial class Examples
         {
         };
         var defaultFactory = new NNComplexObjectsFactory();
-        var layer1 = new Layer(defaultFactory, 2, 64, ActivationFunction.Sigmoid(), Initializers.GlorotNormal);
-        var layer2 = new Layer(defaultFactory, 64, 128, ActivationFunction.Sigmoid(), Initializers.GlorotNormal);
-        var layer3 = new Layer(defaultFactory, 128, 32, ActivationFunction.Sigmoid(), Initializers.GlorotNormal);
-        var layer4 = new Layer(defaultFactory, 32, 1, ActivationFunction.Tanh(), Initializers.GlorotNormal);
+        var layer1 = new Layer(defaultFactory, 2, 64, ActivationFunction.Sigmoid(), Initializers.Guassian);
+        var layer2 = new Layer(defaultFactory, 64, 128, ActivationFunction.Sigmoid(), Initializers.Guassian);
+        var layer3 = new Layer(defaultFactory, 128, 32, ActivationFunction.Sigmoid(), Initializers.Guassian);
+        var layer4 = new Layer(defaultFactory, 32, 1, ActivationFunction.Tanh(), Initializers.Guassian);
         var nn = new ForwardNN(layer1, layer2, layer3,layer4);
 
         var sample = ()=>{

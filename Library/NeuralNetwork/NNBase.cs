@@ -13,7 +13,6 @@ public abstract class NNBase
     /// Learner factory. You can change it to use different gradient applying algorithms.<br/>
     /// By default <see cref="DefaultLearner"/> is used, which just applies gradient multiplying it with learning rate
     /// </summary>
-    /// <returns></returns>
     public Func<LearningData,ILearner> LearnerFactory{get;set;} = DefaultLearner.Factory();
     /// <summary>
     /// Network layers
@@ -203,9 +202,9 @@ public abstract class NNBase
         return result;
     }
     
-    IEnumerable<DefaultLearner> BuildLearner(Gradient[] gradients)
+    IEnumerable<ILearner> BuildLearner(Gradient[] gradients)
     {
-        var learned = new List<DefaultLearner>();
+        var learned = new List<ILearner>();
         
         foreach(var layerInfo in Layers.Zip(gradients))
         {
@@ -213,7 +212,7 @@ public abstract class NNBase
             var layerInput = layerInfo.Second.layerInput;
             var biasesGradient = layerInfo.Second.biasesGradients;
             var data = new LearningData(layer, biasesGradient, layerInput, LearningRate);
-            learned.Add(new DefaultLearner(data));
+            learned.Add(LearnerFactory(data));
         }
         return learned;
     }

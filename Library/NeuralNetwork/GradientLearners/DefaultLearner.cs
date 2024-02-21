@@ -1,7 +1,5 @@
 namespace GradientDescentSharp.NeuralNetwork;
 
-
-
 /// <summary>
 /// Applies backpropagation to model weights in ordinary way
 /// </summary>
