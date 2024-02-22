@@ -12,45 +12,20 @@ public record DefaultLearner(LearningData LearningData, IRegularization? Regular
     }
 
     ///<inheritdoc/>
-    public override void Learn()
+    public unsafe override void Learn()
     {
         var reg = Regularization ?? new NoRegularization();
-
-        //you cannot imagine how much this stuff
-        //improves cpu cache hit
-        //--------------
-        var layerSize = layerInput.Count;
-        var rows = layer.Weights.RowCount;
-        var weights = layer.Weights;
-        var regularization = reg.WeightDerivative;
-        
-        Func<int, int, float> weightsGet = weights.Storage.At;
-        Action<int, int, float> weightsSet = weights.Storage.At;
-        Func<int, float> layerGet = layerInput.Storage.At;
-        Func<int, float> biasesGradientGet = biasesGradient.Storage.At;
-        
-        Func<int, float> layerBiasGet = layer.Bias.Storage.At;
-        Action<int, float> layerBiasSet = layer.Bias.Storage.At;
-
-        //--------------
-
-        for (int k = 0; k < layerSize; k++)
+        var bgSpan = biasesGradient.AsSpan();
+        var liSpan = layerInput.AsSpan();
+        //optimize it beyond reason
+        layer.Weights.MapInplace(bgSpan, liSpan, (index, bg, li, weight) =>
         {
-            var kInput = layerGet(k);
-            if (kInput == 0) continue;
-
-            for (int j = 0; j < rows; j++)
-            {
-                var weightsValue = weightsGet(j, k);
-                var weightGradient = biasesGradientGet(j) * kInput + regularization(weightsValue);
-                weightsSet(j, k, weightsValue - learningRate * weightGradient);
-            }
-        }
-        for (int j = 0; j < rows; j++){
-            var v = layerBiasGet(j);
-            layerBiasSet(j,v-learningRate * biasesGradientGet(j));
-        }
-        // layer.Bias.MapIndexedInplace((j, x) => x - learningRate * biasesGradientGet(j));
+            var j = index[0];
+            var k = index[1];
+            var weightGradient = bg[j] * li[k] + reg.WeightDerivative(weight);
+            return weight - learningRate * weightGradient;
+        });
+        layer.Bias.VecMapInplace(bgSpan,(j,s, x) => x - learningRate * s[j]);
     }
     /// <summary>
     /// Unlearns last learned weights and biases
@@ -61,8 +36,8 @@ public record DefaultLearner(LearningData LearningData, IRegularization? Regular
         {
             throw new NotSupportedException("Unlearn supported only on learners without regularization");
         }
-        var weightsGradient = (int j, int k) => biasesGradient[j] * layerInput[k];
-        layer.Weights.MapIndexedInplace((j, k, x) => x + learningRate * weightsGradient(j, k));
-        layer.Bias.MapIndexedInplace((j, x) => x + learningRate * biasesGradient[j]);
+        var weightsGradient = (int[] jk) => biasesGradient[jk[0]] * layerInput[jk[1]];
+        layer.Weights.MapInplace((ind, x) => x + learningRate * weightsGradient(ind));
+        layer.Bias.VecMapInplace((j, x) => x + learningRate * biasesGradient[j]);
     }
 }

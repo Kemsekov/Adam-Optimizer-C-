@@ -1,3 +1,4 @@
+using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Single;
 
 namespace Playground.DataModels;
@@ -30,7 +31,7 @@ public class UsaHousing
         };
         return record;
     }
-    public Vector ToInputVector(){
+    public Vector<float> ToInputVector(){
         var input = DenseVector.Create(5,0);
         input[0] = (float)AvgAreaIncome;
         input[1] = (float)AvgHouseAge;

@@ -39,10 +39,9 @@ public partial class Examples
                 System.Drawing.Color.FromArgb((int)y[0], (int)y[1], 0).ToScatter()).MarkerSize = 15;
         }
 
-        var defaultFactory = new NNComplexObjectsFactory();
-        var layer1 = new Layer(defaultFactory, 2, 16, ActivationFunction.Relu());
-        var layer2 = new Layer(defaultFactory, 16, 4, ActivationFunction.Tanh());
-        var layer3 = new Layer(defaultFactory, 4, 2, ActivationFunction.Relu());
+        var layer1 = new Layer(2, 16, ActivationFunction.Relu());
+        var layer2 = new Layer(16, 4, ActivationFunction.Tanh());
+        var layer3 = new Layer(4, 2, ActivationFunction.Relu());
 
         var nn = new ForwardNN(layer1, layer2, layer3)
         {

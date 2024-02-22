@@ -1,3 +1,4 @@
+using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Single;
 
 namespace Playground.DataModels;
@@ -20,7 +21,7 @@ public record Iris
     };
     public Iris(){}
 
-    public (Vector input, Vector output) BuildData(){
+    public (Vector<float> input, Vector<float> output) BuildData(){
         var input = DenseVector.Create(4,0);
         input[0] = sepal_length;
         input[1] = sepal_width;

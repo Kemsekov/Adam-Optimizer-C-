@@ -13,13 +13,13 @@ public class Swish : IActivationFunction
         this.beta = beta;
     }
     ///<inheritdoc/>
-    public FVector Activation(FVector x)
+    public FTensor Activation(FTensor x)
     {
         return x.Map(x => x / (1 + MathF.Exp(-beta * x)));
     }
 
     ///<inheritdoc/>
-    public FVector ActivationDerivative(FVector x)
+    public FTensor ActivationDerivative(FTensor x)
     {
         return x.Map(x =>
         {

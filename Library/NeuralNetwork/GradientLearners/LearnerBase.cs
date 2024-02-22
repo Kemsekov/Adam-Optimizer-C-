@@ -30,11 +30,11 @@ public abstract record LearnerBase(LearningData LearningData) : ILearner
     /// <summary>
     /// Gradient of basis
     /// </summary>
-    protected FVector biasesGradient => LearningData.biasesGradient;
+    protected FTensor biasesGradient => LearningData.biasesGradient;
     /// <summary>
     /// Input of layer
     /// </summary>
-    protected FVector layerInput => LearningData.layerInput;
+    protected FTensor layerInput => LearningData.layerInput;
     /// <summary>
     /// Learning rate
     /// </summary>
@@ -46,4 +46,4 @@ public abstract record LearnerBase(LearningData LearningData) : ILearner
 }
 
 ///<inheritdoc/>
-public record LearningData(ILayer layer, FVector biasesGradient, FVector layerInput, float learningRate);
+public record LearningData(ILayer layer, FTensor biasesGradient, FTensor layerInput, float learningRate);

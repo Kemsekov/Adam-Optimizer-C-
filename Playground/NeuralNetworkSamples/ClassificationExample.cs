@@ -18,15 +18,14 @@ public partial class Examples
         var train = records[20..];
         var test = records[..20];
 
-        var defaultFactory = new NNComplexObjectsFactory();
-        var layer1 = new Layer(defaultFactory, 4, 32, ActivationFunction.Tanh());
-        var layer2 = new Layer(defaultFactory, 32, 16, ActivationFunction.Tanh());
-        var layer3 = new Layer(defaultFactory, 16, 3, ActivationFunction.Softmax());
+        var layer1 = new Layer(4, 32, ActivationFunction.Tanh());
+        var layer2 = new Layer(32, 16, ActivationFunction.Tanh());
+        var layer3 = new Layer(16, 3, ActivationFunction.Softmax());
 
         var speciesPredictor = new ForwardNN(layer1, layer2, layer3)
         {
             LearningRate = 0.05f,
-            LearnerFactory=DefaultLearner.Factory(new L2Regularization(0.001f))
+            // LearnerFactory=DefaultLearner.Factory(new L2Regularization(0.001f))
         };
 
         var getError = () => test.Average(x =>
@@ -52,12 +51,7 @@ public partial class Examples
                 .ToList()
                 .ForEach(n=>{learnTimer.Start();n.Learn();learnTimer.Stop();})
             );
-            // foreach (var record in trainData)
-            // {
-            //     var (input, expected) = record;
-            //     var backprop = speciesPredictor.Backwards(input, expected);
-            //     backprop.Learn();
-            // }
+            
         }
         System.Console.WriteLine($"Final error is {getError()}");
         System.Console.WriteLine("Total time "+timer.ElapsedMilliseconds);

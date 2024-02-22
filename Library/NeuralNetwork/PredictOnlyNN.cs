@@ -15,8 +15,8 @@ public class PredictOnlyNN
         this.nnBase = nnBase;
     }
     ///<inheritdoc/>
-    public FVector Forward(FVector input)=> nnBase.Forward(input);
+    public FTensor Forward(FTensor input)=> nnBase.Forward(input);
     ///<inheritdoc/>
-    public float Error(FVector input, FVector expected)=>nnBase.Error(input,expected);
+    public float Error(FTensor input, FTensor expected)=>nnBase.Error(input,expected);
 
 }

@@ -19,5 +19,6 @@
   <ItemGroup>
     <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
     <PackageReference Include="RentedArraySharp" Version="1.0.4" />
+    <PackageReference Include="Tensor.NET" Version="0.1.2" />
   </ItemGroup>
 </Project>

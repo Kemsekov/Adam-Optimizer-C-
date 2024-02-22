@@ -11,21 +11,21 @@ public class GlorotUniform : IWeightsInit
         this.Rand = rand ?? new Random();
     }
     ///<inheritdoc/>
-    public void InitWeights(FVector bias)
+    public void InitBiasWeights(FTensor bias)
     {
         bias.MapInplace(x=>Rand.NextSingle());
     }
     ///<inheritdoc/>
-    public void InitWeights(FMatrix layer)
+    public void InitWeights(FTensor layer)
     {
-        var limit = Math.Sqrt(6.0/(layer.RowCount+layer.ColumnCount));
+        var limit = Math.Sqrt(6.0/(layer.Shape[0]+layer.Shape[1]));
         layer.MapInplace(x=> (float)((Rand.NextSingle()*2-1)*limit));
     }
 
     ///<inheritdoc/>
-    public float SampleWeight(FMatrix layer)
+    public float SampleWeight(FTensor layer)
     {
-        var limit = Math.Sqrt(6.0/(layer.RowCount+layer.ColumnCount));
+        var limit = Math.Sqrt(6.0/(layer.Shape[0]+layer.Shape[1]));
         return (float)((Rand.NextSingle()*2-1)*limit);
     }
 }

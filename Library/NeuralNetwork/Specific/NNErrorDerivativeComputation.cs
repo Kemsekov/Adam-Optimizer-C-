@@ -8,7 +8,7 @@ internal class NNErrorDerivativeComputation : NNBase{
     public NNErrorDerivativeComputation(NNBase baseModel, LossFunctionOutputDerivativeReplacer replacer) : base(baseModel){
         this.replacer = replacer;
     }
-    public override FVector Forward(FVector input){
+    public override FTensor Forward(FTensor input){
         ILayer layer;
         for (int i = 0; i < Layers.Length; i++)
         {

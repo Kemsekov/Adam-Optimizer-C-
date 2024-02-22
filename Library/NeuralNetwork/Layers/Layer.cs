@@ -1,54 +1,60 @@
+using System.Collections.Immutable;
+using Tensornet;
+
 namespace GradientDescentSharp.NeuralNetwork;
 /// <summary>
 /// Default layer
 /// </summary>
-public class Layer : ILayer
+public unsafe class Layer : ILayer
 {
     ///<inheritdoc/>
-    public FMatrix Weights { get; }
+    public FTensor Weights { get; }
     ///<inheritdoc/>
-    public FVector Bias { get; }
+    public FTensor Bias { get; }
     /// <summary>
     /// Output without applied activation function. <br/>
     /// </summary>
     /// <value></value>
-    public FVector RawOutput { get; }
+    public FTensor RawOutput { get; }
     ///<inheritdoc/>
     public IActivationFunction Activation { get; }
 
-    /// <param name="factory">Linear objects factory</param>
     /// <param name="inputSize">Layer input size</param>
     /// <param name="outputSize">Layer output size</param>
     /// <param name="activation">Activation function. May choose from <see cref="ActivationFunction"/></param>
-    public Layer(IComplexObjectsFactory<float> factory, int inputSize, int outputSize, IActivationFunction activation)
+    public Layer(int inputSize, int outputSize, IActivationFunction activation)
     {
-        Weights = factory.CreateMatrix(outputSize, inputSize);
-        Bias = factory.CreateVector(outputSize);
-        RawOutput = factory.CreateVector(outputSize);
+        Weights = Tensor.Zeros<float>(new(outputSize, inputSize));
+        Bias = Tensor.Zeros<float>(new(outputSize, 1));
+        RawOutput = Tensor.Zeros<float>(new(outputSize, 1));
+
         Activation = activation;
-        Activation.WeightsInit.InitWeights(Bias);
+        Activation.WeightsInit.InitBiasWeights(Bias);
         Activation.WeightsInit.InitWeights(Weights);
     }
     ///<inheritdoc/>
-    public FVector Forward(FVector input)
+    public FTensor Forward(FTensor input)
     {
-        var raw = Weights * input + Bias;
+        var raw = Weights.Matmul(input) + Bias;
         return raw;
     }
     ///<inheritdoc/>
-    public Gradient ComputeGradient(FVector layerInput,FVector layerOutput,FVector inputLossDerivative, bool updateLossDerivative, out FVector? newLossDerivative)
+    public Gradient ComputeGradient(FTensor layerInput, FTensor layerOutput, FTensor inputLossDerivative, bool updateLossDerivative, out FTensor? newLossDerivative)
     {
         var activation = Activation.Activation;
         var derivative = Activation.ActivationDerivative;
 
         var layerOutputDerivative = derivative(layerOutput);
-        var biasesGradient = layerOutputDerivative.MapIndexed((j, x) => x * inputLossDerivative[j]);
-        newLossDerivative=null;
+        var span = inputLossDerivative.AsSpan();
+        var biasesGradient = layerOutputDerivative.VecMap(span,(i,s, v) => s[i] * v);
+
+        newLossDerivative = null;
         if (updateLossDerivative)
         {
-            inputLossDerivative.MapIndexedInplace((j, x) => x * layerOutputDerivative[j]);
-            newLossDerivative = inputLossDerivative*Weights;
+            var layerOutputDerivativeSpan = layerOutputDerivative.AsSpan();
+            inputLossDerivative.VecMapInplace(layerOutputDerivativeSpan,(j,s, x) => x * s[j]);
+            newLossDerivative = inputLossDerivative.Matmul(Weights);
         }
-        return new(biasesGradient,layerInput);
+        return new(biasesGradient, layerInput);
     }
 }

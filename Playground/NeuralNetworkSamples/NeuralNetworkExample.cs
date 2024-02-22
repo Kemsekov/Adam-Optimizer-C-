@@ -9,14 +9,12 @@ public partial class Examples
 {
     public static void NeuralNetworkExample()
     {
-        var defaultFactory = new NNComplexObjectsFactory();
-
-        var layer1 = new Layer(defaultFactory, 2, 32, ActivationFunction.Tanh());
-        var layer2 = new Layer(defaultFactory, 32, 16, ActivationFunction.Tanh());
+        var layer1 = new Layer(2, 32, ActivationFunction.Tanh());
+        var layer2 = new Layer(32, 16, ActivationFunction.Tanh());
 
         //output layed needs to be linear so both positive and negative values can be 
         //predicted by a model
-        var layer3 = new Layer(defaultFactory, 16, 2, ActivationFunction.Linear());
+        var layer3 = new Layer(16, 2, ActivationFunction.Linear());
 
         var nn = new ForwardNN(layer1, layer2, layer3);
 

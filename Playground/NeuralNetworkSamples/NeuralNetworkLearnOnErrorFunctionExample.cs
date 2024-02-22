@@ -11,12 +11,10 @@ public partial class Examples
     //from error function only. That's it!
     public static void NeuralNetworkLearnOnLossFunctionExample()
     {
-        var defaultFactory = new NNComplexObjectsFactory();
-
-        var layer1 = new Layer(defaultFactory, 1, 32, ActivationFunction.Tanh());
-        var layer2 = new Layer(defaultFactory, 32, 16, ActivationFunction.Tanh());
-        var layer3 = new Layer(defaultFactory, 16, 4, ActivationFunction.Tanh());
-        var layer4 = new Layer(defaultFactory, 4, 1, ActivationFunction.Linear());
+        var layer1 = new Layer(1, 32, ActivationFunction.Tanh());
+        var layer2 = new Layer(32, 16, ActivationFunction.Tanh());
+        var layer3 = new Layer(16, 4, ActivationFunction.Tanh());
+        var layer4 = new Layer(4, 1, ActivationFunction.Linear());
 
         var nn = new ForwardNN(layer1, layer2, layer3, layer4);
         _NeuralNetworkLearnOnLossFunctionExample(nn);

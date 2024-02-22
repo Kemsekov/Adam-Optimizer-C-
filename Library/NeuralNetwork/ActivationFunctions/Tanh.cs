@@ -6,13 +6,13 @@ public class Tanh : IActivationFunction
     ///<inheritdoc/>
     public IWeightsInit WeightsInit { get; set; } = new GlorotUniform();
     ///<inheritdoc/>
-    public FVector Activation(FVector x)
+    public FTensor Activation(FTensor x)
     {
         return x.Map(x => MathF.Tanh(x));
     }
 
     ///<inheritdoc/>
-    public FVector ActivationDerivative(FVector x)
+    public FTensor ActivationDerivative(FTensor x)
     {
         return x.Map(x =>
         {

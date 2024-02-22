@@ -5,11 +5,11 @@ namespace GradientDescentSharp.NeuralNetwork.WeightInitializers;
 /// </summary>
 public interface IWeightsInit{
     ///<inheritdoc/>
-    public void InitWeights(FVector bias);
+    public void InitWeights(FTensor layer);
     ///<inheritdoc/>
-    public void InitWeights(FMatrix layer);
+    public void InitBiasWeights(FTensor layer);
     /// <summary>
     /// Get a single sample that could be assigned to weights in given layer weights
     /// </summary>
-    public float SampleWeight(FMatrix layer);
+    public float SampleWeight(FTensor layer);
 }

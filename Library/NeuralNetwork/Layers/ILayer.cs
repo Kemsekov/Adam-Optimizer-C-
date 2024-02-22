@@ -7,11 +7,11 @@ public interface ILayer
     /// <summary>
     /// Layer weights
     /// </summary>
-    FMatrix Weights{get;}
+    FTensor Weights{get;}
     /// <summary>
     /// Layer bias
     /// </summary>
-    FVector Bias{get;}
+    FTensor Bias{get;}
     /// <summary>
     /// Layer activation function
     /// </summary>
@@ -19,7 +19,7 @@ public interface ILayer
     /// <summary>
     /// Layer forward pass
     /// </summary>
-    FVector Forward(FVector input);
+    FTensor Forward(FTensor input);
     /// <summary>
     /// Computes gradients for current layer
     /// </summary>
@@ -29,5 +29,5 @@ public interface ILayer
     /// <param name="updateLossDerivative">Used to indicate whether we need to update loss derivative or not</param>
     /// <param name="newLossDerivative">Updated loss derivative, or null if flag for update was set false</param>
     /// <returns>Gradients for current layer</returns>
-    Gradient ComputeGradient(FVector layerInput,FVector layerOutput,FVector inputLossDerivative, bool updateLossDerivative, out FVector? newLossDerivative);
+    Gradient ComputeGradient(FTensor layerInput,FTensor layerOutput,FTensor inputLossDerivative, bool updateLossDerivative, out FTensor? newLossDerivative);
 }

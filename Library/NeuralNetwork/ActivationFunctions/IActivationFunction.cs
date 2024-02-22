@@ -11,8 +11,8 @@ public interface IActivationFunction{
     IWeightsInit WeightsInit{get;}
     /// <summary>
     /// </summary>
-    FVector Activation(FVector x);
+    FTensor Activation(FTensor x);
     /// <summary>
     /// </summary>
-    FVector ActivationDerivative(FVector x);
+    FTensor ActivationDerivative(FTensor x);
 }

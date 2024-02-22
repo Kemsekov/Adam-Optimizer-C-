@@ -10,10 +10,9 @@ public partial class Examples
     public static void NeuralNetworkOnDatasetExample()
     {
 
-        var defaultFactory = new NNComplexObjectsFactory();
-        var layer1 = new Layer(defaultFactory, 5, 32, ActivationFunction.Tanh());
-        var layer2 = new Layer(defaultFactory, 32, 16, ActivationFunction.Tanh());
-        var layer3 = new Layer(defaultFactory, 16, 1, ActivationFunction.Linear());
+        var layer1 = new Layer(5, 32, ActivationFunction.Tanh());
+        var layer2 = new Layer(32, 16, ActivationFunction.Tanh());
+        var layer3 = new Layer(16, 1, ActivationFunction.Linear());
 
         var pricePredictor = new ForwardNN(layer1, layer2, layer3);
         using var reader = new StreamReader("datasets/USA_Housing.csv");
