@@ -31,7 +31,8 @@ public class LossFunctionOutputDerivativeReplacer{
     /// </summary>
     /// <param name="output"></param>
     public void ReplaceOutputParameter(FTensor output){
+        var outputSpan = output.AsSpan();
         if(ChangedOutputIndex!=-1)
-            output[ChangedOutputIndex] += ChangedOutputTheta;
+            outputSpan[ChangedOutputIndex] += ChangedOutputTheta;
     }
 }

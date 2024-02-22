@@ -8,20 +8,21 @@ namespace GradientDescentSharp.NeuralNetwork;
 /// Extensions
 /// </summary>
 public static class NNBaseExtensions{
+
     ///<inheritdoc/>
-    public static FTensor ToTensor(FVector input){
+    public static FTensor ToTensor(this FVector input){
         var inputT = Tensor.Zeros<float>(new(input.Count,1));
         inputT.VecMapInplace((i,v)=>input[i]);
         return inputT;
     }
     ///<inheritdoc/>
-    public static FTensor ToTensor(float[] input){
+    public static FTensor ToTensor(this float[] input){
         var inputT = Tensor.Zeros<float>(new(input.Length,1));
         inputT.VecMapInplace((i,v)=>input[i]);
         return inputT;
     }
     ///<inheritdoc/>
-    public static FVector ToFVector(FTensor tensor){
+    public static FVector ToFVector(this FTensor tensor){
         var span = tensor.AsSpan();
         var vec  = DenseVector.OfArray(span.ToArray());
         return vec;

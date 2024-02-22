@@ -59,13 +59,12 @@ public partial class Examples
         System.Console.WriteLine("Train....");
         for(int i = 0;i<3;i++){
             foreach(var t in train){
-                nn.Backwards(t.input,t.output);
-                nn.Backwards(t.input,t.output);
-                // nn.LearnOnLoss(t.input,0.01f,(inp,pnn)=>(float)(pnn.Forward(inp)-t.output).Sum(x=>x*x));
+                // nn.Backwards(t.input,t.output).Learn();
+                nn.LearnOnLoss(t.input,0.01f,(inp,pnn)=>(float)(pnn.Forward(inp)-t.output).Sum(x=>x*x)).Learn();
             }
         }
         
         var error = test.Select(t=>(nn.Forward(t.input)-t.output)[0]).Sum(x=>x*x)/test.Length;
-        System.Console.WriteLine(error);
+        System.Console.WriteLine("Total error "+error);
     }
 }

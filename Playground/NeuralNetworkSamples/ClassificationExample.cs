@@ -19,7 +19,7 @@ public partial class Examples
         var test = records[..20];
 
         var layer1 = new Layer(4, 32, ActivationFunction.Tanh());
-        var layer2 = new Layer(32, 16, ActivationFunction.Tanh());
+        var layer2 = new Layer(32, 16, ActivationFunction.LeakyRelu(0.2f));
         var layer3 = new Layer(16, 3, ActivationFunction.Softmax());
 
         var speciesPredictor = new ForwardNN(layer1, layer2, layer3)
@@ -34,7 +34,14 @@ public partial class Examples
             return speciesPredictor.Error(data.input, data.output);
         });
 
-        var trainData = train.Select(t=>t.BuildData()).ToList();
+        var trainData = 
+            train
+            .Select(t=>t.BuildData())
+            .Select(t=>new{
+                input=t.input.ToTensor(),
+                output=t.output.ToTensor()
+            })
+            .ToList();
         var timer = new Stopwatch();
         var learnTimer = new Stopwatch();
         timer.Start();

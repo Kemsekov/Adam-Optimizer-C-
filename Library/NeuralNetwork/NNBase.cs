@@ -162,7 +162,7 @@ public abstract class NNBase
         var original = errorFunction(input, new(this));
         var originalOutput = ForwardForLearning(input,out rawLayerOutput);
         var errorDerivative = originalOutput.Map(x => 0.0f);
-
+        
         void computeDerivative(int i)
         {
             var replacer = new LossFunctionOutputDerivativeReplacer
@@ -172,7 +172,7 @@ public abstract class NNBase
             };
             var nn = new NNErrorDerivativeComputation(this, replacer);
             var changed = errorFunction(input, new(nn));
-            errorDerivative[i] = (changed - original) / theta;
+            errorDerivative.VecAt(i) = (changed - original) / theta;
             replacer.ChangedOutputIndex = -1;
         }
 

@@ -36,8 +36,8 @@ public record DefaultLearner(LearningData LearningData, IRegularization? Regular
         {
             throw new NotSupportedException("Unlearn supported only on learners without regularization");
         }
-        var weightsGradient = (int[] jk) => biasesGradient[jk[0]] * layerInput[jk[1]];
+        var weightsGradient = (int[] jk) => biasesGradient.VecAt(jk[0]) * layerInput.VecAt(jk[1]);
         layer.Weights.MapInplace((ind, x) => x + learningRate * weightsGradient(ind));
-        layer.Bias.VecMapInplace((j, x) => x + learningRate * biasesGradient[j]);
+        layer.Bias.VecMapInplace((j, x) => x + learningRate * biasesGradient.VecAt(j));
     }
 }
