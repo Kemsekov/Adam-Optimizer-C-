@@ -8,7 +8,6 @@ namespace GradientDescentSharp.Utils;
 /// </summary>
 public unsafe static class TensorExtensions
 {
-    public static Stopwatch Timer = new();
     /// <summary>
     /// Delegate that allows to do tensor map with span as parameter
     /// </summary>
@@ -24,7 +23,7 @@ public unsafe static class TensorExtensions
     public static void VecMapInplace<T>(this Tensor<T> tensor, Func<int, T, T> map)
     where T : unmanaged, IEquatable<T>, IConvertible
     {
-        Timer.Start();
+        
         var span = tensor.AsSpan();
         var len = span.Length;
         // ref var pos = ref span[0];
@@ -33,7 +32,7 @@ public unsafe static class TensorExtensions
             ref var pos = ref p[i];
             pos = map(i, pos);
         }
-        Timer.Stop();
+        
 
     }
     /// <summary>
@@ -42,7 +41,7 @@ public unsafe static class TensorExtensions
     public static void VecMapInplace<T>(this Tensor<T> tensor,Span<T> inputSpan, MapWithSpan<T> map)
     where T : unmanaged, IEquatable<T>, IConvertible
     {
-        Timer.Start();
+        
         var span = tensor.AsSpan();
         var len = span.Length;
         // ref var pos = ref span[0];
@@ -51,7 +50,7 @@ public unsafe static class TensorExtensions
             ref var pos = ref p[i];
             pos = map(i,inputSpan, pos);
         }
-        Timer.Stop();
+        
     }
     /// <summary>
     /// Map inplace 2d tensor
@@ -59,7 +58,7 @@ public unsafe static class TensorExtensions
     public static void MapInplace<T>(this Tensor<T> tensor, Func<int,int, T, T> map)
     where T : unmanaged, IEquatable<T>, IConvertible
     {
-        Timer.Start();
+        
         var span = tensor.AsSpan();
         var rows = tensor.Shape[0];
         var cols = tensor.Shape[1];
@@ -71,7 +70,7 @@ public unsafe static class TensorExtensions
                 ref var pos = ref p[i * cols + j];
                 pos = map(i, j , pos);
             }
-        Timer.Stop();
+        
     }
     /// <summary>
     /// Map inplace 2d tensor
@@ -79,7 +78,7 @@ public unsafe static class TensorExtensions
     public static void MapInplace<T>(this Tensor<T> tensor,Span<T> span1, Span<T> span2, MapWith2Span<T> map)
     where T : unmanaged, IEquatable<T>, IConvertible
     {
-        Timer.Start();
+        
         var span = tensor.AsSpan();
         var rows = tensor.Shape[0];
         var cols = tensor.Shape[1];
@@ -91,7 +90,7 @@ public unsafe static class TensorExtensions
                 ref var pos = ref p[i * cols + j];
                 pos = map(i, j ,span1,span2, pos);
             }
-        Timer.Stop();
+        
     }
     /// <summary>
     /// Map inplace 2d tensor
@@ -107,7 +106,7 @@ public unsafe static class TensorExtensions
     public static Tensor<T> VecMap<T>(this Tensor<T> tensor, Func<int, T, T> map)
     where T : unmanaged, IEquatable<T>, IConvertible
     {
-        Timer.Start();
+        
         var result = Tensor.ZerosLike<T,T>(tensor);
         var span = tensor.AsSpan();
         var resSpan = result.AsSpan();
@@ -118,7 +117,7 @@ public unsafe static class TensorExtensions
         for (int i = 0; i < len; i++){
             resP[i] = map(i, tensorP[i]);
         }
-        Timer.Stop();
+        
         return result;
     }
     /// <summary>   
@@ -127,7 +126,7 @@ public unsafe static class TensorExtensions
     public static Tensor<T> VecMap<T>(this Tensor<T> tensor,Span<T> inputSpan, MapWithSpan<T> map)
     where T : unmanaged, IEquatable<T>, IConvertible
     {
-        Timer.Start();
+        
         var result = Tensor.ZerosLike<T,T>(tensor);
         var span = tensor.AsSpan();
         var resSpan = result.AsSpan();
@@ -138,7 +137,7 @@ public unsafe static class TensorExtensions
         for (int i = 0; i < len; i++){
             resP[i] = map(i,inputSpan, tensorP[i]);
         }
-        Timer.Stop();
+        
         return result;
     }
     /// <summary>
@@ -147,7 +146,7 @@ public unsafe static class TensorExtensions
     public static Tensor<T> Map<T>(this Tensor<T> tensor, Func<int,int, T, T> map)
     where T : unmanaged, IEquatable<T>, IConvertible
     {
-        Timer.Start();
+        
         var result = Tensor.ZerosLike<T,T>(tensor);
         var span = tensor.AsSpan();
         var resSpan = result.AsSpan();
@@ -163,7 +162,7 @@ public unsafe static class TensorExtensions
                 pos = i * cols + j;
                 resP[pos] = map(i, j , tensorP[pos]);
             }
-        Timer.Stop();
+        
         return result;
     }
     /// <summary>

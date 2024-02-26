@@ -24,8 +24,8 @@ public partial class Examples
 
         var speciesPredictor = new ForwardNN(layer1, layer2, layer3)
         {
-            LearningRate = 0.05f,
-            // LearnerFactory=DefaultLearner.Factory(new L2Regularization(0.001f))
+            LearningRate = 0.01f,
+            // LearnerFactory=DefaultLearner.Factory(new L2Regularization(1e-8f))
         };
 
         var getError = () => test.Average(x =>
@@ -50,7 +50,7 @@ public partial class Examples
         {
             System.Console.WriteLine($"Error is {getError()}");
             trainData.OrderBy(n=>Random.Shared.Next())
-            .Chunk(10)
+            .Chunk(20)
             .ToList()
             .ForEach(chunk=>
                 chunk
@@ -63,7 +63,6 @@ public partial class Examples
         System.Console.WriteLine($"Final error is {getError()}");
         System.Console.WriteLine("Total time "+timer.ElapsedMilliseconds);
         System.Console.WriteLine("Learn time "+learnTimer.ElapsedMilliseconds);
-        System.Console.WriteLine("Internal time "+TensorExtensions.Timer.ElapsedMilliseconds);
         for(int i =0;i<5;i++){
             var actual = test[i];
             var prediction = speciesPredictor.Forward(actual.BuildData().input);

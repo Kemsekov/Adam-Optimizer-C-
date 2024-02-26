@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using GradientDescentSharp.NeuralNetwork.Specific;
@@ -52,8 +53,6 @@ public abstract class NNBase
             layer = Layers[i];
             var raw = layer.Forward(input);
             input = layer.Activation.Activation(raw);
-            //raw tensor is just intermediate tensor that won't leave
-            //this function scope so we can cache it
         }
         return input;
     }
