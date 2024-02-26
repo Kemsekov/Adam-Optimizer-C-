@@ -19,10 +19,8 @@ public record DefaultLearner(LearningData LearningData, IRegularization? Regular
         var bgSpan = biasesGradient.AsSpan();
         var liSpan = layerInput.AsSpan();
         
-        layer.Weights.MapInplace(bgSpan, liSpan, (index, bg, li, weight) =>
+        layer.Weights.MapInplace(bgSpan, liSpan, (j,k, bg, li, weight) =>
         {
-            var j = index[0];
-            var k = index[1];
             var weightGradient = bg[j] * li[k] + reg.WeightDerivative(weight);
             
             //by any reason you can get NaN while learning, in such case
@@ -45,8 +43,8 @@ public record DefaultLearner(LearningData LearningData, IRegularization? Regular
         {
             throw new NotSupportedException("Unlearn supported only on learners without regularization");
         }
-        var weightsGradient = (int[] jk) => biasesGradient.VecAt(jk[0]) * layerInput.VecAt(jk[1]);
-        layer.Weights.MapInplace((ind, x) => x + learningRate * weightsGradient(ind));
+        var weightsGradient = (int j, int k) => biasesGradient.VecAt(j) * layerInput.VecAt(k);
+        layer.Weights.MapInplace((j,k, x) => x + learningRate * weightsGradient(j,k));
         layer.Bias.VecMapInplace((j, x) => x + learningRate * biasesGradient.VecAt(j));
     }
 }

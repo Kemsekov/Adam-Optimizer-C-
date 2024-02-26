@@ -6,7 +6,7 @@ namespace GradientDescentSharp.Utils;
 /// <summary>
 /// Basic tensor operations extension
 /// </summary>
-public static class TensorExtensions
+public unsafe static class TensorExtensions
 {
     public static Stopwatch Timer = new();
     /// <summary>
@@ -16,7 +16,7 @@ public static class TensorExtensions
     /// <summary>
     /// Delegate that allows to do tensor map with two spans as parameter
     /// </summary>
-    public delegate T MapWith2Span<T>(int[] index,Span<T> span1,Span<T> span2, T value);
+    public delegate T MapWith2Span<T>(int i,int j,Span<T> span1,Span<T> span2, T value);
 
     /// <summary>
     /// Map inplace 2d tensor
@@ -27,8 +27,10 @@ public static class TensorExtensions
         Timer.Start();
         var span = tensor.AsSpan();
         var len = span.Length;
+        // ref var pos = ref span[0];
+        fixed(T* p = &span[0])
         for (int i = 0; i < len; i++){
-            ref var pos = ref span[i];
+            ref var pos = ref p[i];
             pos = map(i, pos);
         }
         Timer.Stop();
@@ -43,8 +45,10 @@ public static class TensorExtensions
         Timer.Start();
         var span = tensor.AsSpan();
         var len = span.Length;
+        // ref var pos = ref span[0];
+        fixed(T* p = &span[0])
         for (int i = 0; i < len; i++){
-            ref var pos = ref span[i];
+            ref var pos = ref p[i];
             pos = map(i,inputSpan, pos);
         }
         Timer.Stop();
@@ -52,18 +56,20 @@ public static class TensorExtensions
     /// <summary>
     /// Map inplace 2d tensor
     /// </summary>
-    public static void MapInplace<T>(this Tensor<T> tensor, Func<int[], T, T> map)
+    public static void MapInplace<T>(this Tensor<T> tensor, Func<int,int, T, T> map)
     where T : unmanaged, IEquatable<T>, IConvertible
     {
         Timer.Start();
         var span = tensor.AsSpan();
         var rows = tensor.Shape[0];
         var cols = tensor.Shape[1];
+        // ref T pos = ref span[0];
+        fixed(T* p = &span[0])
         for (int i = 0; i < rows; i++)
             for (int j = 0; j < cols; j++)
             {
-                ref var pos = ref span[i * cols + j];
-                pos = map(new[] { i, j }, pos);
+                ref var pos = ref p[i * cols + j];
+                pos = map(i, j , pos);
             }
         Timer.Stop();
     }
@@ -77,11 +83,13 @@ public static class TensorExtensions
         var span = tensor.AsSpan();
         var rows = tensor.Shape[0];
         var cols = tensor.Shape[1];
+        // ref T pos = ref span[0];
+        fixed(T* p = &span[0])
         for (int i = 0; i < rows; i++)
             for (int j = 0; j < cols; j++)
             {
-                ref var pos = ref span[i * cols + j];
-                pos = map(new[] { i, j },span1,span2, pos);
+                ref var pos = ref p[i * cols + j];
+                pos = map(i, j ,span1,span2, pos);
             }
         Timer.Stop();
     }
@@ -105,8 +113,10 @@ public static class TensorExtensions
         var resSpan = result.AsSpan();
 
         var len = span.Length;
+        fixed(T* tensorP = &span[0])
+        fixed(T* resP = &resSpan[0])
         for (int i = 0; i < len; i++){
-            resSpan[i] = map(i, span[i]);
+            resP[i] = map(i, tensorP[i]);
         }
         Timer.Stop();
         return result;
@@ -123,8 +133,10 @@ public static class TensorExtensions
         var resSpan = result.AsSpan();
 
         var len = span.Length;
+        fixed(T* tensorP = &span[0])
+        fixed(T* resP = &resSpan[0])
         for (int i = 0; i < len; i++){
-            resSpan[i] = map(i,inputSpan, span[i]);
+            resP[i] = map(i,inputSpan, tensorP[i]);
         }
         Timer.Stop();
         return result;
@@ -132,7 +144,7 @@ public static class TensorExtensions
     /// <summary>
     /// Map 2d tensor to new tensor
     /// </summary>
-    public static Tensor<T> Map<T>(this Tensor<T> tensor, Func<int[], T, T> map)
+    public static Tensor<T> Map<T>(this Tensor<T> tensor, Func<int,int, T, T> map)
     where T : unmanaged, IEquatable<T>, IConvertible
     {
         Timer.Start();
@@ -142,11 +154,14 @@ public static class TensorExtensions
 
         var rows = tensor.Shape[0];
         var cols = tensor.Shape[1];
+        int pos = 0;
+        fixed(T* tensorP = &span[0])
+        fixed(T* resP = &resSpan[0])
         for (int i = 0; i < rows; i++)
             for (int j = 0; j < cols; j++)
             {
-                var pos = i * cols + j;
-                resSpan[pos] = map(new[] { i, j }, span[pos]);
+                pos = i * cols + j;
+                resP[pos] = map(i, j , tensorP[pos]);
             }
         Timer.Stop();
         return result;

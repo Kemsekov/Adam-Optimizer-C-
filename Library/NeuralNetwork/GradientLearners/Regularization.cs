@@ -1,3 +1,6 @@
+using System.Runtime.CompilerServices;
+
+
 /// <summary>
 /// Regularization
 /// </summary>
@@ -7,7 +10,8 @@ public interface IRegularization{
     /// For l2 it is gonna be just 2*weight, for l1 it is gonna be |weight|/|weight|
     /// </summary>
     /// <param name="weight"></param>
-    public float WeightDerivative(float weight);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    float WeightDerivative(float weight);
 }
 /// <summary>
 /// L2 regularization
@@ -22,6 +26,7 @@ public record L2Regularization : IRegularization
         this._alpha = 2*alpha;
     }
     ///<inheritdoc/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float WeightDerivative(float weight)
     {
         return _alpha*weight;
@@ -40,6 +45,7 @@ public record L1Regularization : IRegularization
         this._alpha = alpha;
     }
     ///<inheritdoc/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float WeightDerivative(float weight)
     {
         return _alpha*float.Sign(weight);
@@ -51,6 +57,7 @@ public record L1Regularization : IRegularization
 public record NoRegularization : IRegularization
 {
     ///<inheritdoc/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public float WeightDerivative(float weight)
     {
         return 0;
