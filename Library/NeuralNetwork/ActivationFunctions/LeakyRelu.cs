@@ -1,4 +1,6 @@
 
+using Tensornet;
+
 namespace GradientDescentSharp.NeuralNetwork.ActivationFunction;
 
 ///<inheritdoc/>

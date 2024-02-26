@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using GradientDescentSharp.NeuralNetwork.Specific;
 using Tensornet;
 namespace GradientDescentSharp.NeuralNetwork;
@@ -154,8 +155,9 @@ public abstract class NNBase
     {
         var original = errorFunction(input, new(this));
         var originalOutput = ForwardForLearning(input,out rawLayerOutput);
-        var errorDerivative = originalOutput.Map(x => 0.0f);
+        var errorDerivative = Tensor.ZerosLike<float,float>(originalOutput);
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void computeDerivative(int i)
         {
             var replacer = new LossFunctionOutputDerivativeReplacer
@@ -194,7 +196,7 @@ public abstract class NNBase
             var layerInput = i > 0 ? layer.Activation.Activation(rawLayersOutput[Layers[i - 1]]) : null;
             
             if(layerInput is null){
-                var newlayerInput = input.Map(x=>0);
+                var newlayerInput = Tensor.ZerosLike<float,float>(input);
                 input.CopyTo(newlayerInput);
                 layerInput=newlayerInput;
             }

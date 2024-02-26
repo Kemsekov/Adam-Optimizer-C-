@@ -8,7 +8,7 @@ public class Tanh : IActivationFunction
     ///<inheritdoc/>
     public FTensor Activation(FTensor x)
     {
-        return x.Map(x => MathF.Tanh(x));
+        return x.Map(MathF.Tanh);
     }
 
     ///<inheritdoc/>

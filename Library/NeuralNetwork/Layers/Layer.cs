@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using Tensornet;
 
 namespace GradientDescentSharp.NeuralNetwork;
@@ -29,9 +30,11 @@ public unsafe class Layer : ILayer
     ///<inheritdoc/>
     public FTensor Forward(FTensor input)
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        float addBias(int j,Span<float> s,float v)=>v+s[j];
         //result = Weights @ input + Bias
         var result = Weights.Matmul(input);
-        result.VecMapInplace(Bias.AsSpan(),(j,s,v)=>v+s[j]);
+        result.VecMapInplace(Bias.AsSpan(),addBias);
         return result;
     }
     ///<inheritdoc/>
@@ -42,17 +45,24 @@ public unsafe class Layer : ILayer
         var layerOutputDerivative = derivative(layerOutput);
 
         newLossDerivative = null;
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        float lossDerivUpdate(int j,Span<float> s, float x) => x * s[j];
+
         if (updateLossDerivative)
         {
             inputLossDerivative.VecMapInplace(
                 layerOutputDerivative.AsSpan(),
-                (j,s, x) => x * s[j]
+                lossDerivUpdate
             );
 
             newLossDerivative = inputLossDerivative.Matmul(Weights);
         }
         
-        layerOutputDerivative.VecMapInplace(inputLossDerivative.AsSpan(),(i,s, v) => s[i] * v);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        float biasesGrad(int i,Span<float> s, float v) => s[i] * v;
+
+        layerOutputDerivative.VecMapInplace(inputLossDerivative.AsSpan(),biasesGrad);
         var biasesGradient = layerOutputDerivative;
 
         return new(biasesGradient, layerInput);

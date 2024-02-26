@@ -15,7 +15,7 @@ public class Swish : IActivationFunction
     ///<inheritdoc/>
     public FTensor Activation(FTensor x)
     {
-        return x.Map(x => x / (1 + MathF.Exp(-beta * x)));
+        return x.Map(x => x / (1.0f + MathF.Exp(-beta * x)));
     }
 
     ///<inheritdoc/>
@@ -24,8 +24,8 @@ public class Swish : IActivationFunction
         return x.Map(x =>
         {
             x *= beta;
-            var sigmoid = 1.0f / (1 + MathF.Exp(-x));
-            var sigmoidDerivative = 1 - sigmoid;
+            var sigmoid = 1.0f / (1.0f + MathF.Exp(-x));
+            var sigmoidDerivative = 1.0f - sigmoid;
             return sigmoid + x * sigmoidDerivative;
         });
     }
