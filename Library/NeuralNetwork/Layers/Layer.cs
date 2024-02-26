@@ -11,11 +11,6 @@ public unsafe class Layer : ILayer
     public FTensor Weights { get; }
     ///<inheritdoc/>
     public FTensor Bias { get; }
-    /// <summary>
-    /// Output without applied activation function. <br/>
-    /// </summary>
-    /// <value></value>
-    public FTensor RawOutput { get; }
     ///<inheritdoc/>
     public IActivationFunction Activation { get; }
 
@@ -26,7 +21,6 @@ public unsafe class Layer : ILayer
     {
         Weights = Tensor.Zeros<float>(new(outputSize, inputSize));
         Bias = Tensor.Zeros<float>(new(outputSize, 1));
-        RawOutput = Tensor.Zeros<float>(new(outputSize, 1));
 
         Activation = activation;
         Activation.WeightsInit.InitBiasWeights(Bias);
@@ -35,26 +29,32 @@ public unsafe class Layer : ILayer
     ///<inheritdoc/>
     public FTensor Forward(FTensor input)
     {
-        var raw = Weights.Matmul(input) + Bias;
-        return raw;
+        //result = Weights @ input + Bias
+        var result = Weights.Matmul(input);
+        result.VecMapInplace(Bias.AsSpan(),(j,s,v)=>v+s[j]);
+        return result;
     }
     ///<inheritdoc/>
     public Gradient ComputeGradient(FTensor layerInput, FTensor layerOutput, FTensor inputLossDerivative, bool updateLossDerivative, out FTensor? newLossDerivative)
     {
-        var activation = Activation.Activation;
         var derivative = Activation.ActivationDerivative;
 
         var layerOutputDerivative = derivative(layerOutput);
-        var span = inputLossDerivative.AsSpan();
-        var biasesGradient = layerOutputDerivative.VecMap(span,(i,s, v) => s[i] * v);
 
         newLossDerivative = null;
         if (updateLossDerivative)
         {
-            var layerOutputDerivativeSpan = layerOutputDerivative.AsSpan();
-            inputLossDerivative.VecMapInplace(layerOutputDerivativeSpan,(j,s, x) => x * s[j]);
+            inputLossDerivative.VecMapInplace(
+                layerOutputDerivative.AsSpan(),
+                (j,s, x) => x * s[j]
+            );
+
             newLossDerivative = inputLossDerivative.Matmul(Weights);
         }
+        
+        layerOutputDerivative.VecMapInplace(inputLossDerivative.AsSpan(),(i,s, v) => s[i] * v);
+        var biasesGradient = layerOutputDerivative;
+
         return new(biasesGradient, layerInput);
     }
 }

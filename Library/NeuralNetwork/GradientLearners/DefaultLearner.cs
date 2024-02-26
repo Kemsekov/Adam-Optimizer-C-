@@ -14,17 +14,26 @@ public record DefaultLearner(LearningData LearningData, IRegularization? Regular
     ///<inheritdoc/>
     public unsafe override void Learn()
     {
+        
         var reg = Regularization ?? new NoRegularization();
         var bgSpan = biasesGradient.AsSpan();
         var liSpan = layerInput.AsSpan();
-        //optimize it beyond reason
+        
         layer.Weights.MapInplace(bgSpan, liSpan, (index, bg, li, weight) =>
         {
             var j = index[0];
             var k = index[1];
             var weightGradient = bg[j] * li[k] + reg.WeightDerivative(weight);
-            return weight - learningRate * weightGradient;
+            
+            //by any reason you can get NaN while learning, in such case
+            //we will just zero out weight update
+            //and yes, this is faster than if block because we avoid branching
+            //on cpu execution
+            float isNan=float.IsNaN(weightGradient) ? 0 : 1;
+
+            return weight - learningRate * isNan * weightGradient;
         });
+
         layer.Bias.VecMapInplace(bgSpan,(j,s, x) => x - learningRate * s[j]);
     }
     /// <summary>

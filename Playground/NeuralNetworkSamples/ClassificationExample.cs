@@ -63,7 +63,7 @@ public partial class Examples
         System.Console.WriteLine($"Final error is {getError()}");
         System.Console.WriteLine("Total time "+timer.ElapsedMilliseconds);
         System.Console.WriteLine("Learn time "+learnTimer.ElapsedMilliseconds);
-
+        System.Console.WriteLine("Internal time "+TensorExtensions.Timer.ElapsedMilliseconds);
         for(int i =0;i<5;i++){
             var actual = test[i];
             var prediction = speciesPredictor.Forward(actual.BuildData().input);

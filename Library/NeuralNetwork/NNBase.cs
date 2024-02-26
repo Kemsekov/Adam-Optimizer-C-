@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using GradientDescentSharp.NeuralNetwork.Specific;
 using Tensornet;
 namespace GradientDescentSharp.NeuralNetwork;
@@ -20,10 +21,6 @@ public abstract class NNBase
     /// </summary>
     public ILayer[] Layers { get; }
 
-    /// <summary>
-    /// Raw layer outputs from learning forward method, used for training
-    /// </summary>
-    protected ObjectPool<Dictionary<ILayer, FTensor>> RawLayerOutputStorage { get; }
 
     /// <summary>
     /// Network learning rate
@@ -37,7 +34,6 @@ public abstract class NNBase
     public NNBase(NNBase another)
     {
         Layers = another.Layers;
-        RawLayerOutputStorage = another.RawLayerOutputStorage;
     }
     /// <summary>
     /// Creates a new neural network from given layers
@@ -45,14 +41,6 @@ public abstract class NNBase
     public NNBase(params ILayer[] layers)
     {
         Layers = layers;
-        this.RawLayerOutputStorage = new ObjectPool<Dictionary<ILayer, FTensor>>(()=>{
-            var rawLayerOutput = new Dictionary<ILayer, FTensor>();
-            foreach (var layer in layers)
-            {
-                rawLayerOutput[layer] = layer.Bias.Map(x => 0.0f);
-            }
-            return rawLayerOutput;
-        });
     }
     /// <returns>Model prediction</returns>
     public virtual FTensor Forward(FTensor input)
@@ -61,7 +49,10 @@ public abstract class NNBase
         for (int i = 0; i < Layers.Length; i++)
         {
             layer = Layers[i];
-            input = layer.Activation.Activation(layer.Forward(input));
+            var raw = layer.Forward(input);
+            input = layer.Activation.Activation(raw);
+            //raw tensor is just intermediate tensor that won't leave
+            //this function scope so we can cache it
         }
         return input;
     }
@@ -70,7 +61,7 @@ public abstract class NNBase
     /// </summary>
     protected virtual FTensor ForwardForLearning(FTensor input, out Dictionary<ILayer, FTensor> rawLayerOutput)
     {
-        rawLayerOutput = RawLayerOutputStorage.GetObject();
+        rawLayerOutput = new Dictionary<ILayer, FTensor>();
         ILayer layer;
         for (int i = 0; i < Layers.Length; i++)
         {
@@ -133,11 +124,10 @@ public abstract class NNBase
     public BackpropResult LearnOnLoss(FTensor input, float theta, Func<FTensor, PredictOnlyNN, float> lossFunction)
     {
         var errorDerivative = ComputeDerivativeOfLossFunction(input, theta, lossFunction, out var rawLayerOutput);
-        var learned = BuildLearner(ComputeGradients(input,errorDerivative,rawLayerOutput));
-        RawLayerOutputStorage.PutObject(rawLayerOutput);
+        var learned = BuildLearner(ComputeGradients(input, errorDerivative, rawLayerOutput));
         return new BackpropResult(learned);
     }
-    
+
     /// <summary>
     /// Default backpropagation implementation. Learns a model to predict given expected value from input
     /// </summary>
@@ -148,13 +138,16 @@ public abstract class NNBase
         var error = (ForwardForLearning(input,out var rawLayersOutput) - expected) * 2;
         var gradients = ComputeGradients(input,error, rawLayersOutput);
         var learner = BuildLearner(gradients);
-        RawLayerOutputStorage.PutObject(rawLayersOutput);
         return new BackpropResult(learner);
     }
     /// <returns>MSE error from input and expected value from model prediction</returns>
     public float Error(FTensor input, FTensor expected)
     {
-        return (Forward(input) - expected).Sum(x => x * x);
+        var pred = Forward(input);
+        var diff = pred - expected;
+        var error =  diff.Sum(x => x * x);
+
+        return error;
     }
  
     private FTensor ComputeDerivativeOfLossFunction(FTensor input, float theta, Func<FTensor, PredictOnlyNN, float> errorFunction, out Dictionary<ILayer, FTensor> rawLayerOutput)
@@ -201,14 +194,16 @@ public abstract class NNBase
             var layerInput = i > 0 ? layer.Activation.Activation(rawLayersOutput[Layers[i - 1]]) : null;
             
             if(layerInput is null){
-                var newlayerInput = Tensor.ZerosLike<float,float>(input);
+                var newlayerInput = input.Map(x=>0);
                 input.CopyTo(newlayerInput);
                 layerInput=newlayerInput;
             }
 
             result[i] = layer.ComputeGradient(layerInput,layerOutput,lossDerivative,updateLossDerivative,out var newLoss);
-            if(newLoss is not null)
+
+            if(newLoss is not null){
                 lossDerivative = newLoss;
+            }
         }
         return result;
     }

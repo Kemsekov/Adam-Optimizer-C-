@@ -19,12 +19,12 @@ public record L2Regularization : IRegularization
     /// </summary>
     /// <param name="alpha">Regularization coefficient</param>
     public L2Regularization(float alpha){
-        this._alpha = alpha;
+        this._alpha = 2*alpha;
     }
     ///<inheritdoc/>
     public float WeightDerivative(float weight)
     {
-        return _alpha*2*weight;
+        return _alpha*weight;
     }
 }
 /// <summary>
